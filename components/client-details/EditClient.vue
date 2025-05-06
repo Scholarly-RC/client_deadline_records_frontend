@@ -1,10 +1,44 @@
 <script setup>
+import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
-import { useForm } from "vee-validate";
 
+// Stores
+const editClientStore = useEditClientStore();
 const alertStore = useAlertStore();
+const { client } = storeToRefs(editClientStore);
 
+// Modal state
+const isOpen = ref(false);
+
+// Form initial values
+const initialValues = computed(() => ({
+  name: client.value?.name || "",
+  status: client.value?.status || "",
+  contactPerson: client.value?.contact_person || "",
+  email: client.value?.email || "",
+  phone: client.value?.phone || "",
+  address: client.value?.address || "",
+  notes: client.value?.notes || "",
+}));
+
+// Form validation schema
+const validationSchema = toTypedSchema(
+  z.object({
+    name: z.string().nonempty("Client Name is required."),
+    status: z.string().nonempty("Status is required."),
+    contactPerson: z.string().nonempty("Contact Person is required."),
+    email: z
+      .string()
+      .nonempty("Email is required.")
+      .email("Invalid email format."),
+    phone: z.string().nonempty("Phone is required."),
+    address: z.string().nonempty("Address is required."),
+    notes: z.string(),
+  })
+);
+
+// Form setup
 const {
   values,
   errors,
@@ -14,22 +48,11 @@ const {
   isSubmitting,
   resetForm,
 } = useForm({
-  validationSchema: toTypedSchema(
-    z.object({
-      name: z.string().nonempty("Client Name is required."),
-      status: z.string().nonempty("Status is required."),
-      contactPerson: z.string().nonempty("Contact Person is required."),
-      email: z
-        .string()
-        .nonempty("Email is required.")
-        .email("Invalid email format."),
-      phone: z.string().nonempty("Phone is required."),
-      address: z.string().nonempty("Address is required."),
-      notes: z.string(),
-    })
-  ),
+  initialValues: initialValues.value,
+  validationSchema,
 });
 
+// Form fields
 const [name] = defineField("name");
 const [status] = defineField("status");
 const [contactPerson] = defineField("contactPerson");
@@ -38,15 +61,25 @@ const [phone] = defineField("phone");
 const [address] = defineField("address");
 const [notes] = defineField("notes");
 
+// Computed properties
 const disableSubmit = computed(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
 
+// Methods
+const toggleModal = () => {
+  isOpen.value = !isOpen.value;
+
+  if (isOpen.value) {
+    resetForm({ values: initialValues.value });
+  }
+};
+
 const onSubmit = handleSubmit(async (values) => {
   try {
     const { $apiFetch } = useNuxtApp();
-    const response = await $apiFetch("/api/clients/", {
-      method: "POST",
+    const response = await $apiFetch(`/api/clients/${client.value.id}/`, {
+      method: "PATCH",
       body: {
         name: values.name,
         status: values.status,
@@ -57,29 +90,25 @@ const onSubmit = handleSubmit(async (values) => {
         notes: values.notes,
       },
     });
-    alertStore.success("Success!", "A new client has been created.", 3.5);
-    toggleModal();
-    resetForm();
+    await editClientStore.getClient(client.value.id);
+    alertStore.success("Success!", "Client successfully updated.", 3.5);
+    resetForm({
+      values: initialValues.value,
+    });
   } catch (error) {
     alertStore.danger("Error!", error.data.detail, 3.5);
     console.error(error);
   }
 });
-
-const isOpen = ref(false);
-
-const toggleModal = () => {
-  isOpen.value = !isOpen.value;
-};
 </script>
 
 <template>
   <div>
     <button
       @click="toggleModal"
-      class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600"
+      class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
     >
-      Add Client
+      Edit Client
     </button>
 
     <div
@@ -108,7 +137,7 @@ const toggleModal = () => {
                 class="text-2xl font-bold text-gray-900 dark:text-white"
                 id="modal-title"
               >
-                Add New Client
+                Edit Client
               </h1>
               <button
                 @click="toggleModal"

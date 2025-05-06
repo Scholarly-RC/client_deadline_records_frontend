@@ -1,4 +1,5 @@
 <script setup>
+import Alert from "~/components/ui/Alert.vue";
 import Sidebar from "~/components/ui/Sidebar.vue";
 </script>
 
@@ -8,5 +9,6 @@ import Sidebar from "~/components/ui/Sidebar.vue";
       <Sidebar />
       <slot />
     </div>
+    <Alert />
   </div>
 </template>

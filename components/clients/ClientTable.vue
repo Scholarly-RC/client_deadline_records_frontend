@@ -1,11 +1,20 @@
 <script setup>
 import PageHeader from "../ui/PageHeader.vue";
 import AddClient from "./AddClient.vue";
+import StatusPill from "./StatusPill.vue";
+
+const clientStore = useClientStore();
+
+const { clients } = storeToRefs(clientStore);
+
+onMounted(() => {
+  clientStore.getAllClients();
+});
 </script>
 
 <template>
   <div class="h-screen flex flex-col flex-1 overflow-hidden">
-    <PageHeader page="Client" />
+    <PageHeader page="Clients" />
 
     <!-- Content -->
     <main class="flex-1 overflow-auto p-4 bg-white dark:bg-gray-900">
@@ -23,13 +32,8 @@ import AddClient from "./AddClient.vue";
             class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
           >
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-              Recent Clients
+              All Clients
             </h3>
-            <button
-              class="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
-            >
-              View All
-            </button>
           </div>
           <div class="overflow-x-auto">
             <table
@@ -59,7 +63,13 @@ import AddClient from "./AddClient.vue";
                     scope="col"
                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                   >
-                    Last Activity
+                    Added By
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  >
+                    Added
                   </th>
                   <th scope="col" class="relative px-6 py-3">
                     <span class="sr-only">Actions</span>
@@ -70,113 +80,45 @@ import AddClient from "./AddClient.vue";
                 class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700"
               >
                 <!-- Client 1 -->
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <tr
+                  v-for="client in clients"
+                  :key="client.id"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
                   <td
                     class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"
                   >
-                    Acme Corp
+                    {{ client.name }}
                   </td>
                   <td
                     class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
                   >
-                    <span
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                    >
-                      Active
-                    </span>
+                    <StatusPill :active="client.status == 'active'" />
                   </td>
                   <td
                     class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
                   >
-                    John Doe
+                    {{ client.contact_person }}
                   </td>
                   <td
                     class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
                   >
-                    2 days ago
+                    {{ client.created_by.fullname }}
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    {{ client.created_at }}
                   </td>
                   <td
                     class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
                   >
-                    <button
+                    <NuxtLink
+                      :to="`/clients/${client.id} `"
                       class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:bg-gray-700"
                     >
                       View
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- Client 2 -->
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"
-                  >
-                    Globex Inc
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    <span
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                    >
-                      Active
-                    </span>
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    Jane Smith
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    1 week ago
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                  >
-                    <button
-                      class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:bg-gray-700"
-                    >
-                      View
-                    </button>
-                  </td>
-                </tr>
-
-                <!-- Client 3 -->
-                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"
-                  >
-                    Initech
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    <span
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    >
-                      Potential
-                    </span>
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    Peter Gibbons
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    3 weeks ago
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                  >
-                    <button
-                      class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:bg-gray-700"
-                    >
-                      View
-                    </button>
+                    </NuxtLink>
                   </td>
                 </tr>
               </tbody>

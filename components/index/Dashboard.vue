@@ -7,7 +7,7 @@ import PageHeader from "../ui/PageHeader.vue";
     <PageHeader page="Dashboard" />
 
     <!-- Content -->
-    <main class="flex-1 overflow-auto p-4 bg-white dark:bg-gray-900">
+    <main class="h-full flex-1 overflow-y-auto p-4 bg-white dark:bg-gray-900">
       <div class="space-y-6">
         <!-- Stats cards -->
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
