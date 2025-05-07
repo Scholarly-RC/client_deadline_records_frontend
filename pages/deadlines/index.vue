@@ -1,5 +1,5 @@
 <script setup>
-import Clients from "~/components/clients/Clients.vue";
+import Deadlines from "~/components/deadlines/Deadlines.vue";
 
 definePageMeta({
   layout: "menu",
@@ -8,5 +8,5 @@ definePageMeta({
 </script>
 
 <template>
-  <Clients />
+  <Deadlines />
 </template>

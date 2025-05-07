@@ -20,7 +20,7 @@ const getIconClasses = (path) => {
 
 <template>
   <!-- Mobile sidebar -->
-  <div class="md:hidden fixed inset-0 z-40 flex">
+  <div class="h-screen md:hidden fixed inset-0 z-40 flex">
     <div
       class="fixed inset-0 bg-gray-600 bg-opacity-75"
       id="mobile-sidebar-backdrop"
@@ -100,12 +100,14 @@ const getIconClasses = (path) => {
             </svg>
             Clients
           </NuxtLink>
-          <a
-            href="#"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 group"
+          <NuxtLink
+            to="/deadlines"
+            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
+            :class="getLinkClasses('/deadlines')"
           >
             <svg
-              class="w-6 h-6 mr-4 text-gray-400 group-hover:text-gray-500 dark:text-gray-400 dark:group-hover:text-gray-300"
+              class="w-6 h-6 mr-4"
+              :class="getIconClasses('/deadlines')"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -114,17 +116,19 @@ const getIconClasses = (path) => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
               ></path>
             </svg>
             Deadlines
-          </a>
-          <a
-            href="#"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 group"
+          </NuxtLink>
+          <NuxtLink
+            to="/settings"
+            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
+            :class="getLinkClasses('/settings')"
           >
             <svg
-              class="w-6 h-6 mr-4 text-gray-400 group-hover:text-gray-500 dark:text-gray-400 dark:group-hover:text-gray-300"
+              class="w-6 h-6 mr-4"
+              :class="getIconClasses('/settings')"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -136,8 +140,8 @@ const getIconClasses = (path) => {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               ></path>
             </svg>
-            Documents
-          </a>
+            Settings
+          </NuxtLink>
         </nav>
       </div>
       <div
@@ -167,7 +171,7 @@ const getIconClasses = (path) => {
   </div>
 
   <!-- Static sidebar for desktop -->
-  <div class="hidden md:flex md:flex-shrink-0">
+  <div class="h-screen hidden md:flex md:flex-shrink-0">
     <div
       class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
@@ -222,12 +226,14 @@ const getIconClasses = (path) => {
             </svg>
             Clients
           </NuxtLink>
-          <a
-            href="#"
-            class="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          <NuxtLink
+            to="/deadlines"
+            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
+            :class="getLinkClasses('/deadlines')"
           >
             <svg
-              class="w-5 h-5 mr-3"
+              class="w-6 h-6 mr-4"
+              :class="getIconClasses('/deadlines')"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -236,17 +242,19 @@ const getIconClasses = (path) => {
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
               ></path>
             </svg>
             Deadlines
-          </a>
-          <a
-            href="#"
-            class="flex items-center px-4 py-3 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          </NuxtLink>
+          <NuxtLink
+            to="/settings"
+            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
+            :class="getLinkClasses('/settings')"
           >
             <svg
-              class="w-5 h-5 mr-3"
+              class="w-6 h-6 mr-4"
+              :class="getIconClasses('/settings')"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -258,8 +266,8 @@ const getIconClasses = (path) => {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               ></path>
             </svg>
-            Documents
-          </a>
+            Settings
+          </NuxtLink>
         </nav>
       </div>
       <div class="p-4 border-t border-gray-200 dark:border-gray-700">

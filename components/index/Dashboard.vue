@@ -3,11 +3,14 @@ import PageHeader from "../ui/PageHeader.vue";
 </script>
 
 <template>
-  <div class="flex flex-col flex-1 overflow-hidden">
+  <div class="flex flex-col flex-1">
     <PageHeader page="Dashboard" />
 
     <!-- Content -->
-    <main class="h-full flex-1 overflow-y-auto p-4 bg-white dark:bg-gray-900">
+    <main
+      class="flex-1 overflow-y-auto p-4 bg-white dark:bg-gray-900"
+      style="max-height: calc(100vh - 4rem)"
+    >
       <div class="space-y-6">
         <!-- Stats cards -->
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

@@ -94,8 +94,7 @@ const toggleModal = () => {
       >
         <!-- Background overlay -->
         <div
-          class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity"
-          aria-hidden="true"
+          class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"
         ></div>
 
         <!-- Modal panel -->
