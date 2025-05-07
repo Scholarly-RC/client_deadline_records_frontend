@@ -70,13 +70,7 @@ const deleteConfirmation = async () => {
       >
         <div>
           <span class="font-medium text-gray-900 dark:text-white"
-            >Priority:</span
-          >
-          {{ deadlineType.default_priority }}
-        </div>
-        <div>
-          <span class="font-medium text-gray-900 dark:text-white"
-            >Reminder Days:</span
+            >Default Reminder Day/s:</span
           >
           {{ deadlineType.default_reminder_days }}
         </div>

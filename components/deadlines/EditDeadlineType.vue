@@ -22,7 +22,6 @@ const currentDeadline = ref(props.deadlineType);
 const initialValues = computed(() => ({
   name: currentDeadline.value.name,
   description: currentDeadline.value.description,
-  defaultPriority: currentDeadline.value.default_priority,
   defaultReminderDays: currentDeadline.value.default_reminder_days,
 }));
 
@@ -31,11 +30,10 @@ const validationSchema = toTypedSchema(
   z.object({
     name: z.string().nonempty("Name is required."),
     description: z.string(),
-    defaultPriority: z
+    defaultReminderDays: z
       .number()
-      .gt(0, "Priority must be greater than 0")
-      .lte(5, "Priority must be 5 or less"),
-    defaultReminderDays: z.number().min(0, "Reminder days cannot be negative"),
+      .min(0, "Reminder days must be zero or more")
+      .int("Reminder days must be a whole number"),
   })
 );
 
@@ -56,7 +54,6 @@ const {
 // Form Fields
 const [name] = defineField("name");
 const [description] = defineField("description");
-const [defaultPriority] = defineField("defaultPriority");
 const [defaultReminderDays] = defineField("defaultReminderDays");
 
 // Computed
@@ -79,7 +76,6 @@ const onSubmit = handleSubmit(async (values) => {
         body: {
           name: values.name,
           description: values.description,
-          default_priority: values.defaultPriority,
           default_reminder_days: values.defaultReminderDays,
         },
       }
@@ -139,25 +135,6 @@ End of the contract period</textarea
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="space-y-2">
-        <label
-          class="block text-sm font-medium text-gray-700 dark:text-gray-200"
-          >Default Priority</label
-        >
-        <input
-          v-model="defaultPriority"
-          type="number"
-          min="1"
-          max="5"
-          class="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <p
-          v-if="errors.defaultPriority"
-          class="mt-1 text-xs text-red-600 dark:text-red-400"
-        >
-          {{ errors.defaultPriority }}
-        </p>
-      </div>
       <div class="space-y-2">
         <label
           class="block text-sm font-medium text-gray-700 dark:text-gray-200"

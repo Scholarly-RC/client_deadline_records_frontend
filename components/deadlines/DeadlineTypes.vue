@@ -8,7 +8,7 @@ const deadlineTypeStore = useDeadlineTypesStore();
 const { deadlineTypes } = storeToRefs(deadlineTypeStore);
 
 // State
-const showSection = ref(true);
+const showSection = ref(false);
 const showAddDeadlineType = ref(false);
 
 // Methods
