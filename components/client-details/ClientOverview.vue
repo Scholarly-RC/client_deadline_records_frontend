@@ -1,7 +1,9 @@
 <script setup>
+// Components
 import PageHeader from "../ui/PageHeader.vue";
 import EditClient from "./EditClient.vue";
 
+// Stores
 const editClientStore = useEditClientStore();
 const { client } = storeToRefs(editClientStore);
 </script>

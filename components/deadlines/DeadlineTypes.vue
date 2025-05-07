@@ -1,13 +1,17 @@
 <script setup>
+// Components
 import AddDeadlineType from "./AddDeadlineType.vue";
 import DeadlineType from "./DeadlineType.vue";
 
-const showSection = ref(true);
-const showAddDeadlineType = ref(false);
-
+// Stores
 const deadlineTypeStore = useDeadlineTypesStore();
 const { deadlineTypes } = storeToRefs(deadlineTypeStore);
 
+// State
+const showSection = ref(true);
+const showAddDeadlineType = ref(false);
+
+// Methods
 const toggleShowSection = () => {
   showSection.value = !showSection.value;
 
@@ -20,6 +24,7 @@ const toggleAddDeadlineSection = () => {
   showAddDeadlineType.value = !showAddDeadlineType.value;
 };
 
+// Lifecycle Hooks
 onMounted(async () => {
   await deadlineTypeStore.getAllDeadlineTypes();
 });

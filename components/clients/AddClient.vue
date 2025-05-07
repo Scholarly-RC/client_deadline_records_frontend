@@ -1,10 +1,31 @@
 <script setup>
+import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
-import { useForm } from "vee-validate";
 
+// Stores
 const alertStore = useAlertStore();
 
+// State
+const isOpen = ref(false);
+
+// Form Schema
+const validationSchema = toTypedSchema(
+  z.object({
+    name: z.string().nonempty("Client Name is required."),
+    status: z.string().nonempty("Status is required."),
+    contactPerson: z.string().nonempty("Contact Person is required."),
+    email: z
+      .string()
+      .nonempty("Email is required.")
+      .email("Invalid email format."),
+    phone: z.string().nonempty("Phone is required."),
+    address: z.string().nonempty("Address is required."),
+    notes: z.string(),
+  })
+);
+
+// Form Setup
 const {
   values,
   errors,
@@ -14,22 +35,10 @@ const {
   isSubmitting,
   resetForm,
 } = useForm({
-  validationSchema: toTypedSchema(
-    z.object({
-      name: z.string().nonempty("Client Name is required."),
-      status: z.string().nonempty("Status is required."),
-      contactPerson: z.string().nonempty("Contact Person is required."),
-      email: z
-        .string()
-        .nonempty("Email is required.")
-        .email("Invalid email format."),
-      phone: z.string().nonempty("Phone is required."),
-      address: z.string().nonempty("Address is required."),
-      notes: z.string(),
-    })
-  ),
+  validationSchema,
 });
 
+// Form Fields
 const [name] = defineField("name");
 const [status] = defineField("status");
 const [contactPerson] = defineField("contactPerson");
@@ -38,9 +47,15 @@ const [phone] = defineField("phone");
 const [address] = defineField("address");
 const [notes] = defineField("notes");
 
+// Computed
 const disableSubmit = computed(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
+
+// Methods
+const toggleModal = () => {
+  isOpen.value = !isOpen.value;
+};
 
 const onSubmit = handleSubmit(async (values) => {
   try {
@@ -65,12 +80,6 @@ const onSubmit = handleSubmit(async (values) => {
     console.error(error);
   }
 });
-
-const isOpen = ref(false);
-
-const toggleModal = () => {
-  isOpen.value = !isOpen.value;
-};
 </script>
 
 <template>

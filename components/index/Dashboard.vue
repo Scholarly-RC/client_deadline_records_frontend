@@ -1,4 +1,5 @@
 <script setup>
+// Components
 import PageHeader from "../ui/PageHeader.vue";
 </script>
 

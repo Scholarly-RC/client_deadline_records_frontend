@@ -1,16 +1,21 @@
 <script setup>
+// Components
 import EditDeadlineType from "./EditDeadlineType.vue";
 
+// Props
 const props = defineProps({
   deadlineType: Object,
 });
 
+// Stores
 const confirmationStore = useConfirmationStore();
 const alertStore = useAlertStore();
 const deadlineTypesStore = useDeadlineTypesStore();
 
+// State
 const showEditDeadlineType = ref(false);
 
+// Methods
 const toggleShowEditDeadlineType = () => {
   showEditDeadlineType.value = !showEditDeadlineType.value;
 };
@@ -19,6 +24,7 @@ const deleteConfirmation = async () => {
   const confirmed = await confirmationStore.confirm(
     "Are you sure you want to delete this deadline type?"
   );
+
   if (confirmed) {
     try {
       const { $apiFetch } = useNuxtApp();

@@ -1,21 +1,24 @@
 <script setup>
+import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
-import { useForm } from "vee-validate";
 
+// Emits
 const emit = defineEmits(["toggle-show-edit"]);
 
-const toggleShowEdit = () => {
-  emit("toggle-show-edit");
-};
+// Props
+const props = defineProps({
+  deadlineType: Object,
+});
 
-const props = defineProps({ deadlineType: Object });
-
+// Stores
 const alertStore = useAlertStore();
 const deadlineTypesStore = useDeadlineTypesStore();
 
+// State
 const currentDeadline = ref(props.deadlineType);
 
+// Form Initial Values
 const initialValues = computed(() => ({
   name: currentDeadline.value.name,
   description: currentDeadline.value.description,
@@ -23,6 +26,20 @@ const initialValues = computed(() => ({
   defaultReminderDays: currentDeadline.value.default_reminder_days,
 }));
 
+// Form Validation Schema
+const validationSchema = toTypedSchema(
+  z.object({
+    name: z.string().nonempty("Name is required."),
+    description: z.string(),
+    defaultPriority: z
+      .number()
+      .gt(0, "Priority must be greater than 0")
+      .lte(5, "Priority must be 5 or less"),
+    defaultReminderDays: z.number().min(0, "Reminder days cannot be negative"),
+  })
+);
+
+// Form Setup
 const {
   values,
   errors,
@@ -33,29 +50,24 @@ const {
   resetForm,
 } = useForm({
   initialValues: initialValues.value,
-  validationSchema: toTypedSchema(
-    z.object({
-      name: z.string().nonempty("Name is required."),
-      description: z.string(),
-      defaultPriority: z
-        .number()
-        .gt(0, "Priority must be greater than 0")
-        .lte(5, "Priority must be 5 or less"),
-      defaultReminderDays: z
-        .number()
-        .min(0, "Reminder days cannot be negative"),
-    })
-  ),
+  validationSchema,
 });
 
+// Form Fields
 const [name] = defineField("name");
 const [description] = defineField("description");
 const [defaultPriority] = defineField("defaultPriority");
 const [defaultReminderDays] = defineField("defaultReminderDays");
 
+// Computed
 const disableSubmit = computed(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
+
+// Methods
+const toggleShowEdit = () => {
+  emit("toggle-show-edit");
+};
 
 const onSubmit = handleSubmit(async (values) => {
   try {
@@ -77,7 +89,7 @@ const onSubmit = handleSubmit(async (values) => {
     resetForm({ values: initialValues.value });
     alertStore.success(
       "Success!",
-      "The selected deadline type has beed updated.",
+      "The selected deadline type has been updated.",
       3.5
     );
   } catch (error) {

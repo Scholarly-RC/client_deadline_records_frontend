@@ -1,22 +1,36 @@
 <script setup>
+import { computed } from "vue";
+import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
-import { useForm } from "vee-validate";
 
+// Emits
 const emit = defineEmits(["toggle-modal"]);
 
-const toggleModal = () => {
-  emit("toggle-modal");
-};
-
+// Stores
 const alertStore = useAlertStore();
 const deadlineTypesStore = useDeadlineTypesStore();
 
+// Form Initial Values
 const initialValues = computed(() => ({
   defaultPriority: 1,
   defaultReminderDays: 0,
 }));
 
+// Form Schema
+const validationSchema = toTypedSchema(
+  z.object({
+    name: z.string().nonempty("Name is required."),
+    description: z.string(),
+    defaultPriority: z
+      .number()
+      .gt(0, "Priority must be greater than 0")
+      .lte(5, "Priority must be 5 or less"),
+    defaultReminderDays: z.number().min(0, "Reminder days cannot be negative"),
+  })
+);
+
+// Form Setup
 const {
   values,
   errors,
@@ -27,29 +41,24 @@ const {
   resetForm,
 } = useForm({
   initialValues: initialValues.value,
-  validationSchema: toTypedSchema(
-    z.object({
-      name: z.string().nonempty("Name is required."),
-      description: z.string(),
-      defaultPriority: z
-        .number()
-        .gt(0, "Priority must be greater than 0")
-        .lte(5, "Priority must be 5 or less"),
-      defaultReminderDays: z
-        .number()
-        .min(0, "Reminder days cannot be negative"),
-    })
-  ),
+  validationSchema,
 });
 
+// Form Fields
 const [name] = defineField("name");
 const [description] = defineField("description");
 const [defaultPriority] = defineField("defaultPriority");
 const [defaultReminderDays] = defineField("defaultReminderDays");
 
+// Computed
 const disableSubmit = computed(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
+
+// Methods
+const toggleModal = () => {
+  emit("toggle-modal");
+};
 
 const onSubmit = handleSubmit(async (values) => {
   try {

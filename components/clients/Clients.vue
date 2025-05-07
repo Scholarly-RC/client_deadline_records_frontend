@@ -1,12 +1,14 @@
 <script setup>
+// Components
 import PageHeader from "../ui/PageHeader.vue";
 import AddClient from "./AddClient.vue";
 import StatusPill from "./StatusPill.vue";
 
+// Stores
 const clientStore = useClientStore();
-
 const { clients } = storeToRefs(clientStore);
 
+// Lifecycle Hooks
 onMounted(() => {
   clientStore.getAllClients();
 });

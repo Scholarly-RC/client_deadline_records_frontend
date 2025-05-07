@@ -1,4 +1,5 @@
 <script setup>
+// Components
 import LoginDarkModeToggle from "./LoginDarkModeToggle.vue";
 import LoginForm from "./LoginForm.vue";
 import LoginHeader from "./LoginHeader.vue";

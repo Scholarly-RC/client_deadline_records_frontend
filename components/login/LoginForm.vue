@@ -1,11 +1,21 @@
 <script setup>
+import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
-import { useForm } from "vee-validate";
 import { useAuthStore } from "~/stores/auth";
 
+// Stores
 const authStore = useAuthStore();
 
+// Form Validation Schema
+const validationSchema = toTypedSchema(
+  z.object({
+    username: z.string().nonempty("Username is required."),
+    password: z.string().nonempty("Password is required."),
+  })
+);
+
+// Form Setup
 const {
   values,
   errors,
@@ -15,21 +25,19 @@ const {
   isSubmitting,
   resetForm,
 } = useForm({
-  validationSchema: toTypedSchema(
-    z.object({
-      username: z.string().nonempty("Username is required."),
-      password: z.string().nonempty("Password is required."),
-    })
-  ),
+  validationSchema,
 });
 
+// Form Fields
 const [username] = defineField("username");
 const [password] = defineField("password");
 
+// Computed
 const disableSubmit = computed(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
 
+// Methods
 const onSubmit = handleSubmit(async (values) => {
   await authStore.login({
     username: values.username,
