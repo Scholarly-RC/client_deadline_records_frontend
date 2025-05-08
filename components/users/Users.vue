@@ -1,10 +1,13 @@
 <script setup>
+// Components
 import PageHeader from "../ui/PageHeader.vue";
 import EditUser from "./EditUser.vue";
 import UserTable from "./UserTable.vue";
 
+// Stores
 const userStore = useUserStore();
 
+// Lifecycle Hooks
 onMounted(async () => {
   await userStore.getAllUsers();
 });

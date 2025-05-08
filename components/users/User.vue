@@ -1,23 +1,28 @@
 <script setup>
+// Components
 import RolePill from "../ui/RolePill.vue";
 import StatusPill from "../ui/StatusPill.vue";
 
+// Props
 const props = defineProps({
   user: Object,
 });
 
+// Stores
 const editUserStore = useEditUserStore();
 
-const handleOpenEditModal = async (id) => {
-  await editUserStore.editUser(id);
-  editUserStore.open();
-};
-
+// Computed
 const initials = computed(() => {
   const firstInitial = props.user.first_name?.charAt(0) || "";
   const lastInitial = props.user.last_name?.charAt(0) || "";
   return (firstInitial + lastInitial).toUpperCase();
 });
+
+// Methods
+const handleOpenEditModal = async (id) => {
+  await editUserStore.editUser(id);
+  editUserStore.open();
+};
 </script>
 
 <template>

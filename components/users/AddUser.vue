@@ -3,13 +3,11 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 
-const isOpen = ref(false);
-
+// Stores
 const alertStore = useAlertStore();
 
-const toggleModal = () => {
-  isOpen.value = !isOpen.value;
-};
+// State
+const isOpen = ref(false);
 
 // Form Schema
 const validationSchema = toTypedSchema(
@@ -59,9 +57,15 @@ const [role] = defineField("role");
 const [password] = defineField("password");
 const [confirmPassword] = defineField("confirmPassword");
 
+// Computed
 const disableSubmit = computed(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
+
+// Methods
+const toggleModal = () => {
+  isOpen.value = !isOpen.value;
+};
 
 const onSubmit = handleSubmit(async (values) => {
   try {
@@ -82,7 +86,6 @@ const onSubmit = handleSubmit(async (values) => {
     toggleModal();
     resetForm();
   } catch (error) {
-    debugger;
     alertStore.danger("Error!", error.data.detail, 3.5);
     console.error(error);
   }

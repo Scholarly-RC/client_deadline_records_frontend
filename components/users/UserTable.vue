@@ -1,7 +1,9 @@
 <script setup>
+// Components
 import AddUser from "./AddUser.vue";
 import User from "./User.vue";
 
+// Stores
 const userStore = useUserStore();
 const { users } = storeToRefs(userStore);
 </script>

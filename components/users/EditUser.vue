@@ -3,14 +3,21 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 
+// Stores
 const alertStore = useAlertStore();
 const editUserStore = useEditUserStore();
 const userStore = useUserStore();
-const { showModal, user } = storeToRefs(editUserStore);
 const confirmationStore = useConfirmationStore();
 const authStore = useAuthStore();
+
+// Store Refs
+const { showModal, user } = storeToRefs(editUserStore);
 const { user: authUser } = storeToRefs(authStore);
 
+// State
+const isActive = ref(false);
+
+// Computed
 const showStatusToggle = computed(() => {
   return user.value.id !== authUser.value.id;
 });
@@ -25,8 +32,6 @@ const initialValues = computed(() => ({
   password: "",
   confirmPassword: "",
 }));
-
-const isActive = ref(false);
 
 // Form Schema
 const validationSchema = toTypedSchema(
@@ -78,10 +83,12 @@ const [role] = defineField("role");
 const [password] = defineField("password");
 const [confirmPassword] = defineField("confirmPassword");
 
+// Computed
 const disableSubmit = computed(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
 
+// Methods
 const onSubmit = handleSubmit(async (values) => {
   try {
     const { $apiFetch } = useNuxtApp();
@@ -97,17 +104,17 @@ const onSubmit = handleSubmit(async (values) => {
         ...(values.password ? { password: values.password } : {}),
       },
     });
-    alertStore.success("Success!", "Selected user succesffully updated.", 3.5);
+    alertStore.success("Success!", "Selected user successfully updated.", 3.5);
     await editUserStore.editUser(user.value.id);
     await userStore.getAllUsers();
     resetForm({ values: initialValues.value });
   } catch (error) {
-    debugger;
     alertStore.danger("Error!", error.data.detail, 3.5);
     console.error(error);
   }
 });
 
+// Watchers
 watch(initialValues, () => {
   resetForm({ values: initialValues.value });
 });
@@ -139,7 +146,6 @@ watch(isActive, async (value, oldValue) => {
           3.5
         );
       } catch (error) {
-        debugger;
         alertStore.danger("Error!", error.data.detail, 5);
         console.error(error);
       }
