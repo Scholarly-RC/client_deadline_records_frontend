@@ -76,16 +76,16 @@ const deleteConfirmation = async () => {
         </div>
       </div>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex flex-col gap-2 w-full md:w-auto">
       <button
         @click="toggleShowEditDeadlineType"
-        class="text-blue-600 hover:underline text-sm"
+        class="flex-1 inline-flex justify-center items-center px-3 py-1.5 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
       >
         Edit
       </button>
       <button
         @click="deleteConfirmation"
-        class="text-red-600 hover:underline text-sm"
+        class="flex-1 inline-flex justify-center items-center px-3 py-1.5 rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800"
       >
         Delete
       </button>

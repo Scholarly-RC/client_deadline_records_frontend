@@ -23,11 +23,6 @@ const toggleShowSection = () => {
 const toggleAddDeadlineSection = () => {
   showAddDeadlineType.value = !showAddDeadlineType.value;
 };
-
-// Lifecycle Hooks
-onMounted(async () => {
-  await deadlineTypeStore.getAllDeadlineTypes();
-});
 </script>
 
 <template>

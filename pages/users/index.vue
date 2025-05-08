@@ -1,6 +1,5 @@
 <script setup>
-// Components
-import Settings from "~/components/settings/Settings.vue";
+import Users from "~/components/users/Users.vue";
 
 // Page Configuration
 definePageMeta({
@@ -10,5 +9,5 @@ definePageMeta({
 </script>
 
 <template>
-  <Settings />
+  <Users />
 </template>

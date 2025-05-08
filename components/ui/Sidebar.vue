@@ -122,13 +122,13 @@ const getIconClasses = (path) => {
             Deadlines
           </NuxtLink>
           <NuxtLink
-            to="/settings"
+            to="/users"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/settings')"
+            :class="getLinkClasses('/users')"
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/settings')"
+              :class="getIconClasses('/users')"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -140,7 +140,7 @@ const getIconClasses = (path) => {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               ></path>
             </svg>
-            Settings
+            Users
           </NuxtLink>
         </nav>
       </div>
@@ -248,13 +248,13 @@ const getIconClasses = (path) => {
             Deadlines
           </NuxtLink>
           <NuxtLink
-            to="/settings"
+            to="/users"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/settings')"
+            :class="getLinkClasses('/users')"
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/settings')"
+              :class="getIconClasses('/users')"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -266,7 +266,7 @@ const getIconClasses = (path) => {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               ></path>
             </svg>
-            Settings
+            Users
           </NuxtLink>
         </nav>
       </div>

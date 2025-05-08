@@ -3,6 +3,16 @@
 import PageHeader from "../ui/PageHeader.vue";
 import ClientDeadlines from "./ClientDeadlines.vue";
 import DeadlineTypes from "./DeadlineTypes.vue";
+
+// Stores
+const deadlineTypeStore = useDeadlineTypesStore();
+const clientStore = useClientStore();
+
+// Lifecycle Hooks
+onMounted(async () => {
+  await deadlineTypeStore.getAllDeadlineTypes();
+  await clientStore.getAllClients();
+});
 </script>
 
 <template>

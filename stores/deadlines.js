@@ -3,7 +3,12 @@ export const useDeadlineTypesStore = defineStore("deadlineTypesStore", {
     deadlineTypes: [],
     isLoading: false,
   }),
-
+  getters: {
+    getDeadlineTypeDefaultReminderDays: (state) => (id) => {
+      const type = state.deadlineTypes.find((type) => type.id === id);
+      return type ? type.default_reminder_days : 0;
+    },
+  },
   actions: {
     async getAllDeadlineTypes() {
       try {

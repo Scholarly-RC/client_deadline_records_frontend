@@ -2,7 +2,7 @@
 // Components
 import PageHeader from "../ui/PageHeader.vue";
 import AddClient from "./AddClient.vue";
-import StatusPill from "./StatusPill.vue";
+import Client from "./Client.vue";
 
 // Stores
 const clientStore = useClientStore();
@@ -85,47 +85,11 @@ onMounted(() => {
                 class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700"
               >
                 <!-- Client 1 -->
-                <tr
+                <Client
                   v-for="client in clients"
                   :key="client.id"
-                  class="hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white"
-                  >
-                    {{ client.name }}
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    <StatusPill :active="client.status == 'active'" />
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    {{ client.contact_person }}
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    {{ client.created_by.fullname }}
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    {{ client.created_at }}
-                  </td>
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                  >
-                    <NuxtLink
-                      :to="`/clients/${client.id} `"
-                      class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:bg-gray-700"
-                    >
-                      View
-                    </NuxtLink>
-                  </td>
-                </tr>
+                  :client="client"
+                />
               </tbody>
             </table>
           </div>
