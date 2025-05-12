@@ -1,14 +1,19 @@
-<script setup></script>
+<script setup>
+// Stores
+const darkModeStore = useDarkModeStore();
+</script>
 
 <template>
-  <div class="mt-4 text-center">
+  <div class="mt-4 text-center flex justify-center items-center">
     <button
+      @click="darkModeStore.toggle()"
       id="dark-mode-toggle"
-      class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+      class="flex flex-row items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
     >
+      <span class="me-1">Toggle</span>
       <svg
         id="dark-icon"
-        class="w-5 h-5 inline-block"
+        class="w-4 h-4 hidden dark:block"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -22,7 +27,7 @@
       </svg>
       <svg
         id="light-icon"
-        class="w-5 h-5 inline-block"
+        class="w-4 h-4 block dark:hidden"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -34,7 +39,6 @@
           d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
         ></path>
       </svg>
-      <span class="ml-1">Toggle Dark Mode</span>
     </button>
   </div>
 </template>

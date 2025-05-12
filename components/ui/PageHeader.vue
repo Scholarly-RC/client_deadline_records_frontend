@@ -1,4 +1,5 @@
 <script setup>
+// Props
 const props = defineProps({
   page: String,
 });

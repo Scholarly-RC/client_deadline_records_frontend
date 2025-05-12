@@ -1,8 +1,8 @@
 <script setup>
 // Components
-import ClientDetails from "~/components/client-details/ClientDetails.vue";
+import DeadlineDetails from "~/components/deadline-details/DeadlineDetails.vue";
 
-// Page Metadata
+// Page Configuration
 definePageMeta({
   layout: "menu",
   middleware: "auth",
@@ -10,5 +10,5 @@ definePageMeta({
 </script>
 
 <template>
-  <ClientDetails />
+  <DeadlineDetails />
 </template>

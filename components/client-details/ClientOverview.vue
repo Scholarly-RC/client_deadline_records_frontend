@@ -1,11 +1,17 @@
 <script setup>
 // Components
 import PageHeader from "../ui/PageHeader.vue";
-import EditClient from "./EditClient.vue";
 
 // Stores
+const viewClientStore = useViewClientStore();
+const { client } = storeToRefs(viewClientStore);
 const editClientStore = useEditClientStore();
-const { client } = storeToRefs(editClientStore);
+
+// Methods
+const handleOpenEditModal = async (id) => {
+  await editClientStore.getClient(id);
+  editClientStore.open();
+};
 </script>
 
 <template>
@@ -22,7 +28,12 @@ const { client } = storeToRefs(editClientStore);
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
           {{ client.name }}
         </h2>
-        <EditClient />
+        <button
+          @click="handleOpenEditModal(client.id)"
+          class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+        >
+          Edit Client
+        </button>
       </div>
 
       <!-- Contact Info and Status -->

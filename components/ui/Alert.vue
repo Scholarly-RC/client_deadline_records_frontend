@@ -1,7 +1,9 @@
 <script setup>
+// Stores
 const alertStore = useAlertStore();
 const { activeAlerts, hasAlerts } = storeToRefs(alertStore);
 
+// Methods
 const handleCloseAlert = (id) => {
   alertStore.removeAlert(id);
 };

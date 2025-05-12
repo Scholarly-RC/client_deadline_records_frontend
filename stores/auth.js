@@ -5,7 +5,7 @@ export const useAuthStore = defineStore("auth", {
     accessToken: null,
     refreshToken: null,
     user: null,
-    loading: false,
+    isLoading: false,
   }),
 
   getters: {
@@ -17,7 +17,7 @@ export const useAuthStore = defineStore("auth", {
     async login(credentials) {
       const alertStore = useAlertStore();
 
-      this.loading = true;
+      this.isLoading = true;
 
       try {
         const config = useRuntimeConfig();
@@ -40,7 +40,7 @@ export const useAuthStore = defineStore("auth", {
         alertStore.danger("Login failed.", error?.data?.detail, 5);
         console.error(error);
       } finally {
-        this.loading = false;
+        this.isLoading = false;
       }
     },
 
@@ -105,7 +105,7 @@ export const useAuthStore = defineStore("auth", {
         const response = await $fetch(
           `${config.public.apiBase}/api/users/get-current-user/`,
           {
-            method: "POST",
+            method: "GET",
             headers: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${this.accessToken}`,

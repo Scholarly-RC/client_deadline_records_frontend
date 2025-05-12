@@ -1,0 +1,140 @@
+<script setup>
+// Components
+import ClientDeadline from "./ClientDeadline.vue";
+
+// Stores
+const deadlineStore = useDeadlineStore();
+const addDeadlineStore = useAddDeadlineStore();
+const deadlineTypesStore = useDeadlineTypesStore();
+
+// Reactive variables
+const { deadlines, pagination } = storeToRefs(deadlineStore);
+</script>
+
+<template>
+  <div>
+    <div
+      class="flex flex-col sm:flex-row justify-between items-end sm:items-center mb-6 gap-4"
+    >
+      <div>
+        <button
+          @click="deadlineStore.openFilter()"
+          id="add-user-btn"
+          class="px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600"
+        >
+          Filter
+        </button>
+      </div>
+      <div class="flex flex-row gap-2">
+        <button
+          @click="deadlineTypesStore.open()"
+          id="add-user-btn"
+          class="px-4 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:bg-primary-700 dark:hover:bg-primary-600"
+        >
+          Deadline Types
+        </button>
+        <button
+          @click="addDeadlineStore.open()"
+          class="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-md"
+        >
+          Add Deadline
+        </button>
+      </div>
+    </div>
+    <section
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+    >
+      <div
+        class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
+      >
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Client Deadlines
+        </h2>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+              >
+                Client
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+              >
+                Deadline Type
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+              >
+                Due Date
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+              >
+                Priority
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+              >
+                Assigned to
+              </th>
+              <th
+                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
+          >
+            <ClientDeadline
+              v-for="deadline in deadlines"
+              :key="deadline.id"
+              :deadline="deadline"
+            />
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <div
+      v-if="pagination"
+      class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4"
+    >
+      <div class="text-sm text-gray-500 dark:text-gray-400">
+        Showing <span class="font-medium">{{ pagination.item_range }}</span> of
+        <span class="font-medium">{{ pagination.count }}</span> results
+      </div>
+      <div class="flex space-x-2">
+        <button
+          v-if="pagination.previous"
+          @click="deadlineStore.setPage(pagination.current_page - 1)"
+          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+        >
+          Previous
+        </button>
+        <button
+          v-if="pagination.total_pages"
+          class="px-3 py-1 rounded-md border border-primary-500 bg-primary-50 dark:bg-primary-900 text-primary-600 dark:text-primary-300 font-medium"
+        >
+          {{ pagination.current_page }}
+        </button>
+        <button
+          v-if="pagination.next"
+          @click="deadlineStore.setPage(pagination.current_page + 1)"
+          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</template>

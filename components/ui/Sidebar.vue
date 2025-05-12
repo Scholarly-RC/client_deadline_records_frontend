@@ -1,6 +1,12 @@
 <script setup>
+// Components
+import DarkModeToggle from "./DarkModeToggle.vue";
+import LogoutButton from "./LogoutButton.vue";
+
+// Route
 const route = useRoute();
 
+// Link and Icon Classes
 const activeLinkClasses =
   "bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-100";
 const inactiveLinkClasses =
@@ -9,12 +15,17 @@ const activeIconClasses = "text-primary-600 dark:text-primary-300";
 const inactiveIconClasses =
   "text-gray-400 group-hover:text-gray-500 dark:text-gray-400 dark:group-hover:text-gray-300";
 
+// Methods
 const getLinkClasses = (path) => {
-  return route.path === path ? activeLinkClasses : inactiveLinkClasses;
+  return route.path === path || route.path.startsWith(`${path}/`)
+    ? activeLinkClasses
+    : inactiveLinkClasses;
 };
 
 const getIconClasses = (path) => {
-  return route.path === path ? activeIconClasses : inactiveIconClasses;
+  return route.path === path || route.path.startsWith(`${path}/`)
+    ? activeIconClasses
+    : inactiveIconClasses;
 };
 </script>
 
@@ -65,38 +76,38 @@ const getIconClasses = (path) => {
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/')"
               fill="none"
               stroke="currentColor"
+              stroke-width="1.5"
               viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              ></path>
+                d="M3.75 3.75h7.5v7.5h-7.5v-7.5zM12.75 3.75h7.5v7.5h-7.5v-7.5zM3.75 12.75h7.5v7.5h-7.5v-7.5zM12.75 12.75h7.5v7.5h-7.5v-7.5z"
+              />
             </svg>
             Dashboard
           </NuxtLink>
           <NuxtLink
             to="/clients"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/clients')"
+            :class="getIconClasses('/clients')"
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/clients')"
               fill="none"
               stroke="currentColor"
+              stroke-width="1.5"
               viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              ></path>
+                d="M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2zm5 7a2 2 0 100-4 2 2 0 000 4zm3 5H9a3 3 0 016 0z"
+              />
             </svg>
             Clients
           </NuxtLink>
@@ -107,38 +118,38 @@ const getIconClasses = (path) => {
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/deadlines')"
               fill="none"
               stroke="currentColor"
+              stroke-width="1.5"
               viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              ></path>
+                d="M8 6V4m8 2V4m-9 4h10M5 8h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2zm7 5v2l1.5 1.5"
+              />
             </svg>
             Deadlines
           </NuxtLink>
           <NuxtLink
             to="/users"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/users')"
+            :class="getIconClasses('/users')"
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/users')"
               fill="none"
               stroke="currentColor"
+              stroke-width="1.5"
               viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              ></path>
+                d="M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a8.25 8.25 0 0115 0v.75H4.5v-.75z"
+              />
             </svg>
             Users
           </NuxtLink>
@@ -147,25 +158,8 @@ const getIconClasses = (path) => {
       <div
         class="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700"
       >
-        <button
-          id="dark-mode-toggle"
-          class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg dark:text-gray-300 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-        >
-          <svg
-            class="w-5 h-5 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-            ></path>
-          </svg>
-          Dark Mode
-        </button>
+        <DarkModeToggle />
+        <LogoutButton />
       </div>
     </div>
   </div>
@@ -191,38 +185,38 @@ const getIconClasses = (path) => {
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/')"
               fill="none"
               stroke="currentColor"
+              stroke-width="1.5"
               viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              ></path>
+                d="M3.75 3.75h7.5v7.5h-7.5v-7.5zM12.75 3.75h7.5v7.5h-7.5v-7.5zM3.75 12.75h7.5v7.5h-7.5v-7.5zM12.75 12.75h7.5v7.5h-7.5v-7.5z"
+              />
             </svg>
             Dashboard
           </NuxtLink>
           <NuxtLink
             to="/clients"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/clients')"
+            :class="getIconClasses('/clients')"
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/clients')"
               fill="none"
               stroke="currentColor"
+              stroke-width="1.5"
               viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              ></path>
+                d="M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2zm5 7a2 2 0 100-4 2 2 0 000 4zm3 5H9a3 3 0 016 0z"
+              />
             </svg>
             Clients
           </NuxtLink>
@@ -233,63 +227,46 @@ const getIconClasses = (path) => {
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/deadlines')"
               fill="none"
               stroke="currentColor"
+              stroke-width="1.5"
               viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-              ></path>
+                d="M8 6V4m8 2V4m-9 4h10M5 8h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2zm7 5v2l1.5 1.5"
+              />
             </svg>
             Deadlines
           </NuxtLink>
           <NuxtLink
             to="/users"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/users')"
+            :class="getIconClasses('/users')"
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/users')"
               fill="none"
               stroke="currentColor"
+              stroke-width="1.5"
               viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              ></path>
+                d="M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a8.25 8.25 0 0115 0v.75H4.5v-.75z"
+              />
             </svg>
             Users
           </NuxtLink>
         </nav>
       </div>
-      <div class="p-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          id="desktop-dark-mode-toggle"
-          class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg dark:text-gray-300 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-        >
-          <svg
-            class="w-5 h-5 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-            ></path>
-          </svg>
-          Dark Mode
-        </button>
+      <div class="p-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
+        <DarkModeToggle />
+        <LogoutButton />
       </div>
     </div>
   </div>

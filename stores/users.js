@@ -3,6 +3,9 @@ import { defineStore } from "pinia";
 export const useUserStore = defineStore("userStore", {
   state: () => ({
     users: [],
+    pagination: {},
+    page: null,
+    search: null,
     isLoading: false,
   }),
 
@@ -11,15 +14,71 @@ export const useUserStore = defineStore("userStore", {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch("/api/users/", {
+
+        let url = `/api/users/?`;
+
+        const params = new URLSearchParams();
+        if (this.page) {
+          params.append("page", this.page);
+        }
+        if (this.search) {
+          params.append("search", this.search);
+        }
+        url += params.toString();
+
+        const response = await $apiFetch(url, {
           method: "GET",
         });
-        this.users = response;
+
+        const { results, ...pagination } = response;
+        this.users = results;
+        this.pagination = pagination;
       } catch (error) {
         console.error(error);
       } finally {
         this.isLoading = false;
       }
+    },
+    async getUserChoices() {
+      try {
+        this.isLoading = true;
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch("/api/users/get-user-choices", {
+          method: "GET",
+        });
+        this.users = response;
+        this.pagination = {};
+        this.page = null;
+        this.search = null;
+      } catch (error) {
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+    async setPage(page = null) {
+      this.page = page;
+      await this.getAllUsers();
+    },
+    async setSearch(search = null) {
+      this.search = search;
+      this.page = null;
+      await this.getAllUsers();
+    },
+  },
+});
+
+export const useAddUserStore = defineStore("addUserStore", {
+  state: () => ({
+    showModal: false,
+  }),
+
+  actions: {
+    open() {
+      this.showModal = true;
+    },
+    close() {
+      this.showModal = false;
     },
   },
 });

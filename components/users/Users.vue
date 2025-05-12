@@ -1,7 +1,8 @@
 <script setup>
 // Components
 import PageHeader from "../ui/PageHeader.vue";
-import EditUser from "./EditUser.vue";
+import AddUserModal from "./AddUserModal.vue";
+import EditUserModal from "./EditUserModal.vue";
 import UserTable from "./UserTable.vue";
 
 // Stores
@@ -23,7 +24,8 @@ onMounted(async () => {
       style="max-height: calc(100vh - 4rem)"
     >
       <UserTable />
-      <EditUser />
+      <AddUserModal />
+      <EditUserModal />
     </main>
   </div>
 </template>
