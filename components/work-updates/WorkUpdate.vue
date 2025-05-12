@@ -14,7 +14,7 @@ const props = defineProps({
       {{ workUpdates.notes }}
     </td>
     <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-      {{ workUpdates.status }}
+      {{ $convertToTitleCase(workUpdates.status) }}
     </td>
   </tr>
 </template>

@@ -7,6 +7,7 @@ import { z } from "zod";
 const editClientStore = useEditClientStore();
 const alertStore = useAlertStore();
 const { client, showModal } = storeToRefs(editClientStore);
+const clientStore = useClientStore();
 
 // Form initial values
 const initialValues = computed(() => ({
@@ -80,6 +81,7 @@ const onSubmit = handleSubmit(async (values) => {
       },
     });
     await editClientStore.getClient(client.value.id);
+    await clientStore.getAllClients();
     alertStore.success("Success!", "Client successfully updated.", 3.5);
     resetForm({
       values: initialValues.value,

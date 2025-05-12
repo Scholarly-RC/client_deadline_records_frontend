@@ -1,4 +1,5 @@
 <script setup>
+import { getPriorityLabel } from "@/utils/getPriorityLabel";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
@@ -19,19 +20,6 @@ const { users } = storeToRefs(userStore);
 
 // Reactive Variables
 const editMode = ref(false);
-
-// Methods
-const getPriorityLabel = (priority) => {
-  const priorityMap = {
-    1: "Lowest",
-    2: "Low",
-    3: "Medium",
-    4: "High",
-    5: "Highest",
-  };
-
-  return priorityMap[priority] || "Unknown";
-};
 
 // Form initial values
 const initialValues = computed(() => ({
@@ -289,15 +277,13 @@ watch(deadline, () => {
                 Status
               </p>
               <div>
-                <p
-                  class="text-lg font-semibold capitalize text-gray-900 dark:text-white"
-                >
-                  {{ deadline.status }}
+                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                  {{ $convertToTitleCase(deadline.status) }}
                 </p>
               </div>
             </div>
             <div
-              class="p-2 rounded-lg bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200"
+              class="p-2 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
             >
               <svg
                 class="w-5 h-5"
@@ -309,7 +295,7 @@ watch(deadline, () => {
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M5 13l4 4L19 7"
+                  d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm0 4v8m0 4h.01"
                 />
               </svg>
             </div>

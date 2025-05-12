@@ -3,6 +3,9 @@
 const props = defineProps({
   page: String,
 });
+
+// Stores
+const sidebarStore = useSidebarStore();
 </script>
 
 <template>
@@ -11,6 +14,7 @@ const props = defineProps({
   >
     <div class="hidden md:block"></div>
     <button
+      @click="sidebarStore.open()"
       id="mobile-sidebar-open"
       class="md:hidden p-2 text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
     >

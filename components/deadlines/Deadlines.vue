@@ -22,7 +22,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col flex-1">
+  <div class="flex flex-col flex-1 overflow-hidden">
     <PageHeader page="Deadlines" />
     <main
       class="flex-1 overflow-y-auto p-4 bg-white dark:bg-gray-900 space-y-4"

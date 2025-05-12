@@ -41,15 +41,15 @@ const { deadlines, pagination } = storeToRefs(deadlineStore);
         </button>
       </div>
     </div>
-    <section
-      class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+    <div
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
       <div
         class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
       >
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Client Deadlines
-        </h2>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+          All Client Deadlines
+        </h3>
       </div>
 
       <div class="overflow-x-auto">
@@ -57,37 +57,37 @@ const { deadlines, pagination } = storeToRefs(deadlineStore);
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
               >
                 Client
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
               >
                 Deadline Type
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
               >
                 Due Date
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
               >
                 Priority
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
               >
                 Status
               </th>
               <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
               >
                 Assigned to
               </th>
               <th
-                class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase"
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
               >
                 Actions
               </th>
@@ -104,7 +104,7 @@ const { deadlines, pagination } = storeToRefs(deadlineStore);
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
     <div
       v-if="pagination"
       class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4"

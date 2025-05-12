@@ -3,13 +3,14 @@
 import PageHeader from "../ui/PageHeader.vue";
 import AddClientModal from "./AddClientModal.vue";
 import ClientTable from "./ClientTable.vue";
+import EditClientModal from "./EditClientModal.vue";
 
 // Stores
 const clientStore = useClientStore();
 
 // Lifecycle Hooks
-onMounted(() => {
-  clientStore.getAllClients();
+onMounted(async () => {
+  await clientStore.getAllClients();
 });
 </script>
 
@@ -24,6 +25,7 @@ onMounted(() => {
     >
       <ClientTable />
       <AddClientModal />
+      <EditClientModal />
     </main>
   </div>
 </template>

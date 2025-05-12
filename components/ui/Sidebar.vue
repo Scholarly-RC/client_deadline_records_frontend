@@ -6,6 +6,10 @@ import LogoutButton from "./LogoutButton.vue";
 // Route
 const route = useRoute();
 
+// Stores
+const sidebarStore = useSidebarStore();
+const { showSidebar } = storeToRefs(sidebarStore);
+
 // Link and Icon Classes
 const activeLinkClasses =
   "bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-100";
@@ -31,24 +35,27 @@ const getIconClasses = (path) => {
 
 <template>
   <!-- Mobile sidebar -->
-  <div class="h-screen md:hidden fixed inset-0 z-40 flex">
-    <div
-      class="fixed inset-0 bg-gray-600 bg-opacity-75"
-      id="mobile-sidebar-backdrop"
-    ></div>
+  <div
+    :class="[
+      'h-screen md:hidden fixed z-40 w-80 flex left-0 bg-transparent transition-transform duration-300 ease-in-out',
+      showSidebar ? 'translate-x-0' : '-translate-x-full',
+    ]"
+  >
     <div
       class="relative flex flex-col flex-1 w-full max-w-xs bg-white dark:bg-gray-800"
       id="mobile-sidebar"
     >
       <div class="absolute top-0 right-0 pt-2 -mr-12">
         <button
+          v-if="showSidebar"
+          @click="sidebarStore.close()"
           type="button"
-          class="flex items-center justify-center w-10 h-10 ml-1 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+          class="flex items-center justify-center w-10 h-10 ml-1 rounded-full bg-black/70 hover:bg-black/90 text-white transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white shadow-lg"
           id="mobile-sidebar-close"
         >
           <span class="sr-only">Close sidebar</span>
           <svg
-            class="w-6 h-6 text-white"
+            class="w-6 h-6"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -76,6 +83,7 @@ const getIconClasses = (path) => {
           >
             <svg
               class="w-6 h-6 mr-4"
+              :class="getIconClasses('/')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -93,10 +101,11 @@ const getIconClasses = (path) => {
           <NuxtLink
             to="/clients"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getIconClasses('/clients')"
+            :class="getLinkClasses('/clients')"
           >
             <svg
               class="w-6 h-6 mr-4"
+              :class="getIconClasses('/clients')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -118,6 +127,7 @@ const getIconClasses = (path) => {
           >
             <svg
               class="w-6 h-6 mr-4"
+              :class="getIconClasses('/deadlines')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -135,10 +145,11 @@ const getIconClasses = (path) => {
           <NuxtLink
             to="/users"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getIconClasses('/users')"
+            :class="getLinkClasses('/users')"
           >
             <svg
               class="w-6 h-6 mr-4"
+              :class="getIconClasses('/users')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -155,9 +166,7 @@ const getIconClasses = (path) => {
           </NuxtLink>
         </nav>
       </div>
-      <div
-        class="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700"
-      >
+      <div class="p-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
         <DarkModeToggle />
         <LogoutButton />
       </div>
@@ -185,6 +194,7 @@ const getIconClasses = (path) => {
           >
             <svg
               class="w-6 h-6 mr-4"
+              :class="getIconClasses('/')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -202,10 +212,11 @@ const getIconClasses = (path) => {
           <NuxtLink
             to="/clients"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getIconClasses('/clients')"
+            :class="getLinkClasses('/clients')"
           >
             <svg
               class="w-6 h-6 mr-4"
+              :class="getIconClasses('/clients')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -227,6 +238,7 @@ const getIconClasses = (path) => {
           >
             <svg
               class="w-6 h-6 mr-4"
+              :class="getIconClasses('/deadlines')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -244,10 +256,11 @@ const getIconClasses = (path) => {
           <NuxtLink
             to="/users"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getIconClasses('/users')"
+            :class="getLinkClasses('/users')"
           >
             <svg
               class="w-6 h-6 mr-4"
+              :class="getIconClasses('/users')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
