@@ -5,7 +5,6 @@ import { z } from "zod";
 
 // Stores
 const alertStore = useAlertStore();
-const workUpdateStore = useWorkUpdateStore();
 
 const viewDeadlineStore = useViewDeadlineStore();
 const { deadline } = storeToRefs(viewDeadlineStore);
@@ -63,7 +62,6 @@ const onSubmit = handleSubmit(async (values) => {
       },
     });
     await viewDeadlineStore.getDeadline(deadline.value.id);
-    await workUpdateStore.getWorkUpdates();
     addWorkUpdateStore.close();
     alertStore.success("Success!", "A new work update has been created.", 3.5);
   } catch (error) {

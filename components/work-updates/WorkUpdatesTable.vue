@@ -3,8 +3,8 @@
 import WorkUpdate from "./WorkUpdate.vue";
 
 // Stores
-const workUpdateStore = useWorkUpdateStore();
-const { workUpdates } = storeToRefs(workUpdateStore);
+const viewDeadlineStore = useViewDeadlineStore();
+const { deadline } = storeToRefs(viewDeadlineStore);
 </script>
 
 <template>
@@ -42,7 +42,7 @@ const { workUpdates } = storeToRefs(workUpdateStore);
           class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
         >
           <WorkUpdate
-            v-for="workUpdate in workUpdates"
+            v-for="workUpdate in deadline.work_updates"
             :key="workUpdate.id"
             :work-updates="workUpdate"
           />

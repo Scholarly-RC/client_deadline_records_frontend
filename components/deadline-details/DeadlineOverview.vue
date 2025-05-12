@@ -6,6 +6,7 @@ import { z } from "zod";
 // Components
 import PageHeader from "../ui/PageHeader.vue";
 import WorkUpdatesTable from "../work-updates/WorkUpdatesTable.vue";
+import ClientDocuments from "../client-documents/ClientDocuments.vue";
 
 // Stores
 const alertStore = useAlertStore();
@@ -15,7 +16,6 @@ const { deadline } = storeToRefs(viewDeadlineStore);
 const addWorkUpdateStore = useAddWorkUpdateStore();
 const userStore = useUserStore();
 const { users } = storeToRefs(userStore);
-const workUpdateStore = useWorkUpdateStore();
 
 // Reactive Variables
 const editMode = ref(false);
@@ -98,7 +98,6 @@ const onSubmit = handleSubmit(async (values) => {
       }
     );
     await viewDeadlineStore.getDeadline(deadline.value.id);
-    await workUpdateStore.getWorkUpdates();
     toggleEditMode();
     alertStore.success("Success!", "A new deadline has been created.", 3.5);
   } catch (error) {
@@ -365,6 +364,7 @@ watch(deadline, () => {
         </div>
       </form>
       <WorkUpdatesTable />
+      <ClientDocuments />
     </main>
   </div>
 </template>
