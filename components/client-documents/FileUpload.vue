@@ -89,6 +89,7 @@ const onDragOver = (event) => {
         type="file"
         class="hidden"
         multiple
+        accept=".pdf, .doc, .docx, .xls, .xlsx, image/*"
         @change="onFileChange"
       />
     </label>

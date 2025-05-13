@@ -10,6 +10,12 @@ const viewDeadlineStore = useViewDeadlineStore();
 const { deadline } = storeToRefs(viewDeadlineStore);
 const confirmationStore = useConfirmationStore();
 
+// Computed
+const fileDownloadUrl = computed(() => {
+  const config = useRuntimeConfig();
+  return `${config.public.apiBase}/core/download-client-document/${props.file.id}`;
+});
+
 // Delete confirmation
 const deleteConfirmation = async () => {
   const confirmed = await confirmationStore.confirm(
@@ -72,10 +78,14 @@ const deleteConfirmation = async () => {
         </svg>
       </div>
     </div>
-    <div class="flex-1 min-w-0">
-      <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
+    <div class="flex-1 min-w-0 overflow-hidden">
+      <a
+        :href="fileDownloadUrl"
+        :title="file.name"
+        class="block text-sm font-medium text-gray-900 dark:text-white truncate whitespace-nowrap overflow-hidden"
+      >
         {{ file.name }}
-      </p>
+      </a>
       <p class="text-sm text-gray-500 dark:text-gray-400">
         {{ file.size }}
       </p>
