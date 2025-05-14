@@ -12,7 +12,7 @@ const userStore = useUserStore();
 const addDeadlineStore = useAddDeadlineStore();
 
 // Reactive Variables
-const { clients } = storeToRefs(clientStore);
+const { activeClients } = storeToRefs(clientStore);
 const { deadlineTypes } = storeToRefs(deadlineTypeStore);
 const { users } = storeToRefs(userStore);
 const { showModal } = storeToRefs(addDeadlineStore);
@@ -85,7 +85,7 @@ const onSubmit = handleSubmit(async (values) => {
     addDeadlineStore.close();
     alertStore.success("Success!", "A new deadline has been created.", 3.5);
   } catch (error) {
-    alertStore.danger("Error!", error.data.detail, 3.5);
+    alertStore.danger("Error!", getErrorMessage(error), 3.5);
     console.error(error);
   }
 });
@@ -103,7 +103,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     <!-- Modal container (centering container) -->
     <div
-      class="flex items-center justify-center min-h-screen px-4 text-center relative z-10"
+      class="flex items-center justify-center min-h-screen px-4 relative z-10"
     >
       <!-- Modal panel -->
       <div
@@ -158,7 +158,7 @@ const onSubmit = handleSubmit(async (values) => {
                     >
                       <option :value="0">Select a client</option>
                       <option
-                        v-for="client in clients"
+                        v-for="client in activeClients"
                         :key="client.id"
                         :value="client.id"
                       >

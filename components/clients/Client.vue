@@ -27,7 +27,7 @@ const handleOpenEditModal = async (id) => {
     <td
       class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"
     >
-      <StatusPill :active="client.status == 'active'" />
+      <StatusPill :active="client.is_active" />
     </td>
     <td
       class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400"

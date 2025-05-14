@@ -4,12 +4,6 @@ export const useDeadlineTypesStore = defineStore("deadlineTypesStore", {
     showModal: false,
     isLoading: false,
   }),
-  getters: {
-    getDeadlineTypeDefaultReminderDays: (state) => (id) => {
-      const type = state.deadlineTypes.find((type) => type.id === id);
-      return type ? type.default_reminder_days : 0;
-    },
-  },
   actions: {
     open() {
       this.showModal = true;
@@ -37,7 +31,7 @@ export const useDeadlineTypesStore = defineStore("deadlineTypesStore", {
 export const useDeadlineStore = defineStore("deadlineStore", {
   state: () => ({
     deadlines: [],
-    pagination: null,
+    pagination: {},
     page: null,
     search: null,
     filters: {},

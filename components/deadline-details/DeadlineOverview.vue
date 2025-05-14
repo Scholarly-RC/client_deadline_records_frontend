@@ -91,7 +91,7 @@ const onSubmit = handleSubmit(async (values) => {
     toggleEditMode();
     alertStore.success("Success!", "A new deadline has been created.", 3.5);
   } catch (error) {
-    alertStore.danger("Error!", error.data.detail, 3.5);
+    alertStore.danger("Error!", getErrorMessage(error), 3.5);
     console.error(error);
   }
 });
@@ -121,7 +121,7 @@ const deleteConfirmation = async () => {
         3.5
       );
     } catch (error) {
-      alertStore.danger("Error!", error.details, 5);
+      alertStore.danger("Error!", getErrorMessage(error), 5);
       console.error(error);
     }
   }

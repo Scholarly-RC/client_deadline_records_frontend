@@ -87,7 +87,7 @@ const onSubmit = handleSubmit(async (values) => {
       values: initialValues.value,
     });
   } catch (error) {
-    alertStore.danger("Error!", error.data.detail, 3.5);
+    alertStore.danger("Error!", getErrorMessage(error), 3.5);
     console.error(error);
   }
 });

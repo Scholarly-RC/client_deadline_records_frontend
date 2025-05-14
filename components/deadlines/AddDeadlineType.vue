@@ -72,7 +72,7 @@ const onSubmit = handleSubmit(async (values) => {
     toggleModal();
     alertStore.success("Success!", "A new Deadline Type has been added.", 3.5);
   } catch (error) {
-    alertStore.danger("Error!", error.detail, 3.5);
+    alertStore.danger("Error!", getErrorMessage(error), 3.5);
     console.error(error);
   }
 });

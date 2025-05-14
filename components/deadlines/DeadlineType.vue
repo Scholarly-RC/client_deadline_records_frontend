@@ -41,7 +41,7 @@ const deleteConfirmation = async () => {
         3.5
       );
     } catch (error) {
-      alertStore.danger("Error!", error.details, 5);
+      alertStore.danger("Error!", getErrorMessage(error), 5);
       console.error(error);
     }
   }

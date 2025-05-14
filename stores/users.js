@@ -8,7 +8,11 @@ export const useUserStore = defineStore("userStore", {
     search: null,
     isLoading: false,
   }),
-
+  getters: {
+    usersWithLogs: (state) => {
+      return state.users.filter((user) => user.has_logs === true);
+    },
+  },
   actions: {
     async getAllUsers() {
       try {

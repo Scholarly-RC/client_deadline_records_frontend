@@ -8,7 +8,11 @@ export const useClientStore = defineStore("clientStore", {
     search: null,
     isLoading: false,
   }),
-
+  getters: {
+    activeClients: (state) => {
+      return state.clients.filter((client) => client.is_active === true);
+    },
+  },
   actions: {
     async getAllClients() {
       try {

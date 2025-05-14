@@ -27,7 +27,7 @@ const handleFiles = async (files) => {
         3.5
       );
     } catch (error) {
-      alertStore.danger("Error!", error, 3.5);
+      alertStore.danger("Error!", getErrorMessage(error), 3.5);
       console.error(error);
     }
   }

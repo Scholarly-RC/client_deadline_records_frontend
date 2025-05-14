@@ -166,6 +166,29 @@ const getIconClasses = (path) => {
             </svg>
             Users
           </NuxtLink>
+          <NuxtLink
+            v-if="isAdmin"
+            to="/logs"
+            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
+            :class="getLinkClasses('/logs')"
+          >
+            <svg
+              class="w-6 h-6 mr-4"
+              :class="getIconClasses('/logs')"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a8.25 8.25 0 0115 0v.75H4.5v-.75z"
+              />
+            </svg>
+            Logs
+          </NuxtLink>
         </nav>
       </div>
       <div class="p-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
@@ -278,6 +301,29 @@ const getIconClasses = (path) => {
               />
             </svg>
             Users
+          </NuxtLink>
+          <NuxtLink
+            v-if="isAdmin"
+            to="/logs"
+            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
+            :class="getLinkClasses('/logs')"
+          >
+            <svg
+              class="w-6 h-6 mr-4"
+              :class="getIconClasses('/logs')"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a8.25 8.25 0 0115 0v.75H4.5v-.75z"
+              />
+            </svg>
+            Logs
           </NuxtLink>
         </nav>
       </div>

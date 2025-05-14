@@ -5,6 +5,7 @@ import { z } from "zod";
 
 // Stores
 const alertStore = useAlertStore();
+const clientStore = useClientStore();
 const addClientStore = useAddClientStore();
 const { showModal } = storeToRefs(addClientStore);
 
@@ -67,11 +68,12 @@ const onSubmit = handleSubmit(async (values) => {
         notes: values.notes,
       },
     });
-    alertStore.success("Success!", "A new client has been created.", 3.5);
-    toggleModal();
+    addClientStore.close();
     resetForm();
+    await clientStore.getAllClients()
+    alertStore.success("Success!", "A new client has been created.", 3.5);
   } catch (error) {
-    alertStore.danger("Error!", error.data.detail, 3.5);
+    alertStore.danger("Error!", getErrorMessage(error), 3.5);
     console.error(error);
   }
 });
@@ -173,7 +175,7 @@ const onSubmit = handleSubmit(async (values) => {
                         id="client-status"
                         name="client-status"
                         required
-                        class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        class="block w-full border border-gray-300 appearance-none rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       >
                         <option value="">Select Status</option>
                         <option value="active">Active</option>
