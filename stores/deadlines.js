@@ -178,3 +178,35 @@ export const useViewDeadlineStore = defineStore("viewDeadlineStore", {
     },
   },
 });
+
+export const useUpcomingDeadlineStore = defineStore("upcomingDeadlineStore", {
+  state: () => ({
+    deadlines: false,
+    isLoading: false,
+  }),
+  actions: {
+    async getUpcomingDeadlines() {
+      const alertStore = useAlertStore();
+      try {
+        this.isLoading = true;
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch(
+          `/api/client-deadlines/upcoming-deadlines/`,
+          {
+            method: "GET",
+          }
+        );
+        this.deadlines = response;
+      } catch (error) {
+        alertStore.warning(
+          "Error!",
+          "Something went wrong while retrieving the upcoming deadlines.",
+          5
+        );
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+  },
+});

@@ -43,7 +43,7 @@ export const useUserStore = defineStore("userStore", {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch("/api/users/get-user-choices", {
+        const response = await $apiFetch("/api/users/user-choices", {
           method: "GET",
         });
         this.users = response;

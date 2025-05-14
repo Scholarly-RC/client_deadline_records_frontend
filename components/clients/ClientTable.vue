@@ -47,7 +47,7 @@ watch(debouncedSearch, async (val) => {
         id="add-client-btn"
         class="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-md"
       >
-        Add User
+        Add Client
       </button>
     </div>
 
