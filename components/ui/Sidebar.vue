@@ -7,6 +7,8 @@ import LogoutButton from "./LogoutButton.vue";
 const route = useRoute();
 
 // Stores
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const sidebarStore = useSidebarStore();
 const { showSidebar } = storeToRefs(sidebarStore);
 
@@ -210,6 +212,7 @@ const getIconClasses = (path) => {
             Dashboard
           </NuxtLink>
           <NuxtLink
+            v-if="isAdmin"
             to="/clients"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
             :class="getLinkClasses('/clients')"
@@ -254,6 +257,7 @@ const getIconClasses = (path) => {
             Deadlines
           </NuxtLink>
           <NuxtLink
+            v-if="isAdmin"
             to="/users"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
             :class="getLinkClasses('/users')"

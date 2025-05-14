@@ -5,9 +5,9 @@ import { z } from "zod";
 
 // Stores
 const authStore = useAuthStore();
+const { isLoading } = storeToRefs(authStore);
 
 // States
-const redirecting = ref(false);
 
 // Form Validation Schema
 const validationSchema = toTypedSchema(
@@ -41,7 +41,6 @@ const disableSubmit = computed(() => {
 
 // Methods
 const onSubmit = handleSubmit(async (values) => {
-  redirecting.value = true;
   await authStore.login({
     username: values.username,
     password: values.password,
@@ -65,8 +64,8 @@ const onSubmit = handleSubmit(async (values) => {
           <div class="mt-1">
             <input
               v-model="username"
-              :readonly="redirecting"
-              :disabled="redirecting"
+              :readonly="isLoading"
+              :disabled="isLoading"
               id="username"
               name="username"
               type="username"
@@ -85,8 +84,8 @@ const onSubmit = handleSubmit(async (values) => {
           <div class="mt-1">
             <input
               v-model="password"
-              :readonly="redirecting"
-              :disabled="redirecting"
+              :readonly="isLoading"
+              :disabled="isLoading"
               id="password"
               name="password"
               type="password"
@@ -97,7 +96,7 @@ const onSubmit = handleSubmit(async (values) => {
 
         <div>
           <button
-            :disabled="disableSubmit || redirecting"
+            :disabled="disableSubmit || isLoading"
             type="submit"
             class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >

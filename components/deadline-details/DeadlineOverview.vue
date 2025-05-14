@@ -10,6 +10,8 @@ import WorkUpdatesTable from "../work-updates/WorkUpdatesTable.vue";
 import ClientDocuments from "../client-documents/ClientDocuments.vue";
 
 // Stores
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const alertStore = useAlertStore();
 const deadlineStore = useDeadlineStore();
 const viewDeadlineStore = useViewDeadlineStore();
@@ -146,25 +148,27 @@ watch(deadline, () => {
           {{ deadline.client.name }} - {{ deadline.deadline_type.name }}
         </h2>
         <div class="flex flex-row gap-2">
-          <button
-            v-if="editMode & !disableSubmit"
-            @click="onSubmit"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-          >
-            Save
-          </button>
-          <button
-            @click="toggleEditMode"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-          >
-            {{ editMode ? "Close" : "Edit" }}
-          </button>
-          <button
-            @click="deleteConfirmation"
-            class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
-          >
-            Delete
-          </button>
+          <div v-if="isAdmin" class="flex flex-row gap-2">
+            <button
+              v-if="editMode & !disableSubmit"
+              @click="onSubmit"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
+              Save
+            </button>
+            <button
+              @click="toggleEditMode"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            >
+              {{ editMode ? "Close" : "Edit" }}
+            </button>
+            <button
+              @click="deleteConfirmation"
+              class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </div>
           <button
             @click="addWorkUpdateStore.open()"
             class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"

@@ -1,4 +1,6 @@
 <script setup>
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const dashboardStore = useDashboardStore();
 const { stats } = storeToRefs(dashboardStore);
 </script>
@@ -7,6 +9,7 @@ const { stats } = storeToRefs(dashboardStore);
   <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
     <!-- Total Clients -->
     <div
+      v-if="isAdmin"
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
       <div class="p-6">

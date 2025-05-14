@@ -3,6 +3,8 @@
 import ClientDeadline from "./ClientDeadline.vue";
 
 // Stores
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const deadlineStore = useDeadlineStore();
 const addDeadlineStore = useAddDeadlineStore();
 const deadlineTypesStore = useDeadlineTypesStore();
@@ -25,7 +27,7 @@ const { deadlines, pagination } = storeToRefs(deadlineStore);
           Filter
         </button>
       </div>
-      <div class="flex flex-row gap-2">
+      <div v-if="isAdmin" class="flex flex-row gap-2">
         <button
           @click="deadlineTypesStore.open()"
           id="add-user-btn"

@@ -1,5 +1,7 @@
 <script setup>
 // Stores
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
 const alertStore = useAlertStore();
 const deadlineStore = useDeadlineStore();
 const { showFilter, filters } = storeToRefs(deadlineStore);
@@ -179,7 +181,7 @@ const handleClearFilter = () => {
             </div>
 
             <!-- Assigned To -->
-            <div class="sm:col-span-3">
+            <div v-if="isAdmin" class="sm:col-span-3">
               <label
                 for="assigned_to"
                 class="block text-sm font-medium text-gray-700 dark:text-gray-300"

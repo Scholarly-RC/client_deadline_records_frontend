@@ -11,6 +11,7 @@ export const useAuthStore = defineStore("auth", {
   getters: {
     isAuthenticated: (state) => !!state.accessToken,
     userProfile: (state) => state.user,
+    isAdmin: (state) => state.user.is_admin,
   },
 
   actions: {
@@ -35,7 +36,7 @@ export const useAuthStore = defineStore("auth", {
         );
         setTimeout(async () => {
           await navigateTo({ path: "/" });
-        }, 4 * 1000);
+        }, 2 * 1000);
       } catch (error) {
         alertStore.danger("Login failed.", error?.data?.detail, 5);
         console.error(error);
