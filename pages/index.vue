@@ -1,6 +1,7 @@
 <script setup>
+import Dashboard from "~/components/dashboard/Dashboard.vue";
+
 // Components
-import Dashboard from "~/components/index/Dashboard.vue";
 
 // Page Configuration
 definePageMeta({
