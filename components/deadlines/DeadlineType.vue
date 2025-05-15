@@ -56,7 +56,7 @@ const deleteConfirmation = async () => {
   />
   <div
     v-else
-    class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700"
+    class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-700"
   >
     <div class="space-y-1">
       <h3 class="text-sm font-semibold text-gray-900 dark:text-white">
@@ -76,7 +76,7 @@ const deleteConfirmation = async () => {
         </div>
       </div>
     </div>
-    <div class="flex flex-col gap-2 w-full md:w-auto">
+    <div class="flex flex-col gap-2 w-auto">
       <button
         @click="toggleShowEditDeadlineType"
         class="flex-1 inline-flex justify-center items-center px-3 py-1.5 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"

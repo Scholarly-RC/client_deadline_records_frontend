@@ -34,9 +34,9 @@ watch(showModal, (value) => {
 
     <!-- Modal panel -->
     <div
-      class="relative bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-2xl sm:w-full border border-gray-200 dark:border-gray-700 z-10"
+      class="relative bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-2xl w-full mx-5 border border-gray-200 dark:border-gray-700 z-10"
     >
-      <section
+      <div
         class="w-full rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-4"
       >
         <div class="flex items-center justify-between">
@@ -44,13 +44,15 @@ watch(showModal, (value) => {
             Deadline Types
           </h2>
           <div class="flex items-center space-x-2">
-            <button
-              v-if="!showAddDeadlineType"
-              @click="toggleAddDeadlineSection"
-              class="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
-            >
-              Add Deadline Type
-            </button>
+            <div class="hidden sm:block">
+              <button
+                v-if="!showAddDeadlineType"
+                @click="toggleAddDeadlineSection"
+                class="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+              >
+                Add Deadline Type
+              </button>
+            </div>
             <button
               @click="deadlineTypeStore.close()"
               type="button"
@@ -73,6 +75,15 @@ watch(showModal, (value) => {
             </button>
           </div>
         </div>
+        <div class="w-full flex justify-center sm:hidden">
+          <button
+            v-if="!showAddDeadlineType"
+            @click="toggleAddDeadlineSection"
+            class="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+          >
+            Add Deadline Type
+          </button>
+        </div>
 
         <!-- Deadline Type List -->
         <div class="max-h-[25rem] overflow-y-auto space-y-4">
@@ -86,7 +97,7 @@ watch(showModal, (value) => {
             :deadline-type="deadlineType"
           />
         </div>
-      </section>
+      </div>
     </div>
   </div>
 </template>

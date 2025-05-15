@@ -16,7 +16,7 @@ const { deadlines, pagination } = storeToRefs(deadlineStore);
 <template>
   <div>
     <div
-      class="flex flex-col sm:flex-row justify-between items-end sm:items-center mb-6 gap-4"
+      class="flex flex-row justify-between items-end sm:items-center mb-6 gap-4"
     >
       <div>
         <button
@@ -124,7 +124,7 @@ const { deadlines, pagination } = storeToRefs(deadlineStore);
           Previous
         </button>
         <button
-          v-if="pagination.total_pages"
+          v-if="pagination.total_pages > 1"
           class="px-3 py-1 rounded-md border border-primary-500 bg-primary-50 dark:bg-primary-900 text-primary-600 dark:text-primary-300 font-medium"
         >
           {{ pagination.current_page }}

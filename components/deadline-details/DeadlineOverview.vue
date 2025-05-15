@@ -143,12 +143,12 @@ watch(deadline, () => {
       class="flex-1 overflow-auto p-4 bg-white dark:bg-gray-900 space-y-6"
     >
       <!-- Client Info and Edit Button -->
-      <div class="flex items-center justify-between">
+      <div class="flex items-center gap-1 justify-between">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
           {{ deadline.client.name }} - {{ deadline.deadline_type.name }}
         </h2>
-        <div class="flex flex-row gap-2">
-          <div v-if="isAdmin" class="flex flex-row gap-2">
+        <div class="flex flex-col lg:flex-row gap-2">
+          <div v-if="isAdmin" class="flex flex-row gap-2 justify-evenly">
             <button
               v-if="editMode & !disableSubmit"
               @click="onSubmit"

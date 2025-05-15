@@ -17,9 +17,7 @@ watch(debouncedSearch, async (val) => {
 
 <template>
   <div class="space-y-4">
-    <div
-      class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"
-    >
+    <div class="flex flex-col sm:flex-row justify-between items-end mb-6 gap-4">
       <div class="relative w-full sm:w-64">
         <input
           v-model="search"
