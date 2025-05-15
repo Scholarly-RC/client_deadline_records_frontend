@@ -87,6 +87,9 @@ const deleteConfirmation = async () => {
       <p class="text-sm text-gray-500 dark:text-gray-400">
         {{ file.size }}
       </p>
+      <p class="text-xs text-gray-400 dark:text-gray-500">
+        Uploaded by {{ file.uploaded_by.fullname }}
+      </p>
     </div>
     <div class="ml-4 flex-shrink-0">
       <button
