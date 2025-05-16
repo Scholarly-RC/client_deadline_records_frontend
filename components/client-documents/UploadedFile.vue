@@ -34,12 +34,12 @@ const deleteConfirmation = async () => {
       );
       await viewDeadlineStore.getDeadline(deadline.value.id);
       alertStore.success(
-        "Success!",
-        "Selected File successfully deleted.",
+        "File Deleted",
+        "The file has been deleted successfully.",
         3.5
       );
     } catch (error) {
-      alertStore.danger("Error!", getErrorMessage(error), 5);
+      alertStore.danger("Deletion Failed", getErrorMessage(error), 5);
       console.error(error);
     }
   }

@@ -104,12 +104,20 @@ const onSubmit = handleSubmit(async (values) => {
         ...(values.password ? { password: values.password } : {}),
       },
     });
-    alertStore.success("Success!", "Selected user successfully updated.", 3.5);
+    alertStore.success(
+      "User Updated",
+      "User profile has been updated successfully.",
+      3.5
+    );
     await editUserStore.editUser(user.value.id);
     await userStore.getAllUsers();
     resetForm({ values: initialValues.value });
   } catch (error) {
-    alertStore.danger("Error!", getErrorMessage(error), 3.5);
+    alertStore.danger(
+      "Update Failed",
+      `Could not update user profile. ${getErrorMessage(error)}`,
+      3.5
+    );
     console.error(error);
   }
 });
@@ -141,12 +149,20 @@ watch(isActive, async (value, oldValue) => {
         );
         await editUserStore.editUser(user.value.id);
         alertStore.success(
-          "Success!",
-          `User successfully ${isActive.value ? "activated" : "deactivated"}.`,
+          isActive.value ? "User Activated" : "User Deactivated",
+          `The user account has been ${
+            isActive.value ? "activated" : "deactivated"
+          } successfully.`,
           3.5
         );
       } catch (error) {
-        alertStore.danger("Error!", getErrorMessage(error), 5);
+        alertStore.danger(
+          isActive.value ? "Activation Failed" : "Deactivation Failed",
+          `Could not ${
+            isActive.value ? "activate" : "deactivate"
+          } user account. ${getErrorMessage(error)}`,
+          5
+        );
         console.error(error);
       }
     } else {

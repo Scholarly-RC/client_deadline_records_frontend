@@ -34,14 +34,18 @@ const deleteConfirmation = async () => {
           method: "DELETE",
         }
       );
-      deadlineTypesStore.getAllDeadlineTypes();
+      await deadlineTypesStore.getAllDeadlineTypes();
       alertStore.success(
-        "Success!",
-        "Selected Deadline Type successfully deleted.",
+        "Deadline Type Deleted",
+        "The deadline type has been removed successfully.",
         3.5
       );
     } catch (error) {
-      alertStore.danger("Error!", getErrorMessage(error), 5);
+      alertStore.danger(
+        "Deletion Failed",
+        `Could not delete deadline type. ${getErrorMessage(error)}`,
+        5
+      );
       console.error(error);
     }
   }

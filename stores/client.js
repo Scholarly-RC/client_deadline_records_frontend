@@ -53,9 +53,9 @@ export const useClientStore = defineStore("clientStore", {
         });
         return response;
       } catch (error) {
-        alertStore.warning("Not Found!", error.detail, 5);
-        await navigateTo("/clients");
+        alertStore.warning("Client Not Found", getErrorMessage(error), 5);
         console.error(error);
+        await navigateTo("/clients");
       } finally {
         this.isLoading = false;
       }
@@ -105,12 +105,13 @@ export const useViewClientStore = defineStore("viewClientStore", {
       this.isLoading = true;
       const alertStore = useAlertStore();
       const clientStore = useClientStore();
+
       try {
         this.client = await clientStore.getClient(id);
       } catch (error) {
-        alertStore.warning("Not Found!", error.detail, 5);
-        await navigateTo("/clients");
+        alertStore.warning("Client Not Found", getErrorMessage(error), 5);
         console.error(error);
+        await navigateTo("/clients");
       } finally {
         this.isLoading = false;
       }
@@ -136,12 +137,13 @@ export const useEditClientStore = defineStore("editClientStore", {
       this.isLoading = true;
       const alertStore = useAlertStore();
       const clientStore = useClientStore();
+
       try {
         this.client = await clientStore.getClient(id);
       } catch (error) {
-        alertStore.warning("Not Found!", error.detail, 5);
-        await navigateTo("/clients");
+        alertStore.warning("Client Not Found", getErrorMessage(error), 5);
         console.error(error);
+        await navigateTo("/clients");
       } finally {
         this.isLoading = false;
       }

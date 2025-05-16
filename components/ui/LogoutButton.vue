@@ -4,15 +4,13 @@ const authStore = useAuthStore();
 
 // Methods
 const handleLogout = async () => {
-  authStore.clearAuth();
-  await navigateTo("/login");
+  await authStore.logout();
 };
 </script>
 
 <template>
   <button
     @click="handleLogout"
-    id="logout-button"
     class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg dark:text-red-400 dark:bg-gray-700 hover:bg-red-100 dark:hover:bg-gray-600 transition-colors duration-200"
   >
     <svg

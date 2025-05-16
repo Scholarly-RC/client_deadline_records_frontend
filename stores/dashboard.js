@@ -11,14 +11,14 @@ export const useDashboardStore = defineStore("dashboardStore", {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch(`/api/stats/`, {
+        const response = await $apiFetch("/api/stats/", {
           method: "GET",
         });
         this.stats = response;
       } catch (error) {
         alertStore.warning(
-          "Error!",
-          "Something went wrong while retrieving the stats.",
+          "Dashboard Data Unavailable",
+          getErrorMessage(error),
           5
         );
         console.error(error);

@@ -6,9 +6,14 @@ const addUserStore = useAddUserStore();
 const userStore = useUserStore();
 const { users, pagination, isLoading } = storeToRefs(userStore);
 
+// Methods
+const handleSetPage = async (page) => {
+  await userStore.setPage(page);
+};
+
 // Search with debounce
 const { source: search, debounced: debouncedSearch } = useDebouncedRef("", 750);
-watch(debouncedSearch, (val) => userStore.setSearch(val));
+watch(debouncedSearch, async (value) => await userStore.setSearch(value));
 </script>
 
 <template>
@@ -163,7 +168,7 @@ watch(debouncedSearch, (val) => userStore.setSearch(val));
       <div v-else-if="pagination" class="flex space-x-2">
         <button
           v-if="pagination.previous"
-          @click="userStore.setPage(pagination.current_page - 1)"
+          @click="handleSetPage(pagination.current_page - 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Previous
@@ -176,7 +181,7 @@ watch(debouncedSearch, (val) => userStore.setSearch(val));
         </button>
         <button
           v-if="pagination.next"
-          @click="userStore.setPage(pagination.current_page + 1)"
+          @click="handleSetPage(pagination.current_page + 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Next

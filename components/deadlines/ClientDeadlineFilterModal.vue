@@ -30,15 +30,28 @@ const applyFilter = async () => {
       ...(assignedTo.value ? { assignedTo: assignedTo.value } : {}),
     };
     await deadlineStore.setFilters(filters);
-    alertStore.success("Success!", "Filter successfully applied.", 3.5);
+    alertStore.success(
+      "Filters Applied",
+      "Your filters have been applied successfully.",
+      3.5
+    );
   } catch (error) {
+    alertStore.danger(
+      "Filter Error",
+      "Failed to apply filters. Please try again.",
+      3.5
+    );
     console.error(error);
   }
 };
 
-const handleClearFilter = () => {
-  deadlineStore.clearFilters();
-  alertStore.success("Success!", "Filter successfully cleared.", 3.5);
+const handleClearFilter = async () => {
+  await deadlineStore.clearFilters();
+  alertStore.success(
+    "Filters Cleared",
+    "All filters have been reset successfully.",
+    3.5
+  );
 };
 </script>
 

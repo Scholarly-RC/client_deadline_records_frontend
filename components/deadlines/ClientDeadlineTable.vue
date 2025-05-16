@@ -9,6 +9,11 @@ const deadlineStore = useDeadlineStore();
 const addDeadlineStore = useAddDeadlineStore();
 const deadlineTypesStore = useDeadlineTypesStore();
 
+// Methods
+const handleSetPage = async (page) => {
+  await deadlineStore.setPage(page);
+};
+
 // Reactive variables
 const { deadlines, pagination, isLoading } = storeToRefs(deadlineStore);
 </script>
@@ -187,7 +192,7 @@ const { deadlines, pagination, isLoading } = storeToRefs(deadlineStore);
       <div v-else-if="pagination" class="flex space-x-2">
         <button
           v-if="pagination.previous"
-          @click="deadlineStore.setPage(pagination.current_page - 1)"
+          @click="handleSetPage(pagination.current_page - 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Previous
@@ -200,7 +205,7 @@ const { deadlines, pagination, isLoading } = storeToRefs(deadlineStore);
         </button>
         <button
           v-if="pagination.next"
-          @click="deadlineStore.setPage(pagination.current_page + 1)"
+          @click="handleSetPage(pagination.current_page + 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Next

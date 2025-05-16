@@ -117,10 +117,9 @@ export const useDeadlineStore = defineStore("deadlineStore", {
         });
         return response;
       } catch (error) {
-        debugger;
-        alertStore.warning("Not Found!", error.detail, 5);
-        await navigateTo("/deadlines");
+        alertStore.warning("Deadline Not Found", getErrorMessage(error), 5);
         console.error(error);
+        await navigateTo("/deadlines");
       } finally {
         this.isLoading = false;
       }
@@ -164,9 +163,9 @@ export const useViewDeadlineStore = defineStore("viewDeadlineStore", {
       try {
         this.deadline = await deadlineStore.getDeadline(id);
       } catch (error) {
-        alertStore.warning("Not Found!", error.detail, 5);
-        await navigateTo("/clients");
+        alertStore.warning("Deadline Unavailable", getErrorMessage(error), 5);
         console.error(error);
+        await navigateTo("/clients");
       } finally {
         this.isLoading = false;
       }
@@ -185,17 +184,17 @@ export const useUpcomingDeadlineStore = defineStore("upcomingDeadlineStore", {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch(
-          `/api/client-deadlines/upcoming-deadlines/`,
+        const deadlines = await $apiFetch(
+          "/api/client-deadlines/upcoming-deadlines/",
           {
             method: "GET",
           }
         );
-        this.deadlines = response;
+        this.deadlines = deadlines;
       } catch (error) {
         alertStore.warning(
-          "Error!",
-          "Something went wrong while retrieving the upcoming deadlines.",
+          "Upcoming Deadlines Unavailable",
+          getErrorMessage(error),
           5
         );
         console.error(error);

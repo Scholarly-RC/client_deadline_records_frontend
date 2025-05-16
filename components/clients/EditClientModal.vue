@@ -82,12 +82,16 @@ const onSubmit = handleSubmit(async (values) => {
     });
     await editClientStore.getClient(client.value.id);
     await clientStore.getAllClients();
-    alertStore.success("Success!", "Client successfully updated.", 3.5);
+    alertStore.success(
+      "Client Updated",
+      "Client information has been updated successfully.",
+      3.5
+    );
     resetForm({
       values: initialValues.value,
     });
   } catch (error) {
-    alertStore.danger("Error!", getErrorMessage(error), 3.5);
+    alertStore.danger("Update Failed", getErrorMessage(error), 3.5);
     console.error(error);
   }
 });

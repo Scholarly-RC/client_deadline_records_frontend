@@ -83,9 +83,17 @@ const onSubmit = handleSubmit(async (values) => {
     await deadlineStore.getAllDeadlines();
     resetForm();
     addDeadlineStore.close();
-    alertStore.success("Success!", "A new deadline has been created.", 3.5);
+    alertStore.success(
+      "Deadline Created",
+      "New deadline has been added successfully.",
+      3.5
+    );
   } catch (error) {
-    alertStore.danger("Error!", getErrorMessage(error), 3.5);
+    alertStore.danger(
+      "Creation Failed",
+      "Failed to create deadline. " + getErrorMessage(error),
+      3.5
+    );
     console.error(error);
   }
 });

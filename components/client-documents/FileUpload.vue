@@ -22,12 +22,12 @@ const handleFiles = async (files) => {
       });
       await viewDeadlineStore.getDeadline(deadline.value.id);
       alertStore.success(
-        "Success!",
-        `${file.name} has been successfully uploaded.`,
+        "Upload Successful",
+        `File "${file.name}" uploaded successfully.`,
         3.5
       );
     } catch (error) {
-      alertStore.danger("Error!", getErrorMessage(error), 3.5);
+      alertStore.danger("Upload Failed", getErrorMessage(error), 3.5);
       console.error(error);
     }
   }

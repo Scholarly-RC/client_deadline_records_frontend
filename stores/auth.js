@@ -30,15 +30,15 @@ export const useAuthStore = defineStore("auth", {
         this.setTokens(response.access, response.refresh);
         await this.setUser();
         alertStore.success(
-          "Login success.",
-          "Redirecting to the dashboard.",
+          "Welcome Back",
+          "You have successfully logged in. Redirecting to your dashboard...",
           3
         );
         setTimeout(async () => {
           await navigateTo({ path: "/" });
         }, 2 * 1000);
       } catch (error) {
-        alertStore.danger("Login failed.", error?.data?.detail, 5);
+        alertStore.danger("Login Unsuccessful", getErrorMessage(error), 5);
         console.error(error);
       } finally {
         this.isLoading = false;

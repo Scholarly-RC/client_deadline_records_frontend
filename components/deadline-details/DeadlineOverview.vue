@@ -89,9 +89,13 @@ const onSubmit = handleSubmit(async (values) => {
     );
     await viewDeadlineStore.getDeadline(deadline.value.id);
     toggleEditMode();
-    alertStore.success("Success!", "A new deadline has been created.", 3.5);
+    alertStore.success(
+      "Deadline Updated",
+      "The deadline has been updated successfully.",
+      3.5
+    );
   } catch (error) {
-    alertStore.danger("Error!", getErrorMessage(error), 3.5);
+    alertStore.danger("Update Failed", getErrorMessage(error), 3.5);
     console.error(error);
   }
 });
@@ -116,12 +120,16 @@ const deleteConfirmation = async () => {
       await deadlineStore.getAllDeadlines();
       await navigateTo("/deadlines");
       alertStore.success(
-        "Success!",
-        "Selected Client Deadline successfully deleted.",
+        "Deadline Deleted",
+        "The client deadline has been removed successfully.",
         3.5
       );
     } catch (error) {
-      alertStore.danger("Error!", getErrorMessage(error), 5);
+      alertStore.danger(
+        "Deletion Failed",
+        "Could not delete the deadline. " + getErrorMessage(error),
+        5
+      );
       console.error(error);
     }
   }

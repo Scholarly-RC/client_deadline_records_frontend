@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware(async () => {
   const authStore = useAuthStore();
 
   // If app just initialized, try to restore session
-  if (!authStore.loading) {
+  if (!authStore.isLoading) {
     await authStore.initAuth();
   }
 

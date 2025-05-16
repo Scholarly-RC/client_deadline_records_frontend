@@ -67,12 +67,20 @@ const onSubmit = handleSubmit(async (values) => {
         default_reminder_days: values.defaultReminderDays,
       },
     });
-    deadlineTypesStore.getAllDeadlineTypes();
+    await deadlineTypesStore.getAllDeadlineTypes();
     resetForm({ values: initialValues.value });
     toggleModal();
-    alertStore.success("Success!", "A new Deadline Type has been added.", 3.5);
+    alertStore.success(
+      "Deadline Type Added",
+      "The new deadline type has been created successfully.",
+      3.5
+    );
   } catch (error) {
-    alertStore.danger("Error!", getErrorMessage(error), 3.5);
+    alertStore.danger(
+      "Creation Failed",
+      "Could not create deadline type. " + getErrorMessage(error),
+      3.5
+    );
     console.error(error);
   }
 });

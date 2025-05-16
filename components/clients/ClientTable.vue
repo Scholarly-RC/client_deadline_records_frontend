@@ -9,9 +9,14 @@ const clientStore = useClientStore();
 const { clients, pagination, isLoading } = storeToRefs(clientStore);
 const addClientStore = useAddClientStore();
 
+// Methods
+const handleSetPage = async (page) => {
+  await clientStore.setPage(page);
+};
+
 // Watchers
-watch(debouncedSearch, async (val) => {
-  await clientStore.setSearch(val);
+watch(debouncedSearch, async (value) => {
+  await clientStore.setSearch(value);
 });
 </script>
 
@@ -180,7 +185,7 @@ watch(debouncedSearch, async (val) => {
       <div v-else class="flex space-x-2">
         <button
           v-if="pagination?.previous"
-          @click="clientStore.setPage(pagination.current_page - 1)"
+          @click="handleSetPage(pagination.current_page - 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
         >
           Previous
@@ -193,7 +198,7 @@ watch(debouncedSearch, async (val) => {
         </button>
         <button
           v-if="pagination?.next"
-          @click="clientStore.setPage(pagination.current_page + 1)"
+          @click="handleSetPage(pagination.current_page + 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
         >
           Next

@@ -71,9 +71,9 @@ const onSubmit = handleSubmit(async (values) => {
     addClientStore.close();
     resetForm();
     await clientStore.getAllClients();
-    alertStore.success("Success!", "A new client has been created.", 3.5);
+    alertStore.success("Client Created", "New client added successfully.", 3.5);
   } catch (error) {
-    alertStore.danger("Error!", getErrorMessage(error), 3.5);
+    alertStore.danger("Client Creation Failed", getErrorMessage(error), 3.5);
     console.error(error);
   }
 });

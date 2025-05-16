@@ -81,15 +81,19 @@ const onSubmit = handleSubmit(async (values) => {
       }
     );
     currentDeadline.value = response;
-    deadlineTypesStore.getAllDeadlineTypes();
+    await deadlineTypesStore.getAllDeadlineTypes();
     resetForm({ values: initialValues.value });
     alertStore.success(
-      "Success!",
-      "The selected deadline type has been updated.",
+      "Deadline Type Updated",
+      "The deadline type has been updated successfully.",
       3.5
     );
   } catch (error) {
-    alertStore.danger("Error!", getErrorMessage(error), 3.5);
+    alertStore.danger(
+      "Update Failed",
+      `Could not update deadline type. ${getErrorMessage(error)}`,
+      5
+    );
     console.error(error);
   }
 });

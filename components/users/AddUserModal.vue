@@ -78,11 +78,19 @@ const onSubmit = handleSubmit(async (values) => {
         password: values.password,
       },
     });
-    alertStore.success("Success!", "A new user has been created.", 3.5);
+    alertStore.success(
+      "User Created",
+      "New user account has been created successfully.",
+      3.5
+    );
     addUserStore.close();
     resetForm();
   } catch (error) {
-    alertStore.danger("Error!", getErrorMessage(error), 3.5);
+    alertStore.danger(
+      "User Creation Failed",
+      `Could not create user account. ${getErrorMessage(error)}`,
+      3.5
+    );
     console.error(error);
   }
 });

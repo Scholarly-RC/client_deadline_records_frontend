@@ -63,9 +63,17 @@ const onSubmit = handleSubmit(async (values) => {
     });
     await viewDeadlineStore.getDeadline(deadline.value.id);
     addWorkUpdateStore.close();
-    alertStore.success("Success!", "A new work update has been created.", 3.5);
+    alertStore.success(
+      "Update Recorded",
+      "Work status update has been saved successfully.",
+      3.5
+    );
   } catch (error) {
-    alertStore.danger("Error!", getErrorMessage(error), 3.5);
+    alertStore.danger(
+      "Update Failed",
+      `Could not save work update. ${getErrorMessage(error)}`,
+      3.5
+    );
     console.error(error);
   }
 });

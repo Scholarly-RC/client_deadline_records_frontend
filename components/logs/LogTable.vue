@@ -9,7 +9,12 @@ const userStore = useUserStore();
 const { logs, pagination, isLoading } = storeToRefs(logsStore);
 const { usersWithLogs } = storeToRefs(userStore);
 
-watch(user, (value) => logsStore.setUser(value));
+// Methods
+const handleSetPage = async (page) => {
+  await logsStore.setPage(page);
+};
+
+watch(user, async (value) => await logsStore.setUser(value));
 </script>
 
 <template>
@@ -119,7 +124,7 @@ watch(user, (value) => logsStore.setUser(value));
       <div v-else-if="pagination" class="flex space-x-2">
         <button
           v-if="pagination.previous"
-          @click="logsStore.setPage(pagination.current_page - 1)"
+          @click="handleSetPage(pagination.current_page - 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Previous
@@ -132,7 +137,7 @@ watch(user, (value) => logsStore.setUser(value));
         </button>
         <button
           v-if="pagination.next"
-          @click="logsStore.setPage(pagination.current_page + 1)"
+          @click="handleSetPage(pagination.current_page + 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Next
