@@ -2,7 +2,7 @@
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const dashboardStore = useDashboardStore();
-const { stats } = storeToRefs(dashboardStore);
+const { stats, isLoading } = storeToRefs(dashboardStore);
 </script>
 
 <template>
@@ -14,13 +14,22 @@ const { stats } = storeToRefs(dashboardStore);
     >
       <div class="p-6">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
               Total Clients
             </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ stats.total_clients }}
-            </p>
+            <template v-if="isLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ stats.total_clients }}
+              </p>
+            </template>
           </div>
           <div
             class="p-3 rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-200"
@@ -49,13 +58,22 @@ const { stats } = storeToRefs(dashboardStore);
     >
       <div class="p-6">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
               Upcoming Deadlines
             </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ stats.upcoming_deadlines }}
-            </p>
+            <template v-if="isLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ stats.upcoming_deadlines }}
+              </p>
+            </template>
           </div>
           <div
             class="p-3 rounded-lg bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-200"
@@ -84,13 +102,22 @@ const { stats } = storeToRefs(dashboardStore);
     >
       <div class="p-6">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
               Overdue Tasks
             </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ stats.overdue_deadlines }}
-            </p>
+            <template v-if="isLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ stats.overdue_deadlines }}
+              </p>
+            </template>
           </div>
           <div
             class="p-3 rounded-lg bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200"
@@ -118,13 +145,22 @@ const { stats } = storeToRefs(dashboardStore);
     >
       <div class="p-6">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
               Pending Deadlines
             </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ stats.pending_deadlines }}
-            </p>
+            <template v-if="isLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ stats.pending_deadlines }}
+              </p>
+            </template>
           </div>
           <div
             class="p-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200"
@@ -152,13 +188,22 @@ const { stats } = storeToRefs(dashboardStore);
     >
       <div class="p-6">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
               Cancelled Deadlines
             </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ stats.cancelled_deadlines }}
-            </p>
+            <template v-if="isLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ stats.cancelled_deadlines }}
+              </p>
+            </template>
           </div>
           <div
             class="p-3 rounded-lg bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-200"
@@ -186,13 +231,22 @@ const { stats } = storeToRefs(dashboardStore);
     >
       <div class="p-6">
         <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
               Completed This Month
             </p>
-            <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-              {{ stats.monthly_completed_deadlines }}
-            </p>
+            <template v-if="isLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ stats.monthly_completed_deadlines }}
+              </p>
+            </template>
           </div>
           <div
             class="p-3 rounded-lg bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200"

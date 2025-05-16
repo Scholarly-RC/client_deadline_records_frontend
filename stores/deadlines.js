@@ -36,6 +36,7 @@ export const useDeadlineStore = defineStore("deadlineStore", {
     search: null,
     filters: {},
     showFilter: false,
+    isLoading: false,
   }),
   actions: {
     openFilter() {

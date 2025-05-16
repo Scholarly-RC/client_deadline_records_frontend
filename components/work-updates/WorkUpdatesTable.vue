@@ -4,7 +4,7 @@ import WorkUpdate from "./WorkUpdate.vue";
 
 // Stores
 const viewDeadlineStore = useViewDeadlineStore();
-const { deadline } = storeToRefs(viewDeadlineStore);
+const { deadline, isLoading } = storeToRefs(viewDeadlineStore);
 </script>
 
 <template>
@@ -41,11 +41,36 @@ const { deadline } = storeToRefs(viewDeadlineStore);
         <tbody
           class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
         >
-          <WorkUpdate
-            v-for="workUpdate in deadline.work_updates"
-            :key="workUpdate.id"
-            :work-updates="workUpdate"
-          />
+          <template v-if="isLoading">
+            <!-- Loading rows -->
+            <tr v-for="i in 3" :key="`loading-${i}`" class="animate-pulse">
+              <td class="px-6 py-4">
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"
+                ></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="space-y-2">
+                  <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"
+                  ></div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"
+                ></div>
+              </td>
+            </tr>
+          </template>
+          <template v-else>
+            <WorkUpdate
+              v-for="workUpdate in deadline.work_updates"
+              :key="workUpdate.id"
+              :work-updates="workUpdate"
+            />
+          </template>
         </tbody>
       </table>
     </div>

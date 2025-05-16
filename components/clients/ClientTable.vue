@@ -6,7 +6,7 @@ const { source: search, debounced: debouncedSearch } = useDebouncedRef("", 750);
 
 // Stores
 const clientStore = useClientStore();
-const { clients, pagination } = storeToRefs(clientStore);
+const { clients, pagination, isLoading } = storeToRefs(clientStore);
 const addClientStore = useAddClientStore();
 
 // Watchers
@@ -17,6 +17,7 @@ watch(debouncedSearch, async (val) => {
 
 <template>
   <div class="space-y-4">
+    <!-- Search and Add Client -->
     <div class="flex flex-col sm:flex-row justify-between items-end mb-6 gap-4">
       <div class="relative w-full sm:w-64">
         <input
@@ -49,7 +50,7 @@ watch(debouncedSearch, async (val) => {
       </button>
     </div>
 
-    <!-- Recent Clients Section -->
+    <!-- Clients Table -->
     <div
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
@@ -102,42 +103,96 @@ watch(debouncedSearch, async (val) => {
           <tbody
             class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700"
           >
-            <!-- Client 1 -->
-            <Client
-              v-for="client in clients"
-              :key="client.id"
-              :client="client"
-            />
+            <!-- Loading State -->
+            <template v-if="isLoading">
+              <tr v-for="i in 5" :key="`skeleton-${i}`">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 animate-pulse"
+                  ></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div
+                    class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20 animate-pulse"
+                  ></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 animate-pulse"
+                  ></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 animate-pulse"
+                  ></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16 animate-pulse"
+                  ></div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div
+                    class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-16 animate-pulse"
+                  ></div>
+                </td>
+              </tr>
+            </template>
+
+            <!-- Actual Content -->
+            <template v-else>
+              <Client
+                v-for="client in clients"
+                :key="client.id"
+                :client="client"
+              />
+            </template>
           </tbody>
         </table>
       </div>
     </div>
 
+    <!-- Pagination -->
     <div
-      v-if="pagination"
       class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4"
     >
-      <div class="text-sm text-gray-500 dark:text-gray-400">
+      <div
+        v-if="isLoading"
+        class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"
+      ></div>
+      <div v-else class="text-sm text-gray-500 dark:text-gray-400">
         Showing
-        <span class="font-medium">{{ pagination.item_range }}</span> of
-        <span class="font-medium">{{ pagination.count }}</span> results
+        <span class="font-medium">{{ pagination?.item_range }}</span> of
+        <span class="font-medium">{{ pagination?.count }}</span> results
       </div>
-      <div class="flex space-x-2">
+
+      <div v-if="isLoading" class="flex space-x-2">
+        <div
+          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-20 animate-pulse"
+        ></div>
+        <div
+          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-8 animate-pulse"
+        ></div>
+        <div
+          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-20 animate-pulse"
+        ></div>
+      </div>
+      <div v-else class="flex space-x-2">
         <button
-          v-if="pagination.previous"
+          v-if="pagination?.previous"
           @click="clientStore.setPage(pagination.current_page - 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
         >
           Previous
         </button>
         <button
-          v-if="pagination.total_pages > 1"
+          v-if="pagination?.total_pages > 1"
           class="px-3 py-1 rounded-md border border-primary-500 bg-primary-50 dark:bg-primary-900 text-primary-600 dark:text-primary-300 font-medium"
         >
-          {{ pagination.current_page }}
+          {{ pagination?.current_page }}
         </button>
         <button
-          v-if="pagination.next"
+          v-if="pagination?.next"
           @click="clientStore.setPage(pagination.current_page + 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
         >

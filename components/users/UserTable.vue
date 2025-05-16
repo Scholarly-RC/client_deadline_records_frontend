@@ -1,19 +1,14 @@
 <script setup>
-// Components
 import User from "./User.vue";
+import { storeToRefs } from "pinia";
 
-// Stores
 const addUserStore = useAddUserStore();
-const { source: search, debounced: debouncedSearch } = useDebouncedRef("", 750);
-
-// Stores
 const userStore = useUserStore();
-const { users, pagination } = storeToRefs(userStore);
+const { users, pagination, isLoading } = storeToRefs(userStore);
 
-// Watchers
-watch(debouncedSearch, async (val) => {
-  await userStore.setSearch(val);
-});
+// Search with debounce
+const { source: search, debounced: debouncedSearch } = useDebouncedRef("", 750);
+watch(debouncedSearch, (val) => userStore.setSearch(val));
 </script>
 
 <template>
@@ -44,7 +39,6 @@ watch(debouncedSearch, async (val) => {
       </div>
       <button
         @click="addUserStore.open()"
-        id="add-user-btn"
         class="text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-md"
       >
         Add User
@@ -59,31 +53,26 @@ watch(debouncedSearch, async (val) => {
         <thead class="bg-gray-50 dark:bg-gray-800">
           <tr>
             <th
-              scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
             >
               Name
             </th>
             <th
-              scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
             >
               Email
             </th>
             <th
-              scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
             >
               Role
             </th>
             <th
-              scope="col"
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
             >
               Status
             </th>
             <th
-              scope="col"
               class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
             >
               Actions
@@ -93,26 +82,89 @@ watch(debouncedSearch, async (val) => {
         <tbody
           class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
         >
-          <!-- User -->
-          <User v-for="user in users" :key="user.id" :user="user" />
+          <!-- Loading State -->
+          <template v-if="isLoading">
+            <tr
+              v-for="i in 5"
+              :key="`skeleton-${i}`"
+              class="hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div
+                    class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"
+                  ></div>
+                  <div class="ml-4 space-y-2">
+                    <div
+                      class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"
+                    ></div>
+                    <div
+                      class="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24 animate-pulse"
+                    ></div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div
+                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse"
+                ></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div
+                  class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20 animate-pulse"
+                ></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div
+                  class="h-6 bg-gray-200 dark:bg-gray-700 rounded-full w-20 animate-pulse"
+                ></div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <div
+                  class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-16 animate-pulse inline-block"
+                ></div>
+              </td>
+            </tr>
+          </template>
+
+          <!-- Actual Content -->
+          <User v-else v-for="user in users" :key="user.id" :user="user" />
         </tbody>
       </table>
     </div>
 
     <!-- Pagination -->
     <div
-      v-if="pagination"
       class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4"
     >
-      <div class="text-sm text-gray-500 dark:text-gray-400">
+      <div
+        v-if="isLoading"
+        class="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-48"
+      ></div>
+      <div
+        v-else-if="pagination"
+        class="text-sm text-gray-500 dark:text-gray-400"
+      >
         Showing <span class="font-medium">{{ pagination.item_range }}</span> of
         <span class="font-medium">{{ pagination.count }}</span> results
       </div>
-      <div class="flex space-x-2">
+
+      <div v-if="isLoading" class="flex space-x-2">
+        <div
+          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-20"
+        ></div>
+        <div
+          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-8"
+        ></div>
+        <div
+          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-20"
+        ></div>
+      </div>
+      <div v-else-if="pagination" class="flex space-x-2">
         <button
           v-if="pagination.previous"
           @click="userStore.setPage(pagination.current_page - 1)"
-          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Previous
         </button>
@@ -125,7 +177,7 @@ watch(debouncedSearch, async (val) => {
         <button
           v-if="pagination.next"
           @click="userStore.setPage(pagination.current_page + 1)"
-          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Next
         </button>

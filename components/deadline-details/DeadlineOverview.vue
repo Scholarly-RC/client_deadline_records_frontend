@@ -15,7 +15,7 @@ const { isAdmin } = storeToRefs(authStore);
 const alertStore = useAlertStore();
 const deadlineStore = useDeadlineStore();
 const viewDeadlineStore = useViewDeadlineStore();
-const { deadline } = storeToRefs(viewDeadlineStore);
+const { deadline, isLoading } = storeToRefs(viewDeadlineStore);
 const addWorkUpdateStore = useAddWorkUpdateStore();
 const userStore = useUserStore();
 const { users } = storeToRefs(userStore);
@@ -144,9 +144,16 @@ watch(deadline, () => {
     >
       <!-- Client Info and Edit Button -->
       <div class="flex items-center gap-1 justify-between">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-          {{ deadline.client.name }} - {{ deadline.deadline_type.name }}
-        </h2>
+        <template v-if="isLoading">
+          <div
+            class="h-7 w-64 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+          ></div>
+        </template>
+        <template v-else>
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+            {{ deadline.client.name }} - {{ deadline.deadline_type.name }}
+          </h2>
+        </template>
         <div class="flex flex-col lg:flex-row gap-2">
           <div v-if="isAdmin" class="flex flex-row gap-2 justify-evenly">
             <button
@@ -194,12 +201,19 @@ watch(deadline, () => {
                   type="date"
                   class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
                 />
-                <p
-                  v-else
-                  class="text-lg font-semibold text-gray-900 dark:text-white"
-                >
-                  {{ deadline.due_date }}
-                </p>
+                <template v-else>
+                  <div v-if="isLoading" class="mt-1">
+                    <div
+                      class="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+                    ></div>
+                  </div>
+                  <p
+                    v-else
+                    class="text-lg font-semibold text-gray-900 dark:text-white"
+                  >
+                    {{ deadline.due_date }}
+                  </p>
+                </template>
               </div>
             </div>
             <div
@@ -243,12 +257,19 @@ watch(deadline, () => {
                   <option :value="4">High</option>
                   <option :value="5">Highest</option>
                 </select>
-                <p
-                  v-else
-                  class="text-lg font-semibold text-gray-900 dark:text-white"
-                >
-                  {{ getPriorityLabel(deadline.priority) }}
-                </p>
+                <template v-else>
+                  <div v-if="isLoading" class="mt-1">
+                    <div
+                      class="h-6 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+                    ></div>
+                  </div>
+                  <p
+                    v-else
+                    class="text-lg font-semibold text-gray-900 dark:text-white"
+                  >
+                    {{ getPriorityLabel(deadline.priority) }}
+                  </p>
+                </template>
               </div>
             </div>
             <div
@@ -281,7 +302,17 @@ watch(deadline, () => {
                 Status
               </p>
               <div>
-                <p class="text-lg font-semibold text-gray-900 dark:text-white">
+                <template v-if="isLoading">
+                  <div class="mt-1">
+                    <div
+                      class="h-6 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+                    ></div>
+                  </div>
+                </template>
+                <p
+                  v-else
+                  class="text-lg font-semibold text-gray-900 dark:text-white"
+                >
                   {{ $convertToTitleCase(deadline.status) }}
                 </p>
               </div>
@@ -325,12 +356,19 @@ watch(deadline, () => {
                     {{ user.fullname }}
                   </option>
                 </select>
-                <p
-                  v-else
-                  class="text-lg font-semibold capitalize text-gray-900 dark:text-white"
-                >
-                  {{ deadline.assigned_to.fullname }}
-                </p>
+                <template v-else>
+                  <div v-if="isLoading" class="mt-1">
+                    <div
+                      class="h-6 w-36 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"
+                    ></div>
+                  </div>
+                  <p
+                    v-else
+                    class="text-lg font-semibold capitalize text-gray-900 dark:text-white"
+                  >
+                    {{ deadline.assigned_to.fullname }}
+                  </p>
+                </template>
               </div>
             </div>
             <div
