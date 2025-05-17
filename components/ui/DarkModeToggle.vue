@@ -7,7 +7,7 @@ const darkModeStore = useDarkModeStore();
   <button
     @click="darkModeStore.toggle()"
     id="desktop-dark-mode-toggle"
-    class="flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors duration-200"
+    class="dark-mode-toggle flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:text-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors duration-200"
   >
     <!-- Sun icon (light mode) -->
     <svg

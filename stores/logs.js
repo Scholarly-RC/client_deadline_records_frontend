@@ -30,7 +30,6 @@ export const useLogsStore = defineStore("logsStore", {
         const { results, ...pagination } = response;
         this.logs = results;
         this.pagination = pagination;
-        console.log(results);
       } catch (error) {
         console.error(error);
       } finally {
