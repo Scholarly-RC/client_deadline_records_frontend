@@ -4,6 +4,7 @@ import Alert from "~/components/ui/Alert.vue";
 
 <template>
   <div class="h-full">
+    <VitePwaManifest />
     <div>
       <slot />
     </div>

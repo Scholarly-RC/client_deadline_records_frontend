@@ -7,6 +7,7 @@ import Sidebar from "~/components/ui/Sidebar.vue";
 
 <template>
   <div class="h-full">
+    <VitePwaManifest />
     <div class="flex flex-row">
       <Sidebar />
       <slot />
