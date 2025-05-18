@@ -7,6 +7,10 @@ definePageMeta({
   layout: "menu",
   middleware: "auth",
 });
+
+useHead({
+  title: "Client Deadline Tracker | Deadline View",
+});
 </script>
 
 <template>

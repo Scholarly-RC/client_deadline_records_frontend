@@ -9,6 +9,10 @@ definePageMeta({
   middleware: "auth",
 });
 
+useHead({
+  title: "Client Deadline Tracker | Logs",
+});
+
 // Stores
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);

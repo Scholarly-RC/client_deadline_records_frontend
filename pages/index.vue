@@ -1,7 +1,10 @@
 <script setup>
 import Dashboard from "~/components/dashboard/Dashboard.vue";
 
-// Components
+// Page Metadata
+useHead({
+  title: "Client Deadline Tracker | Dashboard",
+});
 
 // Page Configuration
 definePageMeta({
