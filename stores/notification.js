@@ -134,8 +134,8 @@ export const useUnreadNotificationStore = defineStore(
           this.isLoading = false;
         }
       },
-      async startPolling(interval = 30000) {
-        // 5 minutes by default
+      async startPolling(interval = 120000) {
+        // 2 minutes by default
         this.stopPolling();
         this.pollingInterval = setInterval(async () => {
           await this.getUnreadNotificationCount();
