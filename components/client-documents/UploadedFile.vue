@@ -13,7 +13,7 @@ const confirmationStore = useConfirmationStore();
 // Computed
 const fileDownloadUrl = computed(() => {
   const config = useRuntimeConfig();
-  return `${config.public.apiBase}/core/download-client-document/${props.file.id}`;
+  return `${config.public.apiBase}/core/download-client-document/${props.file.id}/`;
 });
 
 // Delete confirmation
