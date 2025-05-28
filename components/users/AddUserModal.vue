@@ -8,6 +8,7 @@ import { z } from "zod";
 const alertStore = useAlertStore();
 const addUserStore = useAddUserStore();
 const { showModal } = storeToRefs(addUserStore);
+const userStore = useUserStore();
 
 // Form Schema
 const validationSchema = toTypedSchema(
@@ -78,13 +79,14 @@ const onSubmit = handleSubmit(async (values) => {
         password: values.password,
       },
     });
+    await userStore.getAllUsers();
+    addUserStore.close();
+    resetForm();
     alertStore.success(
       "User Created",
       "New user account has been created successfully.",
       3.5
     );
-    addUserStore.close();
-    resetForm();
   } catch (error) {
     alertStore.danger(
       "User Creation Failed",

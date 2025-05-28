@@ -19,7 +19,7 @@ const initialValues = computed(() => ({
 const validationSchema = toTypedSchema(
   z.object({
     name: z.string().nonempty("Name is required."),
-    description: z.string(),
+    description: z.string().optional(),
     defaultReminderDays: z
       .number()
       .min(0, "Reminder days must be zero or more")
