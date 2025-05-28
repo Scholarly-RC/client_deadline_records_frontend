@@ -33,7 +33,7 @@ const validationSchema = toTypedSchema(
     dueDate: z.string().nonempty("Due Date is required."),
     priority: z.number(),
     assignedTo: z.number().min(1, "Assigned To is required."),
-    description: z.string(),
+    description: z.string().optional(),
   })
 );
 

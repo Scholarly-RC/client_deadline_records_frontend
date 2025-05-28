@@ -32,7 +32,7 @@ const validationSchema = toTypedSchema(
       .email("Invalid email format."),
     phone: z.string().nonempty("Phone is required."),
     address: z.string().nonempty("Address is required."),
-    notes: z.string(),
+    notes: z.string().optional(),
   })
 );
 

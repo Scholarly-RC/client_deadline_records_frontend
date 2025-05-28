@@ -43,23 +43,6 @@ export const useClientStore = defineStore("clientStore", {
         this.isLoading = false;
       }
     },
-    async getClient(id) {
-      const alertStore = useAlertStore();
-      try {
-        this.isLoading = true;
-        const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch(`/api/clients/${id}/`, {
-          method: "GET",
-        });
-        return response;
-      } catch (error) {
-        alertStore.warning("Client Not Found", getErrorMessage(error), 5);
-        console.error(error);
-        await navigateTo("/clients");
-      } finally {
-        this.isLoading = false;
-      }
-    },
     async setPage(page = null) {
       this.page = page;
       await this.getAllClients();
@@ -87,38 +70,6 @@ export const useAddClientStore = defineStore("addClientStore", {
   },
 });
 
-export const useViewClientStore = defineStore("viewClientStore", {
-  state: () => ({
-    client: null,
-    showModal: false,
-    isLoading: false,
-  }),
-
-  actions: {
-    open() {
-      this.showModal = true;
-    },
-    close() {
-      this.showModal = false;
-    },
-    async getClient(id) {
-      this.isLoading = true;
-      const alertStore = useAlertStore();
-      const clientStore = useClientStore();
-
-      try {
-        this.client = await clientStore.getClient(id);
-      } catch (error) {
-        alertStore.warning("Client Not Found", getErrorMessage(error), 5);
-        console.error(error);
-        await navigateTo("/clients");
-      } finally {
-        this.isLoading = false;
-      }
-    },
-  },
-});
-
 export const useEditClientStore = defineStore("editClientStore", {
   state: () => ({
     client: null,
@@ -134,12 +85,14 @@ export const useEditClientStore = defineStore("editClientStore", {
       this.showModal = false;
     },
     async getClient(id) {
-      this.isLoading = true;
       const alertStore = useAlertStore();
-      const clientStore = useClientStore();
-
       try {
-        this.client = await clientStore.getClient(id);
+        this.isLoading = true;
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch(`/api/clients/${id}/`, {
+          method: "GET",
+        });
+        this.client = response;
       } catch (error) {
         alertStore.warning("Client Not Found", getErrorMessage(error), 5);
         console.error(error);
