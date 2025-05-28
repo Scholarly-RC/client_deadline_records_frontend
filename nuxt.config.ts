@@ -34,7 +34,7 @@ export default defineNuxtConfig({
     },
     workbox: {
       globPatterns: ["**/*.{js,css,html,png,jpg,svg,json}"],
-      navigateFallback: "/index.html",
+      navigateFallback: "/",
     },
     client: {
       installPrompt: true,
