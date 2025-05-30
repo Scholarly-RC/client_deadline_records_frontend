@@ -146,8 +146,8 @@ watch(deadline, () => {
     <PageHeader page="Deadline Details" />
 
     <!-- Content -->
-    <main class="flex-1 overflow-auto p-4 bg-white dark:bg-gray-900 space-y-6">
-      <div v-if="deadline">
+    <main class="flex-1 overflow-auto p-4 bg-white dark:bg-gray-900">
+      <div v-if="deadline" class="space-y-6">
         <!-- Client Info and Edit Button -->
         <div class="flex items-center gap-1 justify-between">
           <template v-if="isLoading">
