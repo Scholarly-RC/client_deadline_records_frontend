@@ -52,9 +52,9 @@ const { deadlines, isLoading } = storeToRefs(upcomingDeadlineStore);
         <div
           v-for="deadline in deadlines"
           :key="deadline.id"
-          class="flex items-center justify-between p-4 border border-gray-200 rounded-lg dark:border-gray-700"
+          class="flex flex-col sm:flex-row items-center justify-between p-4 border border-gray-200 rounded-lg dark:border-gray-700"
         >
-          <div>
+          <div class="w-full flex flex-col items-start">
             <h4 class="font-medium text-gray-900 dark:text-white">
               {{ deadline.client.name }} - {{ deadline.deadline_type.name }}
             </h4>
@@ -64,7 +64,7 @@ const { deadlines, isLoading } = storeToRefs(upcomingDeadlineStore);
               }})
             </p>
           </div>
-          <div class="flex items-center space-x-2">
+          <div class="flex mt-2 sm:mt-0 space-x-2">
             <DeadlinePriorityPill :priority="deadline.priority" />
             <DeadlineStatusPill :status="deadline.status" />
             <NuxtLink

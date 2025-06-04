@@ -14,7 +14,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col flex-1">
+  <div class="h-screen flex flex-col flex-1 overflow-hidden">
     <PageHeader page="Dashboard" />
 
     <!-- Content -->
