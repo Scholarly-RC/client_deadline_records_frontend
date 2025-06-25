@@ -103,3 +103,33 @@ export const useEditClientStore = defineStore("editClientStore", {
     },
   },
 });
+
+export const useClientBirthdays = defineStore("clientBirthdays", {
+  state: () => ({
+    data: null,
+    isLoading: false,
+  }),
+
+  actions: {
+    async getClientBirthdays() {
+      const alertStore = useAlertStore();
+      try {
+        this.isLoading = true;
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch(`/api/clients/birthdays/`, {
+          method: "GET",
+        });
+        this.data = response;
+      } catch (error) {
+        alertStore.warning(
+          "Failed To Load Client Birthdays",
+          getErrorMessage(error),
+          5
+        );
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+  },
+});
