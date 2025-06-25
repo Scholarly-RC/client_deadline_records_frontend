@@ -1,6 +1,7 @@
 <script setup>
 // Components
 import PageHeader from "../ui/PageHeader.vue";
+import ClientBirthdays from "./ClientBirthdays.vue";
 import Stats from "./Stats.vue";
 import UpcomingDeadlines from "./UpcomingDeadlines.vue";
 
@@ -26,6 +27,7 @@ onMounted(async () => {
         <!-- Stats cards -->
         <Stats />
         <UpcomingDeadlines />
+        <ClientBirthdays />
       </div>
     </main>
   </div>
