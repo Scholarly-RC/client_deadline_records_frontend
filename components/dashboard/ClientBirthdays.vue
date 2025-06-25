@@ -213,7 +213,7 @@ onMounted(async () => {
               data?.upcoming.length === 0 &&
               data?.past.length === 0
             "
-            class="p-4 text-center text-gray-500 dark:text-gray-400"
+            class="w-full p-4 text-center text-gray-500 dark:text-gray-400 col-span-3"
           >
             No birthdays this month
           </div>

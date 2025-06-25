@@ -20,7 +20,7 @@ const validationSchema = toTypedSchema(
       .nonempty("Email is required.")
       .email("Invalid email format."),
     phone: z.string().nonempty("Phone is required."),
-    dateOfBirth: z.string(),
+    dateOfBirth: z.string().optional(),
     address: z.string().nonempty("Address is required."),
     notes: z.string().optional(),
   })
@@ -66,7 +66,7 @@ const onSubmit = handleSubmit(async (values) => {
         contact_person: values.contactPerson,
         email: values.email,
         phone: values.phone,
-        date_of_birth: values.dateOfBirth,
+        date_of_birth: values.dateOfBirth || null,
         address: values.address,
         notes: values.notes,
       },
