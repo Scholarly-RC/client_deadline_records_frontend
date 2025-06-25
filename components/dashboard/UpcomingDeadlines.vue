@@ -4,6 +4,10 @@ import DeadlineStatusPill from "../ui/DeadlineStatusPill.vue";
 
 const upcomingDeadlineStore = useUpcomingDeadlineStore();
 const { deadlines, isLoading } = storeToRefs(upcomingDeadlineStore);
+
+onMounted(async () => {
+  await upcomingDeadlineStore.getUpcomingDeadlines();
+});
 </script>
 
 <template>
