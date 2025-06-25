@@ -16,6 +16,7 @@ const initialValues = computed(() => ({
   contactPerson: client.value?.contact_person || "",
   email: client.value?.email || "",
   phone: client.value?.phone || "",
+  dateOfBirth: client.value?.date_of_birth || "",
   address: client.value?.address || "",
   notes: client.value?.notes || "",
 }));
@@ -31,6 +32,7 @@ const validationSchema = toTypedSchema(
       .nonempty("Email is required.")
       .email("Invalid email format."),
     phone: z.string().nonempty("Phone is required."),
+    dateOfBirth: z.string(),
     address: z.string().nonempty("Address is required."),
     notes: z.string().optional(),
   })
@@ -56,6 +58,7 @@ const [status] = defineField("status");
 const [contactPerson] = defineField("contactPerson");
 const [email] = defineField("email");
 const [phone] = defineField("phone");
+const [dateOfBirth] = defineField("dateOfBirth");
 const [address] = defineField("address");
 const [notes] = defineField("notes");
 
@@ -76,6 +79,7 @@ const onSubmit = handleSubmit(async (values) => {
         contact_person: values.contactPerson,
         email: values.email,
         phone: values.phone,
+        date_of_birth: values.dateOfBirth,
         address: values.address,
         notes: values.notes,
       },
@@ -273,6 +277,27 @@ watch(initialValues, () => {
                         class="mt-1 text-xs text-red-600 dark:text-red-400"
                       >
                         {{ errors.phone }}
+                      </p>
+                    </div>
+                    <div>
+                      <label
+                        for="date-of-birth"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                      >
+                        Phone <span class="text-red-500">*</span>
+                      </label>
+                      <input
+                        v-model="dateOfBirth"
+                        type="date"
+                        id="date-of-birth"
+                        name="date-of-birth"
+                        class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
+                      />
+                      <p
+                        v-if="errors.dateOfBirth"
+                        class="mt-1 text-xs text-red-600 dark:text-red-400"
+                      >
+                        {{ errors.dateOfBirth }}
                       </p>
                     </div>
                   </div>
