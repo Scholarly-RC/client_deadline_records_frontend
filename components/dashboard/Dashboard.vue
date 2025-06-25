@@ -6,11 +6,9 @@ import Stats from "./Stats.vue";
 import UpcomingDeadlines from "./UpcomingDeadlines.vue";
 
 const dashboardStore = useDashboardStore();
-const upcomingDeadlineStore = useUpcomingDeadlineStore();
 
 onMounted(async () => {
   await dashboardStore.getDashboardData();
-  await upcomingDeadlineStore.getUpcomingDeadlines();
 });
 </script>
 
