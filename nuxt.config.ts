@@ -3,10 +3,10 @@ export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
   modules: [
-    "@nuxtjs/tailwindcss",
     "@pinia/nuxt",
     "@nuxtjs/color-mode",
     "@vite-pwa/nuxt",
+    "@nuxt/ui",
   ],
   ssr: false,
   pwa: {

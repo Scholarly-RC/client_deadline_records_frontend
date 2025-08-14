@@ -1,5 +1,5 @@
 <script setup>
-import NotificationButton from "../notifications/NotificationButton.vue";
+import NotificationModal from "../notifications/NotificationModal.vue";
 
 // Props
 const props = defineProps({
@@ -38,7 +38,7 @@ const sidebarStore = useSidebarStore();
       {{ props.page }}
     </h1>
     <div class="flex items-center">
-      <NotificationButton />
+      <NotificationModal />
     </div>
   </div>
 </template>

@@ -12,22 +12,20 @@ onMounted(async () => {
 
 <template>
   <!-- Upcoming Deadlines Section -->
-  <div
+  <UCard
     class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
   >
-    <div
-      class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
-    >
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-        Upcoming Deadlines
-      </h3>
-      <NuxtLink
-        to="/deadlines"
-        class="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
-      >
-        View All
-      </NuxtLink>
-    </div>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+          Upcoming Deadlines
+        </h3>
+        <UButton to="/deadlines" variant="subtle" color="neutral" size="md">
+          View All
+        </UButton>
+      </div>
+    </template>
+
     <div class="p-6 space-y-4">
       <template v-if="isLoading">
         <div
@@ -81,12 +79,9 @@ onMounted(async () => {
         </div>
       </template>
       <!-- Empty State -->
-      <div
-        v-if="!isLoading && deadlines.length === 0"
-        class="p-4 text-center text-gray-500 dark:text-gray-400"
-      >
+      <div v-if="!isLoading && deadlines.length === 0" class="p-4 text-center">
         No upcoming deadlines
       </div>
     </div>
-  </div>
+  </UCard>
 </template>

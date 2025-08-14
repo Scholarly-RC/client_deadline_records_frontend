@@ -75,18 +75,20 @@ const deleteConfirmation = async () => {
     <td
       class="flex flex-row gap-1 px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
     >
-      <button
+      <UButton
         @click="handleOpenEditModal(client.id)"
-        class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
-      >
-        View
-      </button>
-      <button
+        label="View"
+        leading-icon="mdi:account-arrow-right-outline"
+        color="info"
+        size="lg"
+      />
+      <UButton
         @click="deleteConfirmation"
-        class="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-      >
-        Delete
-      </button>
+        label="Delete"
+        leading-icon="mdi:account-minus"
+        color="error"
+        size="lg"
+      />
     </td>
   </tr>
 </template>

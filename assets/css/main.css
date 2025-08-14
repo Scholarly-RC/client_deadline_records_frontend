@@ -1,3 +1,6 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
 /* Light mode */
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(0);

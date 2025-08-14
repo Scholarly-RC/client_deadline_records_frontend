@@ -9,16 +9,17 @@ onMounted(async () => {
 
 <template>
   <!-- Birthdays Section -->
-  <div
+  <UCard
     class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
   >
-    <div
-      class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
-    >
-      <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-        This Month's Birthdays
-      </h3>
-    </div>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+          This Month's Birthdays
+        </h3>
+      </div>
+    </template>
+
     <div class="p-6 space-y-4">
       <template v-if="isLoading">
         <div
@@ -220,5 +221,5 @@ onMounted(async () => {
         </div>
       </template>
     </div>
-  </div>
+  </UCard>
 </template>
