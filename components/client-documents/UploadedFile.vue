@@ -5,7 +5,6 @@ const props = defineProps({
 });
 
 // Stores
-const alertStore = useAlertStore();
 const viewDeadlineStore = useViewDeadlineStore();
 const { deadline } = storeToRefs(viewDeadlineStore);
 const confirmationStore = useConfirmationStore();
@@ -18,6 +17,7 @@ const fileDownloadUrl = computed(() => {
 
 // Delete confirmation
 const deleteConfirmation = async () => {
+  const toast = useToast();
   const confirmed = await confirmationStore.confirm(
     "Are you sure you want to delete this file?"
   );
@@ -26,20 +26,25 @@ const deleteConfirmation = async () => {
     try {
       const { $apiFetch } = useNuxtApp();
 
-      const response = await $apiFetch(
-        `/api/client-documents/${props.file.id}/`,
-        {
-          method: "DELETE",
-        }
-      );
+      await $apiFetch(`/api/client-documents/${props.file.id}/`, {
+        method: "DELETE",
+      });
       await viewDeadlineStore.getDeadline(deadline.value.id);
-      alertStore.success(
-        "File Deleted",
-        "The file has been deleted successfully.",
-        3.5
-      );
+      toast.add({
+        title: "File Deleted",
+        description: "The file has been deleted successfully.",
+        color: "success",
+        icon: "mdi:checkbox-multiple-marked",
+        duration: 2000,
+      });
     } catch (error) {
-      alertStore.danger("Deletion Failed", getErrorMessage(error), 5);
+      toast.add({
+        title: "Deletion Failed",
+        description: getErrorMessage(error),
+        color: "error",
+        icon: "mdi:close-box-multiple",
+        duration: 5000,
+      });
       console.error(error);
     }
   }

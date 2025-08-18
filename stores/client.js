@@ -85,7 +85,7 @@ export const useEditClientStore = defineStore("editClientStore", {
       this.showModal = false;
     },
     async getClient(id) {
-      const alertStore = useAlertStore();
+      const toast = useToast();
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
@@ -94,7 +94,13 @@ export const useEditClientStore = defineStore("editClientStore", {
         });
         this.client = response;
       } catch (error) {
-        alertStore.warning("Client Not Found", getErrorMessage(error), 5);
+        toast.add({
+          title: "Client Not Found",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
         await navigateTo("/clients");
       } finally {
@@ -112,7 +118,7 @@ export const useClientBirthdays = defineStore("clientBirthdays", {
 
   actions: {
     async getClientBirthdays() {
-      const alertStore = useAlertStore();
+      const toast = useToast();
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
@@ -121,11 +127,13 @@ export const useClientBirthdays = defineStore("clientBirthdays", {
         });
         this.data = response;
       } catch (error) {
-        alertStore.warning(
-          "Failed To Load Client Birthdays",
-          getErrorMessage(error),
-          5
-        );
+        toast.add({
+          title: "Failed To Load Client Birthdays",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
       } finally {
         this.isLoading = false;

@@ -5,7 +5,6 @@ import { z } from "zod";
 
 // Stores
 const editClientStore = useEditClientStore();
-const alertStore = useAlertStore();
 const { client, showModal } = storeToRefs(editClientStore);
 const clientStore = useClientStore();
 
@@ -69,6 +68,7 @@ const disableSubmit = computed(() => {
 
 // Methods
 const onSubmit = handleSubmit(async (values) => {
+  const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch(`/api/clients/${client.value.id}/`, {
@@ -86,16 +86,24 @@ const onSubmit = handleSubmit(async (values) => {
     });
     await editClientStore.getClient(client.value.id);
     await clientStore.getAllClients();
-    alertStore.success(
-      "Client Updated",
-      "Client information has been updated successfully.",
-      3.5
-    );
+    toast.add({
+      title: "Client Updated",
+      description: "Client information has been updated successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
     resetForm({
       values: initialValues.value,
     });
   } catch (error) {
-    alertStore.danger("Update Failed", getErrorMessage(error), 3.5);
+    toast.add({
+      title: "Update Failed",
+      description: getErrorMessage(error),
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 });

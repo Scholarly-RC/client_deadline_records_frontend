@@ -12,7 +12,6 @@ const props = defineProps({
 });
 
 // Stores
-const alertStore = useAlertStore();
 const deadlineTypesStore = useDeadlineTypesStore();
 
 // State
@@ -67,6 +66,7 @@ const toggleShowEdit = () => {
 };
 
 const onSubmit = handleSubmit(async (values) => {
+  const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch(
@@ -83,17 +83,21 @@ const onSubmit = handleSubmit(async (values) => {
     currentDeadline.value = response;
     await deadlineTypesStore.getAllDeadlineTypes();
     resetForm({ values: initialValues.value });
-    alertStore.success(
-      "Deadline Type Updated",
-      "The deadline type has been updated successfully.",
-      3.5
-    );
+    toast.add({
+      title: "Deadline Type Updated",
+      description: "The deadline type has been updated successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
   } catch (error) {
-    alertStore.danger(
-      "Update Failed",
-      `Could not update deadline type. ${getErrorMessage(error)}`,
-      5
-    );
+    toast.add({
+      title: "Update Failed",
+      description: getErrorMessage(error),
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 });

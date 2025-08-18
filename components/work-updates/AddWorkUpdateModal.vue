@@ -4,8 +4,6 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 
 // Stores
-const alertStore = useAlertStore();
-
 const viewDeadlineStore = useViewDeadlineStore();
 const { deadline } = storeToRefs(viewDeadlineStore);
 
@@ -51,6 +49,7 @@ const disableSubmit = computed(() => {
 
 // Methods
 const onSubmit = handleSubmit(async (values) => {
+  const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch("/api/work-updates/", {
@@ -63,17 +62,21 @@ const onSubmit = handleSubmit(async (values) => {
     });
     await viewDeadlineStore.getDeadline(deadline.value.id);
     addWorkUpdateStore.close();
-    alertStore.success(
-      "Update Recorded",
-      "Work status update has been saved successfully.",
-      3.5
-    );
+    toast.add({
+      title: "Update Recorded",
+      description: "Work status update has been saved successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
   } catch (error) {
-    alertStore.danger(
-      "Update Failed",
-      `Could not save work update. ${getErrorMessage(error)}`,
-      3.5
-    );
+    toast.add({
+      title: "Update Failed",
+      description: `Could not save work update. ${getErrorMessage(error)}`,
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 });

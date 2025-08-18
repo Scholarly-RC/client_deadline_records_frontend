@@ -4,7 +4,6 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 
 // Stores
-const alertStore = useAlertStore();
 const deadlineStore = useDeadlineStore();
 const clientStore = useClientStore();
 const deadlineTypeStore = useDeadlineTypesStore();
@@ -67,6 +66,7 @@ const disableSubmit = computed(() => {
 
 // Form submission handler
 const onSubmit = handleSubmit(async (values) => {
+  const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch("/api/client-deadlines/", {
@@ -83,17 +83,21 @@ const onSubmit = handleSubmit(async (values) => {
     await deadlineStore.getAllDeadlines();
     resetForm();
     addDeadlineStore.close();
-    alertStore.success(
-      "Deadline Created",
-      "New deadline has been added successfully.",
-      3.5
-    );
+    toast.add({
+      title: "Deadline Created",
+      description: "New deadline has been added successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
   } catch (error) {
-    alertStore.danger(
-      "Creation Failed",
-      "Failed to create deadline. " + getErrorMessage(error),
-      3.5
-    );
+    toast.add({
+      title: "Creation Failed",
+      description: getErrorMessage(error),
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 });

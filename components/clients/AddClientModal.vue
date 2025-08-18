@@ -4,7 +4,6 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 
 // Stores
-const alertStore = useAlertStore();
 const clientStore = useClientStore();
 const addClientStore = useAddClientStore();
 const { showModal } = storeToRefs(addClientStore);
@@ -56,9 +55,10 @@ const disableSubmit = computed(() => {
 
 // Methods
 const onSubmit = handleSubmit(async (values) => {
+  const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
-    const response = await $apiFetch("/api/clients/", {
+    await $apiFetch("/api/clients/", {
       method: "POST",
       body: {
         name: values.name,
@@ -74,9 +74,21 @@ const onSubmit = handleSubmit(async (values) => {
     addClientStore.close();
     resetForm();
     await clientStore.getAllClients();
-    alertStore.success("Client Created", "New client added successfully.", 3.5);
+    toast.add({
+      title: "Client Created",
+      description: "New client added successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
   } catch (error) {
-    alertStore.danger("Client Creation Failed", getErrorMessage(error), 3.5);
+    toast.add({
+      title: "Client Creation Failed",
+      description: getErrorMessage(error),
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 });

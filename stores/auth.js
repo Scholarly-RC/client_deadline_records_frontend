@@ -16,7 +16,7 @@ export const useAuthStore = defineStore("auth", {
 
   actions: {
     async login(credentials) {
-      const alertStore = useAlertStore();
+      const toast = useToast();
 
       this.isLoading = true;
 
@@ -29,16 +29,26 @@ export const useAuthStore = defineStore("auth", {
 
         this.setTokens(response.access, response.refresh);
         await this.setUser();
-        alertStore.success(
-          "Welcome Back",
-          "You have successfully logged in. Redirecting to your dashboard...",
-          3
-        );
+        toast.add({
+          title: "Welcome Back",
+          description:
+            "You have successfully logged in. Redirecting to your dashboard...",
+          color: "success",
+          icon: "mdi:checkbox-multiple-marked",
+          duration: 2000,
+        });
+
         setTimeout(async () => {
           await navigateTo({ path: "/" });
         }, 2 * 1000);
       } catch (error) {
-        alertStore.danger("Login Unsuccessful", getErrorMessage(error), 5);
+        toast.add({
+          title: "Login Unsuccessful",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
       } finally {
         this.isLoading = false;

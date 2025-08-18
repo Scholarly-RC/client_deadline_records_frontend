@@ -12,7 +12,6 @@ import ClientDocuments from "../client-documents/ClientDocuments.vue";
 // Stores
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
-const alertStore = useAlertStore();
 const deadlineStore = useDeadlineStore();
 const viewDeadlineStore = useViewDeadlineStore();
 const { deadline, isLoading } = storeToRefs(viewDeadlineStore);
@@ -74,6 +73,7 @@ const disableSubmit = computed(() => {
 
 // Form submission handler
 const onSubmit = handleSubmit(async (values) => {
+  const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch(
@@ -89,13 +89,21 @@ const onSubmit = handleSubmit(async (values) => {
     );
     await viewDeadlineStore.getDeadline(deadline.value.id);
     toggleEditMode();
-    alertStore.success(
-      "Deadline Updated",
-      "The deadline has been updated successfully.",
-      3.5
-    );
+    toast.add({
+      title: "Deadline Updated",
+      description: "The deadline has been updated successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
   } catch (error) {
-    alertStore.danger("Update Failed", getErrorMessage(error), 3.5);
+    toast.add({
+      title: "Update Failed",
+      description: getErrorMessage(error),
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 });
@@ -104,6 +112,7 @@ const onSubmit = handleSubmit(async (values) => {
 const confirmationStore = useConfirmationStore();
 
 const deleteConfirmation = async () => {
+  const toast = useToast();
   const confirmed = await confirmationStore.confirm(
     "Are you sure you want to delete this client deadline?"
   );
@@ -119,17 +128,21 @@ const deleteConfirmation = async () => {
       );
       await deadlineStore.getAllDeadlines();
       await navigateTo("/deadlines");
-      alertStore.success(
-        "Deadline Deleted",
-        "The client deadline has been removed successfully.",
-        3.5
-      );
+      toast.add({
+        title: "Deadline Deleted",
+        description: "The client deadline has been removed successfully.",
+        color: "success",
+        icon: "mdi:checkbox-multiple-marked",
+        duration: 2000,
+      });
     } catch (error) {
-      alertStore.danger(
-        "Deletion Failed",
-        "Could not delete the deadline. " + getErrorMessage(error),
-        5
-      );
+      toast.add({
+        title: "Deletion Failed",
+        description: getErrorMessage(error),
+        color: "error",
+        icon: "mdi:close-box-multiple",
+        duration: 5000,
+      });
       console.error(error);
     }
   }

@@ -1,11 +1,11 @@
 <script setup>
 // Stores
-const alertStore = useAlertStore();
 const viewDeadlineStore = useViewDeadlineStore();
 const { deadline } = storeToRefs(viewDeadlineStore);
 
 // Methods
 const handleFiles = async (files) => {
+  const toast = useToast();
   for (const file of files) {
     try {
       const { $apiFetch } = useNuxtApp();
@@ -16,18 +16,26 @@ const handleFiles = async (files) => {
       formData.append("client_id", deadline.value.client.id);
       formData.append("deadline_id", deadline.value.id);
 
-      const response = await $apiFetch("/api/client-documents/", {
+      await $apiFetch("/api/client-documents/", {
         method: "POST",
         body: formData,
       });
       await viewDeadlineStore.getDeadline(deadline.value.id);
-      alertStore.success(
-        "Upload Successful",
-        `File "${file.name}" uploaded successfully.`,
-        3.5
-      );
+      toast.add({
+        title: "Upload Successful",
+        description: `File "${file.name}" uploaded successfully.`,
+        color: "success",
+        icon: "mdi:checkbox-multiple-marked",
+        duration: 2000,
+      });
     } catch (error) {
-      alertStore.danger("Upload Failed", getErrorMessage(error), 3.5);
+      toast.add({
+        title: "Upload Failed",
+        description: getErrorMessage(error),
+        color: "error",
+        icon: "mdi:close-box-multiple",
+        duration: 5000,
+      });
       console.error(error);
     }
   }

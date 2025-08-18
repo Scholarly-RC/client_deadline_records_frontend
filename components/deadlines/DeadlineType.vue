@@ -9,7 +9,6 @@ const props = defineProps({
 
 // Stores
 const confirmationStore = useConfirmationStore();
-const alertStore = useAlertStore();
 const deadlineTypesStore = useDeadlineTypesStore();
 
 // State
@@ -21,6 +20,7 @@ const toggleShowEditDeadlineType = () => {
 };
 
 const deleteConfirmation = async () => {
+  const toast = useToast();
   const confirmed = await confirmationStore.confirm(
     "Are you sure you want to delete this deadline type?"
   );
@@ -35,17 +35,21 @@ const deleteConfirmation = async () => {
         }
       );
       await deadlineTypesStore.getAllDeadlineTypes();
-      alertStore.success(
-        "Deadline Type Deleted",
-        "The deadline type has been removed successfully.",
-        3.5
-      );
+      toast.add({
+        title: "Deadline Type Deleted",
+        description: "The deadline type has been removed successfully.",
+        color: "success",
+        icon: "mdi:checkbox-multiple-marked",
+        duration: 2000,
+      });
     } catch (error) {
-      alertStore.danger(
-        "Deletion Failed",
-        `Could not delete deadline type. ${getErrorMessage(error)}`,
-        5
-      );
+      toast.add({
+        title: "Deletion Failed",
+        description: getErrorMessage(error),
+        color: "error",
+        icon: "mdi:close-box-multiple",
+        duration: 5000,
+      });
       console.error(error);
     }
   }

@@ -7,7 +7,6 @@ import { z } from "zod";
 const emit = defineEmits(["toggle-modal"]);
 
 // Stores
-const alertStore = useAlertStore();
 const deadlineTypesStore = useDeadlineTypesStore();
 
 // Form Initial Values
@@ -57,6 +56,7 @@ const toggleModal = () => {
 };
 
 const onSubmit = handleSubmit(async (values) => {
+  const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch("/api/deadline-types/", {
@@ -70,17 +70,21 @@ const onSubmit = handleSubmit(async (values) => {
     await deadlineTypesStore.getAllDeadlineTypes();
     resetForm({ values: initialValues.value });
     toggleModal();
-    alertStore.success(
-      "Deadline Type Added",
-      "The new deadline type has been created successfully.",
-      3.5
-    );
+    toast.add({
+      title: "Deadline Type Added",
+      description: "The new deadline type has been created successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
   } catch (error) {
-    alertStore.danger(
-      "Creation Failed",
-      "Could not create deadline type. " + getErrorMessage(error),
-      3.5
-    );
+    toast.add({
+      title: "Creation Failed",
+      description: getErrorMessage(error),
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 });

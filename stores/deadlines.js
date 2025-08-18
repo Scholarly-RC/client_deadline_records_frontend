@@ -108,7 +108,7 @@ export const useDeadlineStore = defineStore("deadlineStore", {
       await this.getAllDeadlines();
     },
     async getDeadline(id) {
-      const alertStore = useAlertStore();
+      const toast = useToast();
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
@@ -117,7 +117,13 @@ export const useDeadlineStore = defineStore("deadlineStore", {
         });
         return response;
       } catch (error) {
-        alertStore.warning("Deadline Not Found", getErrorMessage(error), 5);
+        toast.add({
+          title: "Deadline Not Found",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
         await navigateTo("/deadlines");
       } finally {
@@ -158,12 +164,18 @@ export const useViewDeadlineStore = defineStore("viewDeadlineStore", {
     },
     async getDeadline(id) {
       this.isLoading = true;
-      const alertStore = useAlertStore();
+      const toast = useToast();
       const deadlineStore = useDeadlineStore();
       try {
         this.deadline = await deadlineStore.getDeadline(id);
       } catch (error) {
-        alertStore.warning("Deadline Unavailable", getErrorMessage(error), 5);
+        toast.add({
+          title: "Deadline Unavailable",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
         await navigateTo("/clients");
       } finally {
@@ -180,7 +192,7 @@ export const useUpcomingDeadlineStore = defineStore("upcomingDeadlineStore", {
   }),
   actions: {
     async getUpcomingDeadlines() {
-      const alertStore = useAlertStore();
+      const toast = useToast();
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
@@ -192,11 +204,13 @@ export const useUpcomingDeadlineStore = defineStore("upcomingDeadlineStore", {
         );
         this.deadlines = deadlines;
       } catch (error) {
-        alertStore.warning(
-          "Upcoming Deadlines Unavailable",
-          getErrorMessage(error),
-          5
-        );
+        toast.add({
+          title: "Upcoming Deadlines Unavailable",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
       } finally {
         this.isLoading = false;

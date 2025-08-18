@@ -4,7 +4,6 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 
 // Stores
-const alertStore = useAlertStore();
 const editUserStore = useEditUserStore();
 const userStore = useUserStore();
 const confirmationStore = useConfirmationStore();
@@ -90,6 +89,7 @@ const disableSubmit = computed(() => {
 
 // Methods
 const onSubmit = handleSubmit(async (values) => {
+  const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch(`/api/users/${user.value.id}/`, {
@@ -104,20 +104,24 @@ const onSubmit = handleSubmit(async (values) => {
         ...(values.password ? { password: values.password } : {}),
       },
     });
-    alertStore.success(
-      "User Updated",
-      "User profile has been updated successfully.",
-      3.5
-    );
+    toast.add({
+      title: "User Updated",
+      description: "User profile has been updated successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
     await editUserStore.editUser(user.value.id);
     await userStore.getAllUsers();
     resetForm({ values: initialValues.value });
   } catch (error) {
-    alertStore.danger(
-      "Update Failed",
-      `Could not update user profile. ${getErrorMessage(error)}`,
-      3.5
-    );
+    toast.add({
+      title: "Update Failed",
+      description: `Could not update user profile. ${getErrorMessage(error)}`,
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 });
@@ -132,6 +136,7 @@ watch(user, () => {
 });
 
 watch(isActive, async (value, oldValue) => {
+  const toast = useToast();
   if (value !== user.value.is_active) {
     const confirmed = await confirmationStore.confirm(
       `Are you sure you want to ${
@@ -148,21 +153,25 @@ watch(isActive, async (value, oldValue) => {
           }
         );
         await editUserStore.editUser(user.value.id);
-        alertStore.success(
-          isActive.value ? "User Activated" : "User Deactivated",
-          `The user account has been ${
+        toast.add({
+          title: isActive.value ? "User Activated" : "User Deactivated",
+          description: `The user account has been ${
             isActive.value ? "activated" : "deactivated"
           } successfully.`,
-          3.5
-        );
+          color: "success",
+          icon: "mdi:checkbox-multiple-marked",
+          duration: 2000,
+        });
       } catch (error) {
-        alertStore.danger(
-          isActive.value ? "Activation Failed" : "Deactivation Failed",
-          `Could not ${
+        toast.add({
+          title: isActive.value ? "Activation Failed" : "Deactivation Failed",
+          description: `Could not ${
             isActive.value ? "activate" : "deactivate"
           } user account. ${getErrorMessage(error)}`,
-          5
-        );
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
       }
     } else {

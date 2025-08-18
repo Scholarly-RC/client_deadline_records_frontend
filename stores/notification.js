@@ -26,7 +26,6 @@ export const useNotificationStore = defineStore("notificationStore", {
       this.showNotification = !this.showNotification;
     },
     async getNotifications() {
-      const alertStore = useAlertStore();
       const authStore = useAuthStore();
       const { userProfile } = storeToRefs(authStore);
       try {
@@ -63,18 +62,20 @@ export const useNotificationStore = defineStore("notificationStore", {
 
         this.pagination = pagination;
       } catch (error) {
-        alertStore.danger(
-          "Notifications Unavailable",
-          getErrorMessage(error),
-          5
-        );
+        toast.add({
+          title: "Notifications Unavailable",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
       } finally {
         this.isLoading = false;
       }
     },
     async markNotificationAsRead(id) {
-      const alertStore = useAlertStore();
+      const toast = useToast();
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
@@ -91,7 +92,13 @@ export const useNotificationStore = defineStore("notificationStore", {
             : notification
         );
       } catch (error) {
-        alertStore.danger("Update Failed", getErrorMessage(error), 5);
+        toast.add({
+          title: "Update Failed",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -110,7 +117,7 @@ export const useUnreadNotificationStore = defineStore(
     }),
     actions: {
       async getUnreadNotificationCount() {
-        const alertStore = useAlertStore();
+        const toast = useToast();
         const authStore = useAuthStore();
         const { userProfile } = storeToRefs(authStore);
         try {
@@ -124,11 +131,13 @@ export const useUnreadNotificationStore = defineStore(
           );
           this.unreadNotificationCount = response["count"] || 0;
         } catch (error) {
-          alertStore.danger(
-            "Notifications Count Unavailable",
-            getErrorMessage(error),
-            5
-          );
+          toast.add({
+            title: "Notifications Count Unavailable",
+            description: getErrorMessage(error),
+            color: "error",
+            icon: "mdi:close-box-multiple",
+            duration: 5000,
+          });
           console.error(error);
         } finally {
           this.isLoading = false;

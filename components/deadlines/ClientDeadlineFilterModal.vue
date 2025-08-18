@@ -2,7 +2,6 @@
 // Stores
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
-const alertStore = useAlertStore();
 const deadlineStore = useDeadlineStore();
 const { showFilter, filters } = storeToRefs(deadlineStore);
 const userStore = useUserStore();
@@ -21,6 +20,7 @@ const assignedTo = ref(filters.value["assignedTo"] || 0);
 
 // Methods
 const applyFilter = async () => {
+  const toast = useToast();
   try {
     const filters = {
       ...(client.value ? { client: client.value } : {}),
@@ -30,28 +30,35 @@ const applyFilter = async () => {
       ...(assignedTo.value ? { assignedTo: assignedTo.value } : {}),
     };
     await deadlineStore.setFilters(filters);
-    alertStore.success(
-      "Filters Applied",
-      "Your filters have been applied successfully.",
-      3.5
-    );
+    toast.add({
+      title: "Filters Applied",
+      description: "Your filters have been applied successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
   } catch (error) {
-    alertStore.danger(
-      "Filter Error",
-      "Failed to apply filters. Please try again.",
-      3.5
-    );
+    toast.add({
+      title: "Creation Failed",
+      description: "Failed to apply filters. Please try again.",
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 };
 
 const handleClearFilter = async () => {
+  const toast = useToast();
   await deadlineStore.clearFilters();
-  alertStore.success(
-    "Filters Cleared",
-    "All filters have been reset successfully.",
-    3.5
-  );
+  toast.add({
+    title: "Filters Cleared",
+    description: "All filters have been reset successfully.",
+    color: "success",
+    icon: "mdi:checkbox-multiple-marked",
+    duration: 2000,
+  });
 };
 </script>
 

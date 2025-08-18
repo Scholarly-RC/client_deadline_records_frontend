@@ -7,7 +7,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
   }),
   actions: {
     async getDashboardData() {
-      const alertStore = useAlertStore();
+      const toast = useToast();
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
@@ -16,11 +16,13 @@ export const useDashboardStore = defineStore("dashboardStore", {
         });
         this.stats = response;
       } catch (error) {
-        alertStore.warning(
-          "Dashboard Data Unavailable",
-          getErrorMessage(error),
-          5
-        );
+        toast.add({
+          title: "Dashboard Data Unavailable",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
         console.error(error);
       } finally {
         this.isLoading = false;
