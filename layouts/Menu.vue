@@ -1,5 +1,4 @@
 <script setup>
-import NotificationModal from "~/components/notifications/NotificationModal.vue";
 import Alert from "~/components/ui/Alert.vue";
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 import Sidebar from "~/components/ui/Sidebar.vue";
@@ -13,7 +12,6 @@ import Sidebar from "~/components/ui/Sidebar.vue";
       <slot />
     </div>
     <Alert />
-    <NotificationModal />
     <ConfirmationModal />
   </div>
 </template>

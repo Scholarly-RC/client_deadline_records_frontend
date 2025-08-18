@@ -110,7 +110,7 @@ watch(initialValues, () => {
   <UModal
     v-model:open="showModal"
     title="Edit Client"
-    description="Edit Client"
+    description="Update the client’s information below."
     :ui="{ content: 'min-w-3xl' }"
   >
     <template #body>
@@ -302,13 +302,12 @@ watch(initialValues, () => {
           </div>
         </div>
         <div class="flex justify-center px-6 py-3">
-          <button
-            :disabled="disableSubmit"
+          <UButton
             type="submit"
-            class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Save Client
-          </button>
+            :disabled="disableSubmit"
+            label="Edit Client"
+            size="lg"
+          />
         </div>
       </form>
     </template>

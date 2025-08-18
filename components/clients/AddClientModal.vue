@@ -83,263 +83,211 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <div
-    v-if="showModal"
-    class="fixed inset-0 overflow-y-auto"
-    aria-labelledby="modal-title"
-    role="dialog"
-    aria-modal="true"
+  <UModal
+    title="Add New Client"
+    description="Fill in the required details to register a new client in the system."
+    :ui="{ content: 'min-w-3xl' }"
   >
-    <div
-      class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0"
-    >
-      <!-- Background overlay -->
-      <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
-
-      <!-- Modal panel -->
-      <div
-        class="inline-block align-middle bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-3xl w-full dark:bg-gray-900"
-      >
-        <div class="bg-white dark:bg-gray-900 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-          <div class="flex items-center justify-between mb-6">
-            <h1
-              class="text-2xl font-bold text-gray-900 dark:text-white"
-              id="modal-title"
-            >
-              Add New Client
-            </h1>
-            <button
-              @click="addClientStore.close()"
-              type="button"
-              class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200"
-            >
-              <svg
-                class="h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
+    <UButton label="Add Client" icon="mdi:account-plus-outline" size="xl" />
+    <template #body>
+      <form @submit.prevent="onSubmit" id="add-client-form">
+        <div class="space-y-4">
+          <!-- Basic Information Section -->
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              Basic Information
+            </h3>
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label
+                  for="client-name"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Client Name <span class="text-red-500">*</span>
+                </label>
+                <input
+                  v-model="name"
+                  type="text"
+                  id="client-name"
+                  name="client-name"
+                  required
+                  class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
-              </svg>
-            </button>
+                <p
+                  v-if="errors.name"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.name }}
+                </p>
+              </div>
+              <div>
+                <label
+                  for="client-status"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Status <span class="text-red-500">*</span>
+                </label>
+                <select
+                  v-model="status"
+                  id="client-status"
+                  name="client-status"
+                  required
+                  class="block w-full border border-gray-300 appearance-none rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  <option value="">Select Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+                <p
+                  v-if="errors.status"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.status }}
+                </p>
+              </div>
+              <div>
+                <label
+                  for="contact-person"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Contact Person <span class="text-red-500">*</span>
+                </label>
+                <input
+                  v-model="contactPerson"
+                  type="text"
+                  id="contact-person"
+                  name="contact-person"
+                  class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+                <p
+                  v-if="errors.contactPerson"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.contactPerson }}
+                </p>
+              </div>
+              <div>
+                <label
+                  for="email"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Email <span class="text-red-500">*</span>
+                </label>
+                <input
+                  v-model="email"
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+                <p
+                  v-if="errors.email"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.email }}
+                </p>
+              </div>
+              <div>
+                <label
+                  for="phone"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Phone <span class="text-red-500">*</span>
+                </label>
+                <input
+                  v-model="phone"
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+                <p
+                  v-if="errors.phone"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.phone }}
+                </p>
+              </div>
+              <div>
+                <label
+                  for="date-of-birth"
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Birthday <span class="text-red-500">*</span>
+                </label>
+                <input
+                  v-model="dateOfBirth"
+                  type="date"
+                  id="date-of-birth"
+                  name="date-of-birth"
+                  class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
+                />
+                <p
+                  v-if="errors.dateOfBirth"
+                  class="mt-1 text-xs text-red-600 dark:text-red-400"
+                >
+                  {{ errors.dateOfBirth }}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div
-            class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
-          >
-            <form @submit.prevent="onSubmit" id="add-client-form">
-              <div class="p-6 space-y-6">
-                <!-- Basic Information Section -->
-                <div>
-                  <h3
-                    class="text-lg font-medium text-gray-900 dark:text-white mb-4"
-                  >
-                    Basic Information
-                  </h3>
-                  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                    <div>
-                      <label
-                        for="client-name"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      >
-                        Client Name <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        v-model="name"
-                        type="text"
-                        id="client-name"
-                        name="client-name"
-                        required
-                        class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      />
-                      <p
-                        v-if="errors.name"
-                        class="mt-1 text-xs text-red-600 dark:text-red-400"
-                      >
-                        {{ errors.name }}
-                      </p>
-                    </div>
-                    <div>
-                      <label
-                        for="client-status"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      >
-                        Status <span class="text-red-500">*</span>
-                      </label>
-                      <select
-                        v-model="status"
-                        id="client-status"
-                        name="client-status"
-                        required
-                        class="block w-full border border-gray-300 appearance-none rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      >
-                        <option value="">Select Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                      </select>
-                      <p
-                        v-if="errors.status"
-                        class="mt-1 text-xs text-red-600 dark:text-red-400"
-                      >
-                        {{ errors.status }}
-                      </p>
-                    </div>
-                    <div>
-                      <label
-                        for="contact-person"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      >
-                        Contact Person <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        v-model="contactPerson"
-                        type="text"
-                        id="contact-person"
-                        name="contact-person"
-                        class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      />
-                      <p
-                        v-if="errors.contactPerson"
-                        class="mt-1 text-xs text-red-600 dark:text-red-400"
-                      >
-                        {{ errors.contactPerson }}
-                      </p>
-                    </div>
-                    <div>
-                      <label
-                        for="email"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      >
-                        Email <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        v-model="email"
-                        type="email"
-                        id="email"
-                        name="email"
-                        class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      />
-                      <p
-                        v-if="errors.email"
-                        class="mt-1 text-xs text-red-600 dark:text-red-400"
-                      >
-                        {{ errors.email }}
-                      </p>
-                    </div>
-                    <div>
-                      <label
-                        for="phone"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      >
-                        Phone <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        v-model="phone"
-                        type="tel"
-                        id="phone"
-                        name="phone"
-                        class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      />
-                      <p
-                        v-if="errors.phone"
-                        class="mt-1 text-xs text-red-600 dark:text-red-400"
-                      >
-                        {{ errors.phone }}
-                      </p>
-                    </div>
-                    <div>
-                      <label
-                        for="date-of-birth"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                      >
-                        Birthday <span class="text-red-500">*</span>
-                      </label>
-                      <input
-                        v-model="dateOfBirth"
-                        type="date"
-                        id="date-of-birth"
-                        name="date-of-birth"
-                        class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
-                      />
-                      <p
-                        v-if="errors.dateOfBirth"
-                        class="mt-1 text-xs text-red-600 dark:text-red-400"
-                      >
-                        {{ errors.dateOfBirth }}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          <!-- Address Section -->
+          <div>
+            <label
+              for="notes"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Address <span class="text-red-500">*</span>
+            </label>
+            <textarea
+              v-model="address"
+              id="notes"
+              name="notes"
+              rows="3"
+              class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            ></textarea>
+            <p
+              v-if="errors.address"
+              class="mt-1 text-xs text-red-600 dark:text-red-400"
+            >
+              {{ errors.address }}
+            </p>
+          </div>
 
-                <!-- Address Section -->
-                <div>
-                  <label
-                    for="notes"
-                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Address <span class="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    v-model="address"
-                    id="notes"
-                    name="notes"
-                    rows="3"
-                    class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                  ></textarea>
-                  <p
-                    v-if="errors.address"
-                    class="mt-1 text-xs text-red-600 dark:text-red-400"
-                  >
-                    {{ errors.address }}
-                  </p>
-                </div>
-
-                <!-- Additional Information Section -->
-                <div>
-                  <h3
-                    class="text-lg font-medium text-gray-900 dark:text-white mb-4"
-                  >
-                    Additional Information
-                  </h3>
-                  <div>
-                    <label
-                      for="notes"
-                      class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                    >
-                      Notes
-                    </label>
-                    <textarea
-                      v-model="notes"
-                      id="notes"
-                      name="notes"
-                      rows="3"
-                      class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-              <div
-                class="flex justify-center px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right border-t border-gray-200 dark:border-gray-600"
+          <!-- Additional Information Section -->
+          <div>
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              Additional Information
+            </h3>
+            <div>
+              <label
+                for="notes"
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                <button
-                  :disabled="disableSubmit"
-                  type="submit"
-                  class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-primary-700 dark:hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Save Client
-                </button>
-              </div>
-            </form>
+                Notes
+              </label>
+              <textarea
+                v-model="notes"
+                id="notes"
+                name="notes"
+                rows="3"
+                class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              ></textarea>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+        <div
+          class="flex justify-center px-6 py-3 bg-gray-50 dark:bg-gray-700 text-right border-t border-gray-200 dark:border-gray-600"
+        >
+          <UButton
+            type="submit"
+            :disabled="disableSubmit"
+            label="Save Client"
+            size="lg"
+          />
+        </div>
+      </form>
+    </template>
+  </UModal>
 </template>

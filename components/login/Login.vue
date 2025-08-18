@@ -11,6 +11,8 @@ import LoginHeader from "./LoginHeader.vue";
   >
     <LoginHeader />
     <LoginForm />
-    <LoginDarkModeToggle />
+    <div class="w-full flex justify-center mt-1">
+      <LoginDarkModeToggle />
+    </div>
   </div>
 </template>
