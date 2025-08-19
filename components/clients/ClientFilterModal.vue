@@ -41,7 +41,12 @@ watchDebounced(
     title="Filter Client"
     description="Select criteria below to quickly find specific clients."
   >
-    <UButton label="Filter" size="xl" variant="solid" />
+    <UButton
+      icon="mdi:account-filter-outline"
+      label="Filter"
+      size="xl"
+      variant="solid"
+    />
     <template #body>
       <div class="flex flex-col gap-2">
         <UCheckboxGroup
