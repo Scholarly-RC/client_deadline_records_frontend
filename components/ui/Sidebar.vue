@@ -3,6 +3,12 @@
 import DarkModeToggle from "./DarkModeToggle.vue";
 import LogoutButton from "./LogoutButton.vue";
 
+const appTitle = ref(null);
+const { startTyping, stopTyping } = useTypewriter(
+  "Client Deadline Tracker",
+  appTitle
+);
+
 // Route
 const route = useRoute();
 
@@ -63,6 +69,14 @@ const getIconClasses = (path) => {
     ? activeIconClasses
     : inactiveIconClasses;
 };
+
+onMounted(() => {
+  startTyping();
+});
+
+onUnmounted(() => {
+  stopTyping();
+});
 </script>
 
 <template>
@@ -236,9 +250,10 @@ const getIconClasses = (path) => {
       <div
         class="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700"
       >
-        <h1 class="text-xl font-bold text-gray-800 dark:text-white">
-          Client Deadline Tracker
-        </h1>
+        <h1
+          ref="appTitle"
+          class="text-xl font-bold text-gray-800 dark:text-white"
+        ></h1>
       </div>
       <UNavigationMenu
         arrow
