@@ -24,11 +24,6 @@ const handleNotificationClick = async () => {
     router.push(props.notification.link);
   }
 };
-
-// Debug watcher (optional)
-watch(isRead, (value) => {
-  console.log("Notification read status changed:", value);
-});
 </script>
 
 <template>

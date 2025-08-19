@@ -12,6 +12,7 @@ const clientStore = useClientStore();
 const initialValues = computed(() => ({
   name: client.value?.name || "",
   status: client.value?.status || "",
+  category: client.value?.category || "",
   contactPerson: client.value?.contact_person || "",
   email: client.value?.email || "",
   phone: client.value?.phone || "",
@@ -25,6 +26,7 @@ const validationSchema = toTypedSchema(
   z.object({
     name: z.string().nonempty("Client Name is required."),
     status: z.string().nonempty("Status is required."),
+    category: z.string().nonempty("Category is required."),
     contactPerson: z.string().nonempty("Contact Person is required."),
     email: z
       .string()
@@ -54,6 +56,7 @@ const {
 // Form fields
 const [name] = defineField("name");
 const [status] = defineField("status");
+const [category] = defineField("category");
 const [contactPerson] = defineField("contactPerson");
 const [email] = defineField("email");
 const [phone] = defineField("phone");
@@ -76,6 +79,7 @@ const onSubmit = handleSubmit(async (values) => {
       body: {
         name: values.name,
         status: values.status,
+        category: values.category,
         contact_person: values.contactPerson,
         email: values.email,
         phone: values.phone,
@@ -262,6 +266,37 @@ watch(initialValues, () => {
                 </p>
               </div>
             </div>
+          </div>
+
+          <!-- Category Section -->
+          <div>
+            <label
+              for="category"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
+              Category <span class="text-red-500">*</span>
+            </label>
+            <select
+              v-model="category"
+              id="client-category"
+              name="client-category"
+              required
+              class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            >
+              <option value="">Select Category</option>
+              <option value="TOE">Tax (One Engagement)</option>
+              <option value="TRP">Tax (Regular Processing)</option>
+              <option value="CMP">Compliance</option>
+              <option value="ACC">Accounting</option>
+              <option value="AUD">Auditing</option>
+              <option value="OCC">Other Consultancy Client</option>
+            </select>
+            <p
+              v-if="errors.address"
+              class="mt-1 text-xs text-red-600 dark:text-red-400"
+            >
+              {{ errors.address }}
+            </p>
           </div>
 
           <!-- Address Section -->

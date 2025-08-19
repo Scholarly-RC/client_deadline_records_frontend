@@ -6,6 +6,8 @@ export const useClientStore = defineStore("clientStore", {
     pagination: {},
     page: null,
     search: null,
+    category: [],
+    status: null,
     isLoading: false,
   }),
   getters: {
@@ -28,6 +30,12 @@ export const useClientStore = defineStore("clientStore", {
         if (this.search) {
           params.append("search", this.search);
         }
+        if (this.category && this.category.length > 0) {
+          params.append("category", this.category.join(","));
+        }
+        if (this.status) {
+          params.append("status", this.status);
+        }
         url += params.toString();
 
         const response = await $apiFetch(url, {
@@ -49,6 +57,16 @@ export const useClientStore = defineStore("clientStore", {
     },
     async setSearch(search = null) {
       this.search = search;
+      this.page = null;
+      await this.getAllClients();
+    },
+    async setCategory(category = []) {
+      this.category = category;
+      this.page = null;
+      await this.getAllClients();
+    },
+    async setStatus(status = null) {
+      this.status = status;
       this.page = null;
       await this.getAllClients();
     },

@@ -2,6 +2,7 @@
 // Components
 import { watchDebounced } from "@vueuse/core";
 import AddClientModal from "./AddClientModal.vue";
+import ClientFilterModal from "./ClientFilterModal.vue";
 
 const search = ref("");
 
@@ -19,6 +20,10 @@ const columns = [
   {
     accessorKey: "is_active",
     header: "Status",
+  },
+  {
+    accessorKey: "category",
+    header: "Category",
   },
   {
     accessorKey: "contact_person",
@@ -39,6 +44,17 @@ const columns = [
 ];
 
 // Methods
+const categoryMap = {
+  TOE: "Tax (One Engagement)",
+  TRP: "Tax (Regular Processing)",
+  CMP: "Compliance",
+  ACC: "Accounting",
+  AUD: "Auditing",
+  OCC: "Other Consultancy Client",
+};
+
+const getFullCategory = (category) => categoryMap[category] || null;
+
 const handleSetPage = async (page) => {
   await clientStore.setPage(page);
 };
@@ -95,7 +111,7 @@ watchDebounced(
   <div class="space-y-4">
     <!-- Search and Add Client -->
     <div class="flex flex-col sm:flex-row justify-between items-end mb-6 gap-4">
-      <div class="w-full sm:w-64">
+      <div class="w-full sm:w-80 flex flex-row gap-2">
         <UInput
           v-model="search"
           icon="mdi:account-search-outline"
@@ -103,6 +119,7 @@ watchDebounced(
           variant="outline"
           placeholder="Search..."
         />
+        <ClientFilterModal />
       </div>
       <AddClientModal />
     </div>
@@ -112,7 +129,7 @@ watchDebounced(
       :data="clients"
       :columns="columns"
       :loading="isLoading"
-      class="flex-1"
+      class="flex-1 h-[calc(100vh-15rem)]"
       :ui="{
         root: 'rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-gray-800',
         tr: 'hover:bg-neutral-50 dark:hover:bg-neutral-700',
@@ -124,6 +141,9 @@ watchDebounced(
           variant="soft"
           :color="row.original.is_active ? 'success' : 'error'"
         />
+      </template>
+      <template #category-cell="{ row }">
+        {{ getFullCategory(row.original.category) }}
       </template>
       <template #actions-cell="{ row }">
         <div class="flex gap-1">
@@ -171,26 +191,14 @@ watchDebounced(
         ></div>
       </div>
       <div v-else class="flex space-x-2">
-        <button
-          v-if="pagination?.previous"
-          @click="handleSetPage(pagination.current_page - 1)"
-          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <button
-          v-if="pagination?.total_pages > 1"
-          class="px-3 py-1 rounded-md border border-primary-500 bg-primary-50 dark:bg-primary-900 text-primary-600 dark:text-primary-300 font-medium"
-        >
-          {{ pagination?.current_page }}
-        </button>
-        <button
-          v-if="pagination?.next"
-          @click="handleSetPage(pagination.current_page + 1)"
-          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
-        >
-          Next
-        </button>
+        <UPagination
+          v-if="pagination"
+          v-model:page="pagination.current_page"
+          :total="pagination.count"
+          :items-per-page="pagination.page_size"
+          variant="outline"
+          v-on:update:page="handleSetPage"
+        />
       </div>
     </div>
   </div>
