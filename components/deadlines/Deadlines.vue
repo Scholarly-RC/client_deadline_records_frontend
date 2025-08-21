@@ -30,7 +30,6 @@ onMounted(async () => {
       style="max-height: calc(100vh - 4rem)"
     >
       <ClientDeadlineTable />
-      <ComplianceFormModal />
     </main>
   </div>
 </template>

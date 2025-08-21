@@ -133,21 +133,6 @@ export const useDeadlineStore = defineStore("deadlineStore", {
   },
 });
 
-export const useAddDeadlineStore = defineStore("addDeadlineStore", {
-  state: () => ({
-    showModal: false,
-  }),
-
-  actions: {
-    open() {
-      this.showModal = true;
-    },
-    close() {
-      this.showModal = false;
-    },
-  },
-});
-
 export const useViewDeadlineStore = defineStore("viewDeadlineStore", {
   state: () => ({
     deadline: null,
@@ -214,6 +199,83 @@ export const useUpcomingDeadlineStore = defineStore("upcomingDeadlineStore", {
         console.error(error);
       } finally {
         this.isLoading = false;
+      }
+    },
+  },
+});
+
+// New Stores
+
+export const useAddDeadlineStore = defineStore("addDeadlineModal", {
+  state: () => ({
+    showModal: false,
+    selectedClient: null,
+    selectedCategory: null,
+  }),
+
+  actions: {
+    open() {
+      this.showModal = true;
+    },
+
+    close() {
+      this.showModal = false;
+    },
+    setClient(client) {
+      this.selectedClient = client;
+    },
+    setCategory(category) {
+      this.selectedCategory = category;
+    },
+    reset() {
+      this.selectedClient = null;
+      this.selectedCategory = null;
+    },
+    handleNext() {
+      this.close();
+      const toast = useToast();
+      switch (this.selectedCategory) {
+        case "compliance":
+          const complianceModalStore = useComplianceModalStore();
+          complianceModalStore.open();
+          break;
+        case "accounting_auditing":
+          // TODO: Create and open Accounting/Auditing Modal
+          console.log(
+            "Opening Accounting/Auditing Modal for client:",
+            values.client
+          );
+          toast.add({
+            title: "Coming Soon",
+            description: "Accounting/Auditing form is not yet implemented.",
+            color: "info",
+            icon: "mdi:information",
+            duration: 3000,
+          });
+          break;
+        case "finance_implementation":
+          // TODO: Create and open Finance Implementation Modal
+          console.log(
+            "Opening Finance Implementation Modal for client:",
+            values.client
+          );
+          toast.add({
+            title: "Coming Soon",
+            description: "Finance Implementation form is not yet implemented.",
+            color: "info",
+            icon: "mdi:information",
+            duration: 3000,
+          });
+          break;
+        default:
+          toast.add({
+            title: "Invalid Category",
+            description: "Please select a valid category.",
+            color: "error",
+            icon: "mdi:alert-circle",
+            duration: 3000,
+          });
+          return;
       }
     },
   },

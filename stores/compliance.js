@@ -1,7 +1,6 @@
-// stores/addDeadlineModal.js
 import { defineStore } from "pinia";
 
-export const useAddDeadlineStore = defineStore("addDeadlineModal", {
+export const useComplianceModalStore = defineStore("complianceModal", {
   state: () => ({
     showModal: false,
   }),

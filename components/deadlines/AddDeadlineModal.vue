@@ -3,6 +3,7 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { categoryChoices } from "~/constants/choices";
 import { z } from "zod";
+import ComplianceFormModal from "./ComplianceFormModal.vue";
 
 // Stores
 const clientStore = useClientStore();
@@ -59,97 +60,31 @@ const disableSubmit = computed(() => {
 });
 
 // Form submission handler
-const handleNext = handleSubmit(async (values) => {
-  const toast = useToast();
-
-  try {
-    // Close current modal first
-    addDeadlineStore.close();
-
-    // Small delay to ensure modal closes properly
-    await nextTick();
-
-    // Open the appropriate modal based on category selection
-    switch (values.category) {
-      case "compliance":
-        complianceModalStore.open(values.client);
-        break;
-      case "accounting_auditing":
-        // TODO: Create and open Accounting/Auditing Modal
-        console.log(
-          "Opening Accounting/Auditing Modal for client:",
-          values.client
-        );
-        toast.add({
-          title: "Coming Soon",
-          description: "Accounting/Auditing form is not yet implemented.",
-          color: "info",
-          icon: "mdi:information",
-          duration: 3000,
-        });
-        break;
-      case "finance_implementation":
-        // TODO: Create and open Finance Implementation Modal
-        console.log(
-          "Opening Finance Implementation Modal for client:",
-          values.client
-        );
-        toast.add({
-          title: "Coming Soon",
-          description: "Finance Implementation form is not yet implemented.",
-          color: "info",
-          icon: "mdi:information",
-          duration: 3000,
-        });
-        break;
-      default:
-        toast.add({
-          title: "Invalid Category",
-          description: "Please select a valid category.",
-          color: "error",
-          icon: "mdi:alert-circle",
-          duration: 3000,
-        });
-        return;
-    }
-
-    // Reset the form after successful navigation
-    resetForm();
-  } catch (error) {
-    console.error("Error in handleNext:", error);
-    toast.add({
-      title: "Navigation Error",
-      description: "Failed to open the next form. Please try again.",
-      color: "error",
-      icon: "mdi:alert-circle",
-      duration: 5000,
-    });
-  }
+const handleNext = handleSubmit(() => {
+  addDeadlineStore.handleNext();
 });
 
-// Handle modal close
-const handleClose = () => {
+const handleClearAddDeadlineForm = () => {
   resetForm();
-  addDeadlineStore.close();
 };
+
+watch(client, (value) => {
+  addDeadlineStore.setClient(value);
+});
+
+watch(category, (value) => {
+  addDeadlineStore.setCategory(value);
+});
 </script>
 
 <template>
   <UModal
-    v-model="showModal"
-    title="Add Deadline"
+    v-model:open="showModal"
+    title="Add Deadline - Step 1 of 2"
     description="Enter the details to create a new client deadline."
     :ui="{ content: 'min-w-3xl' }"
-    @close="handleClose"
   >
     <UButton icon="mdi:calendar-plus-outline" label="Add Deadline" size="xl" />
-
-    <template #header>
-      <div class="flex items-center gap-2">
-        <UIcon name="mdi:calendar-plus-outline" class="h-5 w-5" />
-        <span>Add Deadline - Step 1 of 2</span>
-      </div>
-    </template>
 
     <template #body>
       <UForm :state="values" @submit.prevent="handleNext" class="space-y-4">
@@ -195,17 +130,7 @@ const handleClose = () => {
         </div>
 
         <!-- Form actions -->
-        <div class="mt-6 flex items-center justify-between">
-          <UButton
-            type="button"
-            variant="ghost"
-            size="xl"
-            label="Cancel"
-            icon="mdi:close"
-            @click="handleClose"
-            :disabled="isSubmitting"
-          />
-
+        <div class="mt-6 flex items-center justify-end">
           <UButton
             type="submit"
             icon="mdi:arrow-right"
@@ -218,4 +143,5 @@ const handleClose = () => {
       </UForm>
     </template>
   </UModal>
+  <ComplianceFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
 </template>
