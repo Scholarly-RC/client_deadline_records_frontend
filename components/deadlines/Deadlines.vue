@@ -5,6 +5,7 @@ import AddDeadlineModal from "./AddDeadlineModal.vue";
 import ClientDeadlineTable from "./ClientDeadlineTable.vue";
 import DeadlineTypesModal from "./DeadlineTypesModal.vue";
 import ClientDeadlineFilterModal from "./ClientDeadlineFilterModal.vue";
+import ComplianceFormModal from "./ComplianceFormModal.vue";
 
 // Stores
 const deadlineTypeStore = useDeadlineTypesStore();
@@ -29,9 +30,7 @@ onMounted(async () => {
       style="max-height: calc(100vh - 4rem)"
     >
       <ClientDeadlineTable />
-      <DeadlineTypesModal />
-      <AddDeadlineModal />
-      <ClientDeadlineFilterModal />
+      <ComplianceFormModal />
     </main>
   </div>
 </template>

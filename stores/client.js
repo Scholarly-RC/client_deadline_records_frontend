@@ -70,6 +70,44 @@ export const useClientStore = defineStore("clientStore", {
       this.page = null;
       await this.getAllClients();
     },
+    async getClientWithDeadline() {
+      const toast = useToast();
+      try {
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch(`api/clients/client-with-deadlines`, {
+          method: "GET",
+        });
+        return response;
+      } catch (error) {
+        toast.add({
+          title: "Retrieving Failed",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
+        console.error(error);
+      }
+    },
+    async getUsersWithDeadline() {
+      const toast = useToast();
+      try {
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch(`api/users/users-with-deadlines`, {
+          method: "GET",
+        });
+        return response;
+      } catch (error) {
+        toast.add({
+          title: "Retrieving Failed",
+          description: getErrorMessage(error),
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
+        console.error(error);
+      }
+    },
   },
 });
 

@@ -9,7 +9,9 @@ const { users } = storeToRefs(userStore);
 const deadlineTypeStore = useDeadlineTypesStore();
 const { deadlineTypes } = storeToRefs(deadlineTypeStore);
 const clientStore = useClientStore();
-const { clients } = storeToRefs(clientStore);
+
+const clientsWithDeadlines = ref([]);
+const usersWithDeadlines = ref([]);
 
 // Reactive variables
 const client = ref(filters.value["client"] || 0);
@@ -60,9 +62,162 @@ const handleClearFilter = async () => {
     duration: 2000,
   });
 };
+
+onMounted(async () => {
+  clientsWithDeadlines.value = await clientStore.getClientWithDeadline();
+  usersWithDeadlines.value = await clientStore.getUsersWithDeadline();
+});
 </script>
 
 <template>
+  <UModal
+    title="Client Deadline Filter"
+    description="Set your preferred deadline criteria to quickly find the clients you need."
+  >
+    <UButton icon="mdi:calendar-filter-outline" label="Filter" size="xl" />
+    <template #body>
+      <form>
+        <div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-6">
+          <!-- Client -->
+          <div class="sm:col-span-3">
+            <label
+              for="client"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Client</label
+            >
+            <select
+              v-model="client"
+              id="client"
+              name="client"
+              required
+              class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 pr-10 shadow-sm appearance-none focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
+            >
+              <option :value="0">All Clients</option>
+              <option
+                v-for="client in clientsWithDeadlines"
+                :key="client.id"
+                :value="client.id"
+              >
+                {{ client.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Deadline Type -->
+          <div class="sm:col-span-3">
+            <label
+              for="deadline_type"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Deadline Type</label
+            >
+            <select
+              v-model="deadlineType"
+              id="deadline_type"
+              name="deadline_type"
+              required
+              class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 appearance-none shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
+            >
+              <option :value="0">All Types</option>
+              <option
+                v-for="deadlineType in deadlineTypes"
+                :key="deadlineType.id"
+                :value="deadlineType.id"
+              >
+                {{ deadlineType.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Priority -->
+          <div class="sm:col-span-3">
+            <label
+              for="priority"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Priority</label
+            >
+            <select
+              v-model="priority"
+              id="priority"
+              name="priority"
+              class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 pr-10 shadow-sm appearance-none focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
+            >
+              <option :value="0">All Priority</option>
+              <option :value="1">Lowest</option>
+              <option :value="2">Low</option>
+              <option :value="3">Medium</option>
+              <option :value="4">High</option>
+              <option :value="5">Highest</option>
+            </select>
+          </div>
+
+          <!-- Status -->
+          <div class="sm:col-span-3">
+            <label
+              for="status"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Status</label
+            >
+            <select
+              v-model="status"
+              id="status"
+              name="status"
+              class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 pr-10 shadow-sm appearance-none focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
+            >
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="overdue">Overdue</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          <!-- Assigned To -->
+          <div v-if="isAdmin" class="sm:col-span-3">
+            <label
+              for="assigned_to"
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >Assigned To</label
+            >
+            <select
+              v-model="assignedTo"
+              id="assigned_to"
+              name="assigned_to"
+              required
+              class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 appearance-none shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
+            >
+              <option :value="0">All Assignee</option>
+              <option
+                v-for="user in usersWithDeadlines"
+                :key="user.id"
+                :value="user.id"
+              >
+                {{ user.fullname }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Form actions -->
+        <div class="mt-6 flex items-center justify-center space-x-3">
+          <UButton
+            @click="applyFilter"
+            icon="mdi:filter-check-outline"
+            label="Apply"
+            size="lg"
+          />
+          <UButton
+            @click="handleClearFilter"
+            icon="mdi:filter-remove-outline"
+            label="Clear"
+            variant="outline"
+            color="neutral"
+            size="lg"
+          />
+        </div>
+      </form>
+    </template>
+  </UModal>
   <div
     v-if="showFilter"
     id="deadline-modal"
@@ -103,143 +258,6 @@ const handleClearFilter = async () => {
             </svg>
           </button>
         </div>
-
-        <form>
-          <div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-6">
-            <!-- Client -->
-            <div class="sm:col-span-3">
-              <label
-                for="client"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Client</label
-              >
-              <select
-                v-model="client"
-                id="client"
-                name="client"
-                required
-                class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 pr-10 shadow-sm appearance-none focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
-              >
-                <option :value="0">All Clients</option>
-                <option
-                  v-for="client in clients"
-                  :key="client.id"
-                  :value="client.id"
-                >
-                  {{ client.name }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Deadline Type -->
-            <div class="sm:col-span-3">
-              <label
-                for="deadline_type"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Deadline Type</label
-              >
-              <select
-                v-model="deadlineType"
-                id="deadline_type"
-                name="deadline_type"
-                required
-                class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 appearance-none shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
-              >
-                <option :value="0">All Types</option>
-                <option
-                  v-for="deadlineType in deadlineTypes"
-                  :key="deadlineType.id"
-                  :value="deadlineType.id"
-                >
-                  {{ deadlineType.name }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Priority -->
-            <div class="sm:col-span-3">
-              <label
-                for="priority"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Priority</label
-              >
-              <select
-                v-model="priority"
-                id="priority"
-                name="priority"
-                class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 pr-10 shadow-sm appearance-none focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
-              >
-                <option :value="0">All Priority</option>
-                <option :value="1">Lowest</option>
-                <option :value="2">Low</option>
-                <option :value="3">Medium</option>
-                <option :value="4">High</option>
-                <option :value="5">Highest</option>
-              </select>
-            </div>
-
-            <!-- Status -->
-            <div class="sm:col-span-3">
-              <label
-                for="status"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Status</label
-              >
-              <select
-                v-model="status"
-                id="status"
-                name="status"
-                class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 pr-10 shadow-sm appearance-none focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
-              >
-                <option value="">All Status</option>
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="overdue">Overdue</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-
-            <!-- Assigned To -->
-            <div v-if="isAdmin" class="sm:col-span-3">
-              <label
-                for="assigned_to"
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >Assigned To</label
-              >
-              <select
-                v-model="assignedTo"
-                id="assigned_to"
-                name="assigned_to"
-                required
-                class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 appearance-none shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
-              >
-                <option :value="0">All Assignee</option>
-                <option v-for="user in users" :key="user.id" :value="user.id">
-                  {{ user.fullname }}
-                </option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Form actions -->
-          <div class="mt-6 flex items-center justify-center space-x-3">
-            <button
-              @click="handleClearFilter"
-              type="button"
-              class="rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Clear
-            </button>
-            <button
-              @click="applyFilter"
-              type="button"
-              class="rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Apply
-            </button>
-          </div>
-        </form>
       </section>
     </div>
   </div>

@@ -11,7 +11,7 @@ export const useTypewriter = (text, elementRef) => {
       elementRef.value.innerHTML =
         text.substring(0, i + 1) + '<span class="animate-pulse">|</span>';
       i++;
-      timeoutId = setTimeout(type, 100);
+      timeoutId = setTimeout(type, 120);
     } else if (!isDeleting && i === text.length) {
       timeoutId = setTimeout(() => {
         isDeleting = true;
@@ -20,13 +20,13 @@ export const useTypewriter = (text, elementRef) => {
         randomStop =
           Math.floor(Math.random() * (text.length - minKeep)) + minKeep;
         type();
-      }, 3000);
+      }, 5000);
     } else if (isDeleting && i > 0) {
       if (i > randomStop) {
         elementRef.value.innerHTML =
           text.substring(0, i - 1) + '<span class="animate-pulse">|</span>';
         i--;
-        timeoutId = setTimeout(type, 50);
+        timeoutId = setTimeout(type, 100);
       } else {
         isDeleting = false;
         timeoutId = setTimeout(type, 0);

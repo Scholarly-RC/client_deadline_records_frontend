@@ -104,81 +104,86 @@ const onSubmit = handleSubmit(async (values) => {
 </script>
 
 <template>
-  <form
-    @submit.prevent="onSubmit"
-    class="flex flex-col gap-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
-  >
-    <div class="space-y-2">
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-200"
-        >Deadline Name</label
-      >
-      <input
-        v-model="name"
-        type="text"
-        class="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        value="Contract Expiration"
-      />
-      <p v-if="errors.name" class="mt-1 text-xs text-red-600 dark:text-red-400">
-        {{ errors.name }}
-      </p>
-    </div>
-
-    <div class="space-y-2">
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-200"
-        >Description</label
-      >
-      <textarea
-        v-model="description"
-        rows="2"
-        class="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-End of the contract period</textarea
-      >
-      <p
-        v-if="errors.description"
-        class="mt-1 text-xs text-red-600 dark:text-red-400"
-      >
-        {{ errors.description }}
-      </p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <UCard variant="soft">
+    <form @submit.prevent="onSubmit">
       <div class="space-y-2">
         <label
           class="block text-sm font-medium text-gray-700 dark:text-gray-200"
-          >Reminder Days</label
+          >Deadline Name</label
         >
         <input
-          v-model="defaultReminderDays"
-          type="number"
-          min="0"
-          class="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value="7"
+          v-model="name"
+          type="text"
+          class="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value="Contract Expiration"
         />
         <p
-          v-if="errors.defaultReminderDays"
+          v-if="errors.name"
           class="mt-1 text-xs text-red-600 dark:text-red-400"
         >
-          {{ errors.defaultReminderDays }}
+          {{ errors.name }}
         </p>
       </div>
-    </div>
 
-    <div class="flex justify-end gap-2 mt-4">
-      <button
-        @click="toggleShowEdit"
-        type="button"
-        class="px-4 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600"
-      >
-        {{ !disableSubmit ? "Cancel" : "Close" }}
-      </button>
-      <button
-        type="submit"
-        :disabled="disableSubmit"
-        class="px-4 py-2 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Update
-      </button>
-    </div>
-  </form>
+      <div class="space-y-2">
+        <label
+          class="block text-sm font-medium text-gray-700 dark:text-gray-200"
+          >Description</label
+        >
+        <textarea
+          v-model="description"
+          rows="2"
+          class="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+End of the contract period</textarea
+        >
+        <p
+          v-if="errors.description"
+          class="mt-1 text-xs text-red-600 dark:text-red-400"
+        >
+          {{ errors.description }}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-2">
+          <label
+            class="block text-sm font-medium text-gray-700 dark:text-gray-200"
+            >Reminder Days</label
+          >
+          <input
+            v-model="defaultReminderDays"
+            type="number"
+            min="0"
+            class="w-full px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value="7"
+          />
+          <p
+            v-if="errors.defaultReminderDays"
+            class="mt-1 text-xs text-red-600 dark:text-red-400"
+          >
+            {{ errors.defaultReminderDays }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-4">
+        <UButton
+          @click="toggleShowEdit"
+          :disabled="disableSubmit"
+          icon="mdi:content-save-edit-outline"
+          label="Update"
+          size="lg"
+        />
+        <UButton
+          @click="toggleShowEdit"
+          icon="mdi:close"
+          :label="!disableSubmit ? 'Cancel' : 'Close'"
+          variant="outline"
+          color="neutral"
+          size="lg"
+        />
+      </div>
+    </form>
+  </UCard>
 </template>

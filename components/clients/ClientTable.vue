@@ -123,47 +123,49 @@ watchDebounced(
       </div>
       <AddClientModal />
     </div>
-
-    <!-- Clients Table -->
-    <UTable
-      :data="clients"
-      :columns="columns"
-      :loading="isLoading"
-      class="flex-1 h-[calc(100vh-15rem)]"
-      :ui="{
-        root: 'rounded-lg shadow-sm border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-gray-800',
-        tr: 'hover:bg-neutral-50 dark:hover:bg-neutral-700',
-      }"
+    <div
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
-      <template #is_active-cell="{ row }">
-        <UBadge
-          :label="row.original.is_active ? 'Active' : 'Inactive'"
-          variant="soft"
-          :color="row.original.is_active ? 'success' : 'error'"
-        />
-      </template>
-      <template #category-cell="{ row }">
-        {{ getFullCategory(row.original.category) }}
-      </template>
-      <template #actions-cell="{ row }">
-        <div class="flex gap-1">
-          <UButton
-            @click="handleOpenEditModal(row.original.id)"
-            label="View"
-            leading-icon="mdi:account-arrow-right-outline"
-            color="info"
-            size="lg"
+      <!-- Clients Table -->
+      <UTable
+        :data="clients"
+        :columns="columns"
+        :loading="isLoading"
+        class="flex-1 h-[calc(100vh-15rem)]"
+        :ui="{
+          tr: 'hover:bg-neutral-50 dark:hover:bg-neutral-700',
+        }"
+      >
+        <template #is_active-cell="{ row }">
+          <UBadge
+            :label="row.original.is_active ? 'Active' : 'Inactive'"
+            variant="soft"
+            :color="row.original.is_active ? 'success' : 'error'"
           />
-          <UButton
-            @click="deleteConfirmation(row.original.id)"
-            label="Delete"
-            leading-icon="mdi:account-minus"
-            color="error"
-            size="lg"
-          />
-        </div>
-      </template>
-    </UTable>
+        </template>
+        <template #category-cell="{ row }">
+          {{ getFullCategory(row.original.category) }}
+        </template>
+        <template #actions-cell="{ row }">
+          <div class="flex gap-1">
+            <UButton
+              @click="handleOpenEditModal(row.original.id)"
+              label="View"
+              leading-icon="mdi:account-arrow-right-outline"
+              color="info"
+              size="lg"
+            />
+            <UButton
+              @click="deleteConfirmation(row.original.id)"
+              label="Delete"
+              leading-icon="mdi:account-minus"
+              color="error"
+              size="lg"
+            />
+          </div>
+        </template>
+      </UTable>
+    </div>
 
     <!-- Pagination -->
     <div
