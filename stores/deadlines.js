@@ -240,36 +240,23 @@ export const useAddDeadlineStore = defineStore("addDeadlineModal", {
           complianceModalStore.open();
           break;
         case "financial_statement_prep":
-          const financialStatementModalStore = useFinancialStatementModalStore();
+          const financialStatementModalStore =
+            useFinancialStatementModalStore();
           financialStatementModalStore.open();
           break;
         case "accounting_auditing":
-          // TODO: Create and open Accounting/Auditing Modal
-          console.log(
-            "Opening Accounting/Auditing Modal for client:",
-            values.client
-          );
-          toast.add({
-            title: "Coming Soon",
-            description: "Accounting/Auditing form is not yet implemented.",
-            color: "info",
-            icon: "mdi:information",
-            duration: 3000,
-          });
+          const auditingAccountingModalStore = useAuditingAccountingModalStore();
+          auditingAccountingModalStore.open();
           break;
         case "finance_implementation":
-          // TODO: Create and open Finance Implementation Modal
-          console.log(
-            "Opening Finance Implementation Modal for client:",
-            values.client
-          );
-          toast.add({
-            title: "Coming Soon",
-            description: "Finance Implementation form is not yet implemented.",
-            color: "info",
-            icon: "mdi:information",
-            duration: 3000,
-          });
+          const financeImplementationModalStore =
+            useFinanceImplementationModalStore();
+          financeImplementationModalStore.open();
+          break;
+          break;
+        case "hr_implementation":
+          const hrImplementationModalStore = useHrImplementationModalStore();
+          hrImplementationModalStore.open();
           break;
         default:
           toast.add({

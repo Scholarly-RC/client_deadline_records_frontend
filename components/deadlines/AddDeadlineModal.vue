@@ -5,11 +5,14 @@ import { categoryChoices } from "~/constants/choices";
 import { z } from "zod";
 import ComplianceFormModal from "./ComplianceFormModal.vue";
 import FinancialStatementFormModal from "./FinancialStatementFormModal.vue";
+import HrImplementationFormModal from "./HrImplementationFormModal.vue";
+import FinanceImplementationFormModal from "./FinanceImplementationFormModal.vue";
+import AuditingAccountingFormModal from "./AuditingAccountingFormModal.vue";
 
 // Stores
 const clientStore = useClientStore();
 const addDeadlineStore = useAddDeadlineStore();
-const complianceModalStore = useComplianceModalStore();
+const userStore = useUserStore();
 
 // Reactive Variables
 const { activeClients } = storeToRefs(clientStore);
@@ -17,7 +20,7 @@ const { showModal } = storeToRefs(addDeadlineStore);
 
 // Form initial values
 const initialValues = computed(() => ({
-  client: 0,
+  client: null,
   category: "",
 }));
 
@@ -75,6 +78,11 @@ watch(client, (value) => {
 
 watch(category, (value) => {
   addDeadlineStore.setCategory(value);
+});
+
+onMounted(async () => {
+  await clientStore.getAllClients();
+  await userStore.getUserChoices();
 });
 </script>
 
@@ -145,5 +153,16 @@ watch(category, (value) => {
     </template>
   </UModal>
   <ComplianceFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
-  <FinancialStatementFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
+  <FinancialStatementFormModal
+    @clearAddDeadlineForm="handleClearAddDeadlineForm"
+  />
+  <FinanceImplementationFormModal
+    @clearAddDeadlineForm="handleClearAddDeadlineForm"
+  />
+  <HrImplementationFormModal
+    @clearAddDeadlineForm="handleClearAddDeadlineForm"
+  />
+  <AuditingAccountingFormModal
+    @clearAddDeadlineForm="handleClearAddDeadlineForm"
+  />
 </template>

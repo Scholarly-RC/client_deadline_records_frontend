@@ -22,7 +22,7 @@ const { selectedClient } = storeToRefs(addDeadlineStore);
 const initialValues = computed(() => ({
   needed_data: "",
   fsr_type: "",
-  assigned_to: 0,
+  assigned_to: null,
   priority: "medium",
   engagement_date: "",
   deadline: "",

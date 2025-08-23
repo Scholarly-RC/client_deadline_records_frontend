@@ -2,7 +2,7 @@
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { priorityChoices } from "~/constants/choices";
-import { complianceSchema } from "~/schema/compliance.schema";
+import { financeImplementationSchema } from "~/schema/financeImplementation.schema";
 
 const emit = defineEmits(["clearAddDeadlineForm"]);
 
@@ -10,19 +10,17 @@ const emit = defineEmits(["clearAddDeadlineForm"]);
 const userStore = useUserStore();
 const clientStore = useClientStore();
 const addDeadlineStore = useAddDeadlineStore();
-const complianceModalStore = useComplianceModalStore();
+const financeImplementationModalStore = useFinanceImplementationModalStore();
 
 // Store refs
 const { users } = storeToRefs(userStore);
 const { activeClients } = storeToRefs(clientStore);
-const { showModal } = storeToRefs(complianceModalStore);
+const { showModal } = storeToRefs(financeImplementationModalStore);
 const { selectedClient } = storeToRefs(addDeadlineStore);
 
 // Form initial values
 const initialValues = computed(() => ({
   description: "",
-  steps: "",
-  requirements: "",
   period_covered: "",
   assigned_to: null,
   priority: "medium",
@@ -31,7 +29,7 @@ const initialValues = computed(() => ({
 }));
 
 // Form validation schema
-const validationSchema = toTypedSchema(complianceSchema);
+const validationSchema = toTypedSchema(financeImplementationSchema);
 
 // Form setup
 const {
@@ -49,8 +47,6 @@ const {
 
 // Form fields
 const [description] = defineField("description");
-const [steps] = defineField("steps");
-const [requirements] = defineField("requirements");
 const [period_covered] = defineField("period_covered");
 const [assigned_to] = defineField("assigned_to");
 const [priority] = defineField("priority");
@@ -93,29 +89,30 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     const { $apiFetch } = useNuxtApp();
-    debugger;
-    const response = await $apiFetch("/api/compliance/", {
-      method: "POST",
-      body: {
-        client: selectedClient.value,
-        description: values.description,
-        steps: values.steps,
-        requirements: values.requirements,
-        period_covered: values.period_covered,
-        assigned_to: values.assigned_to,
-        priority: values.priority,
-        engagement_date: values.engagement_date,
-        deadline: values.deadline,
-        remarks: values.remarks || null,
-        date_complied: values.date_complied || null,
-        completion_date: values.completion_date || null,
-        last_update: new Date().toISOString(),
-      },
-    });
+    const response = await $apiFetch(
+      "/api/accounting-finance-implementations/",
+      {
+        method: "POST",
+        body: {
+          client: selectedClient.value,
+          description: values.description,
+          period_covered: values.period_covered,
+          assigned_to: values.assigned_to,
+          priority: values.priority,
+          engagement_date: values.engagement_date,
+          deadline: values.deadline,
+          remarks: values.remarks || null,
+          date_complied: values.date_complied || null,
+          completion_date: values.completion_date || null,
+          last_update: new Date().toISOString(),
+        },
+      }
+    );
 
     toast.add({
       title: "Success",
-      description: "Compliance task has been created successfully.",
+      description:
+        "Accounting/Finance Implementation task has been created successfully.",
       color: "success",
       icon: "mdi:checkbox-multiple-marked",
       duration: 3000,
@@ -123,10 +120,13 @@ const onSubmit = handleSubmit(async (values) => {
 
     // Reset form and close modal
     resetForm();
-    complianceModalStore.close();
+    financeImplementationModalStore.close();
     emit("clearAddDeadlineForm");
   } catch (error) {
-    console.error("Error creating compliance task:", error);
+    console.error(
+      "Error creating Accounting/Finance Implementation task:",
+      error
+    );
     toast.add({
       title: "Creation Failed",
       description: getErrorMessage(error),
@@ -138,7 +138,7 @@ const onSubmit = handleSubmit(async (values) => {
 });
 
 const handleClose = () => {
-  complianceModalStore.close();
+  financeImplementationModalStore.close();
   addDeadlineStore.open();
 };
 </script>
@@ -146,8 +146,8 @@ const handleClose = () => {
 <template>
   <UModal
     v-model:open="showModal"
-    title="Compliance Task Details - Step 2 of 2"
-    :description="`Creating compliance task for ${selectedClientName}`"
+    title="Accounting/Finance Implementation Task Details - Step 2 of 2"
+    :description="`Creating task for ${selectedClientName}`"
     :ui="{ content: 'min-w-4xl max-w-6xl' }"
     :close="{ onClick: () => handleClose() }"
   >
@@ -165,7 +165,7 @@ const handleClose = () => {
               name="description"
               :error="errors.description"
               required
-              help="Provide a clear description of the compliance task"
+              help="Provide a clear description of the task"
             >
               <UInput
                 v-model="description"
@@ -174,41 +174,6 @@ const handleClose = () => {
                 :disabled="isSubmitting"
               />
             </UFormField>
-
-            <!-- Steps and Requirements -->
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <UFormField
-                label="Steps"
-                name="steps"
-                :error="errors.steps"
-                required
-                help="Office / Steps"
-              >
-                <UTextarea
-                  v-model="steps"
-                  placeholder="Enter required steps"
-                  :rows="4"
-                  class="w-full"
-                  :disabled="isSubmitting"
-                />
-              </UFormField>
-
-              <UFormField
-                label="Requirements"
-                name="requirements"
-                :error="errors.requirements"
-                required
-                help="Requirements / Forms to comply"
-              >
-                <UTextarea
-                  v-model="requirements"
-                  placeholder="Enter requirements"
-                  :rows="4"
-                  class="w-full"
-                  :disabled="isSubmitting"
-                />
-              </UFormField>
-            </div>
           </div>
         </div>
 
@@ -311,7 +276,7 @@ const handleClose = () => {
           <UButton
             type="submit"
             icon="mdi:content-save"
-            label="Create Compliance Task"
+            label="Create Task"
             size="lg"
             :loading="isSubmitting"
             :disabled="disableSubmit"
