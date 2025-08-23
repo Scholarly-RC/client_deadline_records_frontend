@@ -1,10 +1,13 @@
 // ~/constants/choices.js
 
 export const statusChoices = [
-  { label: "Not Yet Started", value: "not_yet_started" },
-  { label: "In Progress", value: "in_progress" },
   { label: "Completed", value: "completed" },
-  { label: "On Hold", value: "on_hold" },
+  { label: "For Revision", value: "for_revision" },
+  { label: "For Checking", value: "for_checking" },
+  { label: "On Going", value: "on_going" },
+  { label: "Pending", value: "pending" },
+  { label: "Not Yet Started", value: "not_yet_started" },
+  { label: "Cancelled", value: "cancelled" },
 ];
 
 export const categoryChoices = [
@@ -26,4 +29,9 @@ export const priorityChoices = [
   { label: "High", value: "high" },
   { label: "Medium", value: "medium" },
   { label: "Low", value: "low" },
+];
+
+export const fsrTypeChoices = [
+  { label: "Quarterly", value: "quarterly" },
+  { label: "Annual", value: "annual" },
 ];

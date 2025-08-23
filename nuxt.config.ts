@@ -2,12 +2,7 @@
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
-  modules: [
-    "@pinia/nuxt",
-    "@nuxtjs/color-mode",
-    "@vite-pwa/nuxt",
-    "@nuxt/ui",
-  ],
+  modules: ["@pinia/nuxt", "@nuxtjs/color-mode", "@vite-pwa/nuxt", "@nuxt/ui"],
   ssr: false,
   pwa: {
     registerType: "autoUpdate",
