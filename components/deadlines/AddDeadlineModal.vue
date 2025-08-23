@@ -4,6 +4,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { categoryChoices } from "~/constants/choices";
 import { z } from "zod";
 import ComplianceFormModal from "./ComplianceFormModal.vue";
+import FinancialStatementFormModal from "./FinancialStatementFormModal.vue";
 
 // Stores
 const clientStore = useClientStore();
@@ -144,4 +145,5 @@ watch(category, (value) => {
     </template>
   </UModal>
   <ComplianceFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
+  <FinancialStatementFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
 </template>

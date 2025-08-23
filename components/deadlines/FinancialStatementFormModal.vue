@@ -1,8 +1,8 @@
 <script setup>
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
-import { priorityChoices } from "~/constants/choices";
-import { complianceSchema } from "~/schema/compliance.schema";
+import { priorityChoices, fsrTypeChoices } from "~/constants/choices";
+import { financialStatementSchema } from "~/schema/financialStatement.schema";
 
 const emit = defineEmits(["clearAddDeadlineForm"]);
 
@@ -10,20 +10,18 @@ const emit = defineEmits(["clearAddDeadlineForm"]);
 const userStore = useUserStore();
 const clientStore = useClientStore();
 const addDeadlineStore = useAddDeadlineStore();
-const complianceModalStore = useComplianceModalStore();
+const financialStatementModalStore = useFinancialStatementModalStore();
 
 // Store refs
 const { users } = storeToRefs(userStore);
 const { activeClients } = storeToRefs(clientStore);
-const { showModal } = storeToRefs(complianceModalStore);
+const { showModal } = storeToRefs(financialStatementModalStore);
 const { selectedClient } = storeToRefs(addDeadlineStore);
 
 // Form initial values
 const initialValues = computed(() => ({
-  description: "",
-  steps: "",
-  requirements: "",
-  period_covered: "",
+  needed_data: "",
+  fsr_type: "",
   assigned_to: 0,
   priority: "medium",
   engagement_date: "",
@@ -31,7 +29,7 @@ const initialValues = computed(() => ({
 }));
 
 // Form validation schema
-const validationSchema = toTypedSchema(complianceSchema);
+const validationSchema = toTypedSchema(financialStatementSchema);
 
 // Form setup
 const {
@@ -48,10 +46,8 @@ const {
 });
 
 // Form fields
-const [description] = defineField("description");
-const [steps] = defineField("steps");
-const [requirements] = defineField("requirements");
-const [period_covered] = defineField("period_covered");
+const [needed_data] = defineField("needed_data");
+const [fsr_type] = defineField("fsr_type");
 const [assigned_to] = defineField("assigned_to");
 const [priority] = defineField("priority");
 const [engagement_date] = defineField("engagement_date");
@@ -93,15 +89,12 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     const { $apiFetch } = useNuxtApp();
-    debugger;
-    const response = await $apiFetch("/api/compliance/", {
+    const response = await $apiFetch("/api/financial-statement-preparations/", {
       method: "POST",
       body: {
         client: selectedClient.value,
-        description: values.description,
-        steps: values.steps,
-        requirements: values.requirements,
-        period_covered: values.period_covered,
+        type: values.fsr_type,
+        needed_data: values.needed_data,
         assigned_to: values.assigned_to,
         priority: values.priority,
         engagement_date: values.engagement_date,
@@ -115,7 +108,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     toast.add({
       title: "Success",
-      description: "Compliance task has been created successfully.",
+      description: "Financial Statement task has been created successfully.",
       color: "success",
       icon: "mdi:checkbox-multiple-marked",
       duration: 3000,
@@ -123,10 +116,10 @@ const onSubmit = handleSubmit(async (values) => {
 
     // Reset form and close modal
     resetForm();
-    complianceModalStore.close();
+    financialStatementModalStore.close();
     emit("clearAddDeadlineForm");
   } catch (error) {
-    console.error("Error creating compliance task:", error);
+    console.error("Error creating financial statement task:", error);
     toast.add({
       title: "Creation Failed",
       description: getErrorMessage(error),
@@ -138,7 +131,7 @@ const onSubmit = handleSubmit(async (values) => {
 });
 
 const handleClose = () => {
-  complianceModalStore.close();
+  financialStatementModalStore.close();
   addDeadlineStore.open();
 };
 </script>
@@ -146,8 +139,8 @@ const handleClose = () => {
 <template>
   <UModal
     v-model:open="showModal"
-    title="Compliance Task Details - Step 2 of 2"
-    :description="`Creating compliance task for ${selectedClientName}`"
+    title="Financial Statement Task Details - Step 2 of 2"
+    :description="`Creating financial statement task for ${selectedClientName}`"
     :ui="{ content: 'min-w-4xl max-w-6xl' }"
     :close="{ onClick: () => handleClose() }"
   >
@@ -159,56 +152,43 @@ const handleClose = () => {
             Task Information
           </h3>
           <div class="space-y-6">
-            <!-- Description -->
+            <!-- Needed Data -->
             <UFormField
-              label="Task Description"
-              name="description"
-              :error="errors.description"
+              label="Needed Data"
+              name="needed_data"
+              :error="errors.needed_data"
               required
-              help="Provide a clear description of the compliance task"
+              help="Provide a clear description of the needed data for the financial statement task"
             >
-              <UInput
-                v-model="description"
-                placeholder="Enter detailed task description"
+              <UTextarea
+                v-model="needed_data"
+                placeholder="Enter detailed needed data"
+                :rows="4"
                 class="w-full"
                 :disabled="isSubmitting"
               />
             </UFormField>
+          </div>
+        </div>
 
-            <!-- Steps and Requirements -->
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <UFormField
-                label="Steps"
-                name="steps"
-                :error="errors.steps"
-                required
-                help="Office / Steps"
-              >
-                <UTextarea
-                  v-model="steps"
-                  placeholder="Enter required steps"
-                  :rows="4"
-                  class="w-full"
-                  :disabled="isSubmitting"
-                />
-              </UFormField>
-
-              <UFormField
-                label="Requirements"
-                name="requirements"
-                :error="errors.requirements"
-                required
-                help="Requirements / Forms to comply"
-              >
-                <UTextarea
-                  v-model="requirements"
-                  placeholder="Enter requirements"
-                  :rows="4"
-                  class="w-full"
-                  :disabled="isSubmitting"
-                />
-              </UFormField>
-            </div>
+        <!-- FSR Details Section -->
+        <div class="bg-primary-50 p-6 rounded-lg">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">FSR Details</h3>
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+            <UFormField
+              label="Type"
+              name="fsr_type"
+              :error="errors.fsr_type"
+              required
+            >
+              <USelect
+                v-model="fsr_type"
+                :items="fsrTypeChoices"
+                placeholder="Select FSR Type"
+                class="w-full"
+                :disabled="isSubmitting"
+              />
+            </UFormField>
           </div>
         </div>
 
@@ -256,22 +236,7 @@ const handleClose = () => {
           <h3 class="text-lg font-medium text-gray-900 mb-4">
             Timeline & Period
           </h3>
-          <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-            <UFormField
-              label="Period Covered"
-              name="period_covered"
-              :error="errors.period_covered"
-              required
-              help="e.g., Q1 2024, January 2024, etc."
-            >
-              <UInput
-                v-model="period_covered"
-                placeholder="e.g. Q1 2024, January 2024"
-                class="w-full"
-                :disabled="isSubmitting"
-              />
-            </UFormField>
-
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
             <UFormField
               label="Engagement Date"
               name="engagement_date"
@@ -311,7 +276,7 @@ const handleClose = () => {
           <UButton
             type="submit"
             icon="mdi:content-save"
-            label="Create Compliance Task"
+            label="Create Financial Statement Task"
             size="lg"
             :loading="isSubmitting"
             :disabled="disableSubmit"

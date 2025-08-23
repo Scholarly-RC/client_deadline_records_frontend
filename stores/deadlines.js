@@ -239,6 +239,10 @@ export const useAddDeadlineStore = defineStore("addDeadlineModal", {
           const complianceModalStore = useComplianceModalStore();
           complianceModalStore.open();
           break;
+        case "financial_statement_prep":
+          const financialStatementModalStore = useFinancialStatementModalStore();
+          financialStatementModalStore.open();
+          break;
         case "accounting_auditing":
           // TODO: Create and open Accounting/Auditing Modal
           console.log(

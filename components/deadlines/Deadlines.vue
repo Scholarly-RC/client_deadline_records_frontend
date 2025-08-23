@@ -2,24 +2,21 @@
 // Components
 import PageHeader from "../ui/PageHeader.vue";
 import AddDeadlineModal from "./AddDeadlineModal.vue";
-import ClientDeadlineTable from "./ClientDeadlineTable.vue";
-import DeadlineTypesModal from "./DeadlineTypesModal.vue";
-import ClientDeadlineFilterModal from "./ClientDeadlineFilterModal.vue";
-import ComplianceFormModal from "./ComplianceFormModal.vue";
+import ComplianceTable from "./ComplianceTable.vue";
+import FinancialStatementTable from "./FinancialStatementTable.vue";
 
-// Stores
-const deadlineTypeStore = useDeadlineTypesStore();
-const deadlineStore = useDeadlineStore();
-const clientStore = useClientStore();
-const userStore = useUserStore();
-
-// Lifecycle Hooks
-onMounted(async () => {
-  await deadlineStore.getAllDeadlines();
-  await deadlineTypeStore.getAllDeadlineTypes();
-  await clientStore.getAllClients();
-  await userStore.getUserChoices();
-});
+const items = [
+  {
+    key: "compliance",
+    label: "Compliance",
+    slot: "compliance",
+  },
+  {
+    key: "financial_statement",
+    label: "Financial Statement",
+    slot: "financial_statement",
+  },
+];
 </script>
 
 <template>
@@ -29,7 +26,17 @@ onMounted(async () => {
       class="flex-1 overflow-y-auto p-4 bg-white dark:bg-gray-900 space-y-4"
       style="max-height: calc(100vh - 4rem)"
     >
-      <ClientDeadlineTable />
+      <div class="flex justify-end">
+        <AddDeadlineModal />
+      </div>
+      <UTabs :items="items" class="w-full">
+        <template #compliance>
+          <ComplianceTable />
+        </template>
+        <template #financial_statement>
+          <FinancialStatementTable />
+        </template>
+      </UTabs>
     </main>
   </div>
 </template>
