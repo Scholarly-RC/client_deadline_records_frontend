@@ -1,7 +1,7 @@
 <script setup>
 import { convertToTitleCase } from "~/utils/convertToTitleCase";
 // Stores
-const complianceTableStore = useComplianceTableStore();
+const financeImplementationTableStore = useFinanceImplementationTableStore();
 
 const columns = [
   {
@@ -46,15 +46,16 @@ const columns = [
 
 // Methods
 const handleSetPage = async (page) => {
-  await complianceTableStore.setPage(page);
+  await financeImplementationTableStore.setPage(page);
 };
 
 // Reactive variables
-const { compliances, pagination, isLoading } =
-  storeToRefs(complianceTableStore);
+const { financeImplementations, pagination, isLoading } = storeToRefs(
+  financeImplementationTableStore
+);
 
 onMounted(async () => {
-  await complianceTableStore.getAllCompliances();
+  await financeImplementationTableStore.getAllFinanceImplementations();
 });
 </script>
 
@@ -65,7 +66,7 @@ onMounted(async () => {
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
       <UTable
-        :data="compliances"
+        :data="financeImplementations"
         :columns="columns"
         :loading="isLoading"
         class="flex-1 h-[calc(100vh-18rem)]"

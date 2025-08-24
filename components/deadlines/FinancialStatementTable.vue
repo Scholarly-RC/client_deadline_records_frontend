@@ -5,7 +5,7 @@ const financialStatementTableStore = useFinancialStatementTableStore();
 
 const columns = [
   {
-    accessorKey: "client_detail.name",
+    accessorKey: "client_name",
     header: "Client",
   },
   {
@@ -18,7 +18,7 @@ const columns = [
   },
 
   {
-    accessorKey: "assigned_to_detail.fullname",
+    accessorKey: "assigned_to_name",
     header: "Assigned To",
   },
   {
@@ -68,11 +68,14 @@ onMounted(async () => {
         :data="financialStatements"
         :columns="columns"
         :loading="isLoading"
-        class="flex-1"
+        class="flex-1 h-[calc(100vh-18rem)]"
         :ui="{
           tr: 'hover:bg-neutral-50 dark:hover:bg-neutral-700',
         }"
       >
+        <template #type-cell="{ row }">
+          {{ convertToTitleCase(row.original.type) }}
+        </template>
         <template #status-cell="{ row }">
           <UBadge
             :color="

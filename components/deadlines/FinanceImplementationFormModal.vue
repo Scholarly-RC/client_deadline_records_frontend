@@ -89,25 +89,22 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     const { $apiFetch } = useNuxtApp();
-    const response = await $apiFetch(
-      "/api/accounting-finance-implementations/",
-      {
-        method: "POST",
-        body: {
-          client: selectedClient.value,
-          description: values.description,
-          period_covered: values.period_covered,
-          assigned_to: values.assigned_to,
-          priority: values.priority,
-          engagement_date: values.engagement_date,
-          deadline: values.deadline,
-          remarks: values.remarks || null,
-          date_complied: values.date_complied || null,
-          completion_date: values.completion_date || null,
-          last_update: new Date().toISOString(),
-        },
-      }
-    );
+    const response = await $apiFetch("/api/finance-implementations/", {
+      method: "POST",
+      body: {
+        client: selectedClient.value,
+        description: values.description,
+        period_covered: values.period_covered,
+        assigned_to: values.assigned_to,
+        priority: values.priority,
+        engagement_date: values.engagement_date,
+        deadline: values.deadline,
+        remarks: values.remarks || null,
+        date_complied: values.date_complied || null,
+        completion_date: values.completion_date || null,
+        last_update: new Date().toISOString(),
+      },
+    });
 
     toast.add({
       title: "Success",

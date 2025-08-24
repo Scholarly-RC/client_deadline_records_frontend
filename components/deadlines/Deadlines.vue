@@ -4,17 +4,30 @@ import PageHeader from "../ui/PageHeader.vue";
 import AddDeadlineModal from "./AddDeadlineModal.vue";
 import ComplianceTable from "./ComplianceTable.vue";
 import FinancialStatementTable from "./FinancialStatementTable.vue";
+import FinanceImplementationTable from "./FinanceImplementationTable.vue";
+import HrImplementationTable from "./HrImplementationTable.vue";
+import AuditingAccountingTable from "./AuditingAccountingTable.vue";
 
 const items = [
   {
-    key: "compliance",
     label: "Compliance",
     slot: "compliance",
   },
   {
-    key: "financial_statement",
     label: "Financial Statement",
     slot: "financial_statement",
+  },
+  {
+    label: "Finance Implementation",
+    slot: "finance_implementation",
+  },
+  {
+    label: "HR Implementation",
+    slot: "hr_implementation",
+  },
+  {
+    label: "Auditing & Accounting",
+    slot: "auditing_accounting",
   },
 ];
 </script>
@@ -35,6 +48,15 @@ const items = [
         </template>
         <template #financial_statement>
           <FinancialStatementTable />
+        </template>
+        <template #finance_implementation>
+          <FinanceImplementationTable />
+        </template>
+        <template #hr_implementation>
+          <HrImplementationTable />
+        </template>
+        <template #auditing_accounting>
+          <AuditingAccountingTable />
         </template>
       </UTabs>
     </main>

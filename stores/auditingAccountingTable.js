@@ -1,21 +1,21 @@
 import { defineStore } from "pinia";
 
-export const useFinancialStatementTableStore = defineStore(
-  "financialStatementTable",
+export const useAuditingAccountingTableStore = defineStore(
+  "auditingAccountingTable",
   {
     state: () => ({
-      financialStatements: [],
+      auditingAccountings: [],
       pagination: {},
       isLoading: false,
       page: null,
     }),
 
     actions: {
-      async getAllFinancialStatements() {
+      async getAllAuditingAccountings() {
         try {
           this.isLoading = true;
           const { $apiFetch } = useNuxtApp();
-          let url = `/api/financial-statement-preparations/?`;
+          let url = `/api/accounting-audits/?`;
           const params = new URLSearchParams();
           if (this.page) {
             params.append("page", this.page);
@@ -25,7 +25,7 @@ export const useFinancialStatementTableStore = defineStore(
             method: "GET",
           });
           const { results, ...pagination } = response;
-          this.financialStatements = results;
+          this.auditingAccountings = results;
           this.pagination = pagination;
         } catch (error) {
           console.error(error);
@@ -35,7 +35,7 @@ export const useFinancialStatementTableStore = defineStore(
       },
       async setPage(page) {
         this.page = page;
-        await this.getAllFinancialStatements();
+        await this.getAllAuditingAccountings();
       },
     },
   }

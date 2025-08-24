@@ -5,7 +5,7 @@ export const useComplianceTableStore = defineStore("complianceTable", {
     compliances: [],
     pagination: {},
     isLoading: false,
-    page: 1,
+    page: null,
   }),
 
   actions: {
@@ -13,7 +13,13 @@ export const useComplianceTableStore = defineStore("complianceTable", {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch(`/api/compliance/?page=${this.page}`, {
+        let url = `/api/compliance/?`;
+        const params = new URLSearchParams();
+        if (this.page) {
+          params.append("page", this.page);
+        }
+        url += params.toString();
+        const response = await $apiFetch(url, {
           method: "GET",
         });
         const { results, ...pagination } = response;

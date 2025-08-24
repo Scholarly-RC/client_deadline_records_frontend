@@ -15,5 +15,10 @@ export default defineAppConfig({
         item: "cursor-pointer",
       },
     },
+    tabs: {
+      slots: {
+        trigger: "cursor-pointer",
+      },
+    },
   },
 });

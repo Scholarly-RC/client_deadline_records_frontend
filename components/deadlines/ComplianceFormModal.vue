@@ -93,7 +93,6 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     const { $apiFetch } = useNuxtApp();
-    debugger;
     const response = await $apiFetch("/api/compliance/", {
       method: "POST",
       body: {

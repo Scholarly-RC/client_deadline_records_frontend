@@ -89,7 +89,7 @@ const onSubmit = handleSubmit(async (values) => {
 
   try {
     const { $apiFetch } = useNuxtApp();
-    const response = await $apiFetch("/api/hr-implementations/", {
+    const response = await $apiFetch("/api/human-resource-implementations/", {
       method: "POST",
       body: {
         client: selectedClient.value,
