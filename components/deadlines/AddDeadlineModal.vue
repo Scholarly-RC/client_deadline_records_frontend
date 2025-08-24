@@ -8,6 +8,8 @@ import FinancialStatementFormModal from "./FinancialStatementFormModal.vue";
 import HrImplementationFormModal from "./HrImplementationFormModal.vue";
 import FinanceImplementationFormModal from "./FinanceImplementationFormModal.vue";
 import AuditingAccountingFormModal from "./AuditingAccountingFormModal.vue";
+import MiscellaneousFormModal from "./MiscellaneousFormModal.vue";
+import TaxFormModal from "./TaxFormModal.vue";
 
 // Stores
 const clientStore = useClientStore();
@@ -165,4 +167,6 @@ onMounted(async () => {
   <AuditingAccountingFormModal
     @clearAddDeadlineForm="handleClearAddDeadlineForm"
   />
+  <MiscellaneousFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
+  <TaxFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
 </template>

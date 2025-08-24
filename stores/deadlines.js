@@ -245,7 +245,8 @@ export const useAddDeadlineStore = defineStore("addDeadlineModal", {
           financialStatementModalStore.open();
           break;
         case "accounting_auditing":
-          const auditingAccountingModalStore = useAuditingAccountingModalStore();
+          const auditingAccountingModalStore =
+            useAuditingAccountingModalStore();
           auditingAccountingModalStore.open();
           break;
         case "finance_implementation":
@@ -253,10 +254,17 @@ export const useAddDeadlineStore = defineStore("addDeadlineModal", {
             useFinanceImplementationModalStore();
           financeImplementationModalStore.open();
           break;
-          break;
         case "hr_implementation":
           const hrImplementationModalStore = useHrImplementationModalStore();
           hrImplementationModalStore.open();
+          break;
+        case "miscellaneous":
+          const miscellaneousModalStore = useMiscellaneousStore();
+          miscellaneousModalStore.open();
+          break;
+        case "tax":
+          const taxModalStore = useTaxStore();
+          taxModalStore.open();
           break;
         default:
           toast.add({
