@@ -39,6 +39,10 @@ const columns = [
     header: "Last Update",
   },
   {
+    accessorKey: "completion_date",
+    header: "Completion Date",
+  },
+  {
     accessorKey: "actions",
     header: "",
   },
@@ -50,7 +54,9 @@ const handleSetPage = async (page) => {
 };
 
 // Reactive variables
-const { auditingAccountings, pagination, isLoading } = storeToRefs(auditingAccountingTableStore);
+const { auditingAccountings, pagination, isLoading } = storeToRefs(
+  auditingAccountingTableStore
+);
 
 onMounted(async () => {
   await auditingAccountingTableStore.getAllAuditingAccountings();

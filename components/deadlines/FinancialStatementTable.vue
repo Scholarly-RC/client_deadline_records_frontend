@@ -37,6 +37,10 @@ const columns = [
     accessorKey: "last_update",
     header: "Last Update",
   },
+    {
+    accessorKey: "completion_date",
+    header: "Completion Date",
+  },
   {
     accessorKey: "actions",
     header: "",
