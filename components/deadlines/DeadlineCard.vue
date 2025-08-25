@@ -1,8 +1,9 @@
 <script setup>
 import { getDaysRemaining } from "~/utils/getDaysRemaining";
-import DeadlineStatusPill from "~/components/ui/DeadlineStatusPill.vue";
 import PriorityBadge from "../ui/PriorityBadge.vue";
 import StatusBadge from "../ui/StatusBadge.vue";
+
+const deadlineUpdate = useDeadlineUpdate();
 
 const props = defineProps({
   deadline: {
@@ -18,34 +19,6 @@ const props = defineProps({
 const daysRemaining = computed(() => {
   return getDaysRemaining(props.deadline.deadline_days_remaining);
 });
-
-const formattedDueDate = computed(() => {
-  const date = new Date(props.deadline.deadline);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-});
-
-const getCategoryDisplayName = (category) => {
-  switch (category) {
-    case "financial_statement_preparations":
-      return "Financial Statement Preparation";
-    case "accounting_audits":
-      return "Accounting & Auditing";
-    case "finance_implementations":
-      return "Finance Implementation";
-    case "human_resource_implementations":
-      return "HR Implementation";
-    case "miscellaneous_tasks":
-      return "Miscellaneous";
-    case "tax_cases":
-      return "Tax";
-    default:
-      return category.replace(/_/g, " ");
-  }
-};
 </script>
 
 <template>
@@ -59,8 +32,12 @@ const getCategoryDisplayName = (category) => {
 
     <div class="space-y-2">
       <div class="flex items-center justify-between">
+        <span class="text-sm font-medium">Task ID:</span>
+        <span class="text-sm">#{{ deadline.id }}</span>
+      </div>
+      <div class="flex items-center justify-between">
         <span class="text-sm font-medium">Due Date:</span>
-        <span class="text-sm">{{ formattedDueDate }}</span>
+        <span class="text-sm">{{ deadline.deadline }}</span>
       </div>
       <div class="flex items-center justify-between">
         <span class="text-sm font-medium">Days Remaining:</span>
@@ -83,6 +60,10 @@ const getCategoryDisplayName = (category) => {
         <span class="text-sm font-medium">Needed Data:</span>
         <p class="text-sm">{{ deadline.needed_data }}</p>
       </div>
+      <div v-if="deadline.category_name">
+        <span class="text-sm font-medium">Category:</span>
+        <p class="text-sm">{{ deadline.category_name }}</p>
+      </div>
       <div v-if="deadline.type_name">
         <span class="text-sm font-medium">Type:</span>
         <p class="text-sm">{{ deadline.type_name }}</p>
@@ -99,16 +80,20 @@ const getCategoryDisplayName = (category) => {
         <span class="text-sm font-medium">Tax Payable:</span>
         <p class="text-sm">{{ deadline.tax_payable }}</p>
       </div>
+      <div v-if="deadline.remarks">
+        <span class="text-sm font-medium">Remarks:</span>
+        <p class="text-sm">{{ deadline.remarks }}</p>
+      </div>
     </div>
 
     <template #footer>
       <div class="text-right">
         <UButton
-          :to="`/deadlines/${deadline.id}`"
-          variant="link"
+          @click="deadlineUpdate.open(category, deadline)"
+          label="Add Update"
+          variant="soft"
           color="primary"
-          >View Details</UButton
-        >
+        />
       </div>
     </template>
   </UCard>

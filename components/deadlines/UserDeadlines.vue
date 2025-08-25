@@ -3,6 +3,7 @@ import PageHeader from "../ui/PageHeader.vue";
 import DeadlineCard from "./DeadlineCard.vue";
 import { useUserDeadlinesStore } from "~/stores/userDeadlines";
 import { useAuthStore } from "~/stores/auth";
+import UpdateDeadlineModal from "./UpdateDeadlineModal.vue";
 
 const userDeadlinesStore = useUserDeadlinesStore();
 const authStore = useAuthStore();
@@ -10,16 +11,16 @@ const authStore = useAuthStore();
 const categorizedDeadlines = computed(() => userDeadlinesStore.deadlines);
 const isLoading = computed(() => userDeadlinesStore.isLoading);
 
-onMounted(async () => {
-  if (authStore.user && authStore.user.id) {
-    await userDeadlinesStore.fetchUserDeadlines(authStore.user.id);
-  }
-});
-
 const hasDeadlines = computed(() => {
   return Object.values(categorizedDeadlines.value).some(
     (category) => category.length > 0
   );
+});
+
+onMounted(async () => {
+  if (authStore.user && authStore.user.id) {
+    await userDeadlinesStore.fetchUserDeadlines(authStore.user.id);
+  }
 });
 </script>
 
@@ -76,6 +77,7 @@ const hasDeadlines = computed(() => {
         </div>
       </div>
     </main>
+    <UpdateDeadlineModal />
   </div>
 </template>
 
