@@ -19,7 +19,7 @@ const props = defineProps({
         : status === 'on_going'
         ? 'primary'
         : status === 'pending'
-        ? 'yellow'
+        ? 'secondary'
         : status === 'cancelled'
         ? 'error'
         : 'neutral'
