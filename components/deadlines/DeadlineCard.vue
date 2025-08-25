@@ -19,6 +19,10 @@ const props = defineProps({
 const daysRemaining = computed(() => {
   return getDaysRemaining(props.deadline.deadline_days_remaining);
 });
+
+const history = computed(() => {
+  return props.deadline.status_history;
+});
 </script>
 
 <template>
@@ -82,12 +86,26 @@ const daysRemaining = computed(() => {
       </div>
       <div v-if="deadline.remarks">
         <span class="text-sm font-medium">Remarks:</span>
-        <p class="text-sm">{{ deadline.remarks }}</p>
+        <p class="text-sm max-w-xs break-words">{{ deadline.remarks }}</p>
       </div>
     </div>
 
     <template #footer>
-      <div class="text-right">
+      <div class="flex justify-end gap-2">
+        <UPopover arrow>
+          <UButton label="View History" variant="soft" color="primary" />
+          <template #content>
+            <div class="p-4 space-y-2 max-h-96 overflow-y-auto">
+              <div v-for="(item, index) in history" :key="index">
+                <p class="text-sm font-medium">Status: {{ item.status }}</p>
+                <p class="text-sm max-w-xs break-words">
+                  Remarks: {{ item.remarks }}
+                </p>
+                <p class="text-xs text-gray-500">Date: {{ item.date }}</p>
+              </div>
+            </div>
+          </template>
+        </UPopover>
         <UButton
           @click="deadlineUpdate.open(category, deadline)"
           label="Add Update"
