@@ -1,3 +1,5 @@
+<!-- 
+ 
 <script setup>
 // Stores
 const viewDeadlineStore = useViewDeadlineStore();
@@ -62,7 +64,6 @@ const onDragOver = (event) => {
 </script>
 
 <template>
-  <!-- Stylish File Upload Box -->
   <div class="mb-8">
     <label
       for="file-upload"
@@ -103,3 +104,5 @@ const onDragOver = (event) => {
     </label>
   </div>
 </template>
+
+ -->

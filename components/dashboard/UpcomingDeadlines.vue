@@ -1,13 +1,13 @@
 <script setup>
-import DeadlinePriorityPill from "../ui/DeadlinePriorityPill.vue";
-import DeadlineStatusPill from "../ui/DeadlineStatusPill.vue";
+// import DeadlinePriorityPill from "../ui/DeadlinePriorityPill.vue";
+// import DeadlineStatusPill from "../ui/DeadlineStatusPill.vue";
 
-const upcomingDeadlineStore = useUpcomingDeadlineStore();
-const { deadlines, isLoading } = storeToRefs(upcomingDeadlineStore);
+// const upcomingDeadlineStore = useUpcomingDeadlineStore();
+// const { deadlines, isLoading } = storeToRefs(upcomingDeadlineStore);
 
-onMounted(async () => {
-  await upcomingDeadlineStore.getUpcomingDeadlines();
-});
+// onMounted(async () => {
+//   await upcomingDeadlineStore.getUpcomingDeadlines();
+// });
 </script>
 
 <template>

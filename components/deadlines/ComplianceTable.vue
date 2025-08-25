@@ -1,5 +1,7 @@
 <script setup>
 import { convertToTitleCase } from "~/utils/convertToTitleCase";
+import StatusBadge from "../ui/StatusBadge.vue";
+import PriorityBadge from "../ui/PriorityBadge.vue";
 // Stores
 const complianceTableStore = useComplianceTableStore();
 
@@ -38,7 +40,7 @@ const columns = [
     accessorKey: "last_update",
     header: "Last Update",
   },
-    {
+  {
     accessorKey: "completion_date",
     header: "Completion Date",
   },
@@ -78,38 +80,10 @@ onMounted(async () => {
         }"
       >
         <template #status-cell="{ row }">
-          <UBadge
-            :color="
-              row.original.status === 'completed'
-                ? 'success'
-                : row.original.status === 'for_revision'
-                ? 'warning'
-                : row.original.status === 'for_checking'
-                ? 'info'
-                : row.original.status === 'on_going'
-                ? 'primary'
-                : row.original.status === 'pending'
-                ? 'yellow'
-                : row.original.status === 'cancelled'
-                ? 'error'
-                : 'neutral'
-            "
-            variant="subtle"
-            >{{ convertToTitleCase(row.original.status) }}</UBadge
-          >
+          <StatusBadge :status="row.original.status" />
         </template>
         <template #priority-cell="{ row }">
-          <UBadge
-            :color="
-              row.original.priority === 'high'
-                ? 'error'
-                : row.original.priority === 'medium'
-                ? 'warning'
-                : 'success'
-            "
-            variant="subtle"
-            >{{ convertToTitleCase(row.original.priority) }}</UBadge
-          >
+          <PriorityBadge :priority="row.original.priority" />
         </template>
         <template #actions-cell="{ row }">
           <UButton

@@ -1,3 +1,6 @@
+<script></script>
+
+<!-- 
 <script setup>
 // Components
 import UploadedFile from "./UploadedFile.vue";
@@ -11,13 +14,13 @@ const uploadedFiles = computed(() => deadline.value.documents);
 </script>
 
 <template>
-  <!-- Uploaded Files List -->
+
   <div v-if="uploadedFiles.length > 0 || isLoading">
     <h4 class="text-md font-medium text-gray-900 dark:text-white mb-4">
       Uploaded Files
     </h4>
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <!-- Loading state -->
+
       <template v-if="isLoading">
         <div
           v-for="i in 3"
@@ -40,7 +43,6 @@ const uploadedFiles = computed(() => deadline.value.documents);
         </div>
       </template>
 
-      <!-- Actual content -->
       <template v-else>
         <UploadedFile
           v-for="(file, index) in uploadedFiles"
@@ -51,3 +53,4 @@ const uploadedFiles = computed(() => deadline.value.documents);
     </div>
   </div>
 </template>
+ -->

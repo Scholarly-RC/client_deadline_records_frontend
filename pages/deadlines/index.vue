@@ -1,6 +1,10 @@
 <script setup>
 // Components
 import Deadlines from "~/components/deadlines/Deadlines.vue";
+import UserDeadlines from "~/components/deadlines/UserDeadlines.vue";
+import { useAuthStore } from "~/stores/auth";
+
+const authStore = useAuthStore();
 
 // Page Configuration
 definePageMeta({
@@ -14,5 +18,6 @@ useHead({
 </script>
 
 <template>
-  <Deadlines />
+  <Deadlines v-if="authStore.isAdmin" />
+  <UserDeadlines v-else />
 </template>

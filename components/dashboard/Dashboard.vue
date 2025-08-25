@@ -24,7 +24,7 @@ onMounted(async () => {
       <div class="space-y-6">
         <!-- Stats cards -->
         <Stats />
-        <UpcomingDeadlines />
+        <!-- <UpcomingDeadlines /> -->
         <ClientBirthdays />
       </div>
     </main>

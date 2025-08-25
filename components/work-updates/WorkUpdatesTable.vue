@@ -1,3 +1,5 @@
+<script></script>
+<!-- 
 <script setup>
 // Components
 import WorkUpdate from "./WorkUpdate.vue";
@@ -8,7 +10,7 @@ const { deadline, isLoading } = storeToRefs(viewDeadlineStore);
 </script>
 
 <template>
-  <!-- Current Works -->
+
   <div
     class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
   >
@@ -42,7 +44,7 @@ const { deadline, isLoading } = storeToRefs(viewDeadlineStore);
           class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
         >
           <template v-if="isLoading">
-            <!-- Loading rows -->
+
             <tr v-for="i in 3" :key="`loading-${i}`" class="animate-pulse">
               <td class="px-6 py-4">
                 <div
@@ -76,3 +78,4 @@ const { deadline, isLoading } = storeToRefs(viewDeadlineStore);
     </div>
   </div>
 </template>
+ -->

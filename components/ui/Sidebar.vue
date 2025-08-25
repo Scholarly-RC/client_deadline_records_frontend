@@ -18,7 +18,7 @@ const { isAdmin } = storeToRefs(authStore);
 const sidebarStore = useSidebarStore();
 const { showSidebar } = storeToRefs(sidebarStore);
 
-const items = [
+const allItems = [
   [
     {
       label: "Dashboard",
@@ -47,6 +47,17 @@ const items = [
     },
   ],
 ];
+
+const items = computed(() => {
+  if (isAdmin.value) {
+    return allItems;
+  }
+  return [
+    allItems[0].filter((item) =>
+      ["Dashboard", "Deadlines"].includes(item.label)
+    ),
+  ];
+});
 
 // Link and Icon Classes
 const activeLinkClasses =

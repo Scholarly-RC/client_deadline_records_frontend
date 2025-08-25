@@ -1,3 +1,6 @@
+<script></script>
+
+<!-- 
 <script setup>
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
@@ -88,27 +91,27 @@ watch(deadline, (value) => {
 </script>
 
 <template>
-  <!-- Modal -->
+
   <div
     v-if="showModal"
     id="deadline-modal"
     class="fixed inset-0 z-50 overflow-y-auto"
   >
-    <!-- Background overlay -->
+
     <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"></div>
 
-    <!-- Modal container (centering container) -->
+
     <div
       class="flex items-center justify-center min-h-screen px-4 relative z-10"
     >
-      <!-- Modal panel -->
+
       <div
         class="bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-2xl sm:w-full border border-gray-200 dark:border-gray-700"
       >
         <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <div class="sm:flex sm:items-start">
             <div class="w-full">
-              <!-- Modal header -->
+
               <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                   Add Work Update
@@ -135,10 +138,10 @@ watch(deadline, (value) => {
                 </button>
               </div>
 
-              <!-- Form -->
+
               <form @submit.prevent="onSubmit">
                 <div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-6">
-                  <!-- Status -->
+
                   <div class="sm:col-span-6">
                     <label
                       for="status"
@@ -166,7 +169,7 @@ watch(deadline, (value) => {
                     </p>
                   </div>
 
-                  <!-- Description -->
+
                   <div class="sm:col-span-6">
                     <label
                       for="notes"
@@ -189,7 +192,7 @@ watch(deadline, (value) => {
                   </div>
                 </div>
 
-                <!-- Form actions -->
+
                 <div class="mt-6 flex items-center justify-center space-x-3">
                   <button
                     :disabled="disableSubmit"
@@ -207,3 +210,4 @@ watch(deadline, (value) => {
     </div>
   </div>
 </template>
+ -->

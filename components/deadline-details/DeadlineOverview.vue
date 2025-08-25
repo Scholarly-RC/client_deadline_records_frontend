@@ -1,3 +1,6 @@
+<script></script>
+
+<!-- 
 <script setup>
 import { getPriorityLabel } from "@/utils/getPriorityLabel";
 import { useForm } from "vee-validate";
@@ -158,10 +161,10 @@ watch(deadline, () => {
   <div class="h-screen flex flex-col flex-1 overflow-hidden">
     <PageHeader page="Deadline Details" />
 
-    <!-- Content -->
+
     <main class="flex-1 overflow-auto p-4 bg-white dark:bg-gray-900">
       <div v-if="deadline" class="space-y-6">
-        <!-- Client Info and Edit Button -->
+
         <div class="flex items-center gap-1 justify-between">
           <template v-if="isLoading">
             <div
@@ -204,7 +207,7 @@ watch(deadline, () => {
           </div>
         </div>
         <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Due Date -->
+
           <div
             class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
           >
@@ -255,7 +258,7 @@ watch(deadline, () => {
             </div>
           </div>
 
-          <!-- Priority -->
+
           <div
             class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
           >
@@ -311,7 +314,7 @@ watch(deadline, () => {
             </div>
           </div>
 
-          <!-- Status -->
+
           <div
             class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
           >
@@ -356,7 +359,7 @@ watch(deadline, () => {
             </div>
           </div>
 
-          <!-- Assignee -->
+
           <div
             class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
           >
@@ -420,3 +423,4 @@ watch(deadline, () => {
     </main>
   </div>
 </template>
+ -->

@@ -1,3 +1,6 @@
+<script></script>
+<template></template>
+<!-- 
 <script setup>
 // Components
 import AddWorkUpdateModal from "../work-updates/AddWorkUpdateModal.vue";
@@ -22,3 +25,4 @@ onMounted(async () => {
   <DeadlineOverview />
   <AddWorkUpdateModal />
 </template>
+ -->

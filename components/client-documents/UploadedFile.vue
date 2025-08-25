@@ -1,3 +1,5 @@
+<script></script>
+<!-- 
 <script setup>
 // Props
 const props = defineProps({
@@ -119,3 +121,4 @@ const deleteConfirmation = async () => {
     </div>
   </div>
 </template>
+ -->
