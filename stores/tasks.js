@@ -170,7 +170,8 @@ export const useTaskStore = defineStore("taskStore", {
         }
       } catch (error) {
         console.error("Error fetching tasks:", error);
-        this.handleError(error, "Failed to fetch tasks");
+        // Don't show toast for fetch errors - these are often called during refresh
+        throw error;
       } finally {
         this.isLoading = false;
       }
@@ -197,7 +198,8 @@ export const useTaskStore = defineStore("taskStore", {
         }
       } catch (error) {
         console.error(`Error fetching ${category} tasks:`, error);
-        this.handleError(error, `Failed to fetch ${category} tasks`);
+        // Don't show toast for fetch errors - these are often called during refresh
+        throw error;
       } finally {
         this.isLoading = false;
       }
@@ -218,7 +220,7 @@ export const useTaskStore = defineStore("taskStore", {
         return newTask;
       } catch (error) {
         console.error("Error creating task:", error);
-        this.handleError(error, "Failed to create task");
+        // Don't show toast here - let the component handle error display
         throw error;
       } finally {
         this.isCreating = false;
@@ -254,7 +256,7 @@ export const useTaskStore = defineStore("taskStore", {
         return updatedTask;
       } catch (error) {
         console.error("Error updating task:", error);
-        this.handleError(error, "Failed to update task");
+        // Don't show toast here - let the component handle error display
         throw error;
       } finally {
         this.isUpdating = false;
