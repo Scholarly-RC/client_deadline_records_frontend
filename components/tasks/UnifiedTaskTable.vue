@@ -1,6 +1,5 @@
 <script setup>
 import {
-  TASK_CATEGORIES,
   categoryChoices,
   statusChoices,
   priorityChoices,
@@ -21,77 +20,30 @@ const props = defineProps({
     type: String,
     default: "Tasks",
   },
-  useTestData: {
-    type: Boolean,
-    default: false, // For testing purposes
-  },
 });
 
 const emit = defineEmits(["edit", "delete", "view"]);
 
-// Store
+// Stores
 const taskStore = useTaskStore();
+const userStore = useUserStore();
 
-// Test data from your example
-const testData = ref([
-  {
-    id: 2,
-    client_name: "Christine Vang",
-    category: "compliance",
-    category_display: "Compliance",
-    description: "Saepe cum non laboru",
-    status: "not_yet_started",
-    assigned_to: 11,
-    assigned_to_name: "Aiko Rosas",
-    priority: "medium",
-    engagement_date: "Aug 26, 2025",
-    deadline: "Aug 29, 2025",
-    completion_date: null,
-    last_update: "Aug 26, 2025 06:28 PM",
-    deadline_days_remaining: 3,
-    remarks: "Ratione voluptates u",
-    status_history: [],
-    category_specific_fields: {
-      Steps: "Cum dolore temporibu",
-      Requirements: "Ut molestiae sed ver",
-    },
-  },
-  {
-    id: 1,
-    client_name: "Aristotle Walton",
-    category: "accounting_audit",
-    category_display: "Accounting Audit",
-    description: "Illo incidunt aut e",
-    status: "for_revision",
-    assigned_to: 11,
-    assigned_to_name: "Aiko Rosas",
-    priority: "medium",
-    engagement_date: "Aug 26, 2025",
-    deadline: "Aug 27, 2025",
-    completion_date: null,
-    last_update: "Aug 26, 2025 02:46 PM",
-    deadline_days_remaining: 1,
-    remarks: "Ajuju",
-    status_history: [],
-    category_specific_fields: {},
-  },
-]);
+// Store refs
+const { tasks, isLoading, pagination } = storeToRefs(taskStore);
+const { users } = storeToRefs(userStore);
 
-// Store refs - use test data when in test mode
-const {
-  tasks: storeTasks,
-  isLoading: storeIsLoading,
-  pagination,
-} = storeToRefs(taskStore);
-const tasks = computed(() =>
-  props.useTestData ? testData.value : storeTasks.value
-);
-const isLoading = computed(() =>
-  props.useTestData ? false : storeIsLoading.value
-);
+// Computed assignee options
+const assigneeOptions = computed(() => {
+  return [
+    { label: "All Assignees", value: null },
+    ...users.value.map((user) => ({
+      label: user.fullname,
+      value: user.id,
+    })),
+  ];
+});
 
 // Local state
-const selectedTasks = ref([]);
 const searchQuery = ref("");
 const statusFilter = ref(null);
 const priorityFilter = ref(null);
@@ -99,27 +51,13 @@ const assigneeFilter = ref(null);
 
 // Computed
 const filteredTasks = computed(() => {
-  console.log("🔍 UnifiedTaskTable - Raw tasks:", tasks.value);
-  console.log("🔍 UnifiedTaskTable - Category prop:", props.category);
-  console.log("🔍 UnifiedTaskTable - Is loading:", isLoading.value);
-
   let filtered = tasks.value;
 
   // Filter by category if specified
   if (props.category) {
-    console.log("🔍 Filtering by category:", props.category);
     filtered = filtered.filter((task) => {
-      console.log(
-        "🔍 Task category:",
-        task.category,
-        "Expected:",
-        props.category,
-        "Match:",
-        task.category === props.category
-      );
       return task.category === props.category;
     });
-    console.log("🔍 Filtered tasks after category filter:", filtered);
   }
 
   // Apply search filter
@@ -128,8 +66,7 @@ const filteredTasks = computed(() => {
     filtered = filtered.filter(
       (task) =>
         task.description.toLowerCase().includes(query) ||
-        task.client_name?.toLowerCase().includes(query) ||
-        task.assigned_to_name?.toLowerCase().includes(query)
+        task.client_name?.toLowerCase().includes(query)
     );
   }
 
@@ -145,7 +82,13 @@ const filteredTasks = computed(() => {
     );
   }
 
-  console.log("🔍 Final filtered tasks:", filtered);
+  // Apply assignee filter
+  if (assigneeFilter.value) {
+    filtered = filtered.filter(
+      (task) => task.assigned_to === assigneeFilter.value
+    );
+  }
+
   return filtered;
 });
 
@@ -189,52 +132,16 @@ const columns = [
   },
 ];
 
-// Actions for each row
-const actions = [
-  [
-    {
-      label: "View",
-      icon: "i-heroicons-eye-20-solid",
-      click: (row) => emit("view", row),
-    },
-    {
-      label: "Edit",
-      icon: "i-heroicons-pencil-20-solid",
-      click: (row) => emit("edit", row),
-    },
-  ],
-  [
-    {
-      label: "Delete",
-      icon: "i-heroicons-trash-20-solid",
-      click: (row) => handleDelete(row),
-      color: "red",
-    },
-  ],
-];
-
 // Methods
 const refreshData = async () => {
-  if (props.useTestData) {
-    console.log("🧪 Using test data, skipping API call");
-    return;
-  }
-
-  console.log("🔄 UnifiedTaskTable - Refreshing data...");
-  console.log("🔄 Category:", props.category);
-  console.log("🔄 Task store:", taskStore);
-
   try {
     if (props.category) {
-      console.log("🔄 Fetching tasks by category:", props.category);
       await taskStore.fetchTasksByCategory(props.category);
     } else {
-      console.log("🔄 Fetching all tasks");
       await taskStore.fetchTasks();
     }
-    console.log("🔄 Tasks after fetch:", tasks.value);
   } catch (error) {
-    console.error("😱 Error refreshing data:", error);
+    console.error("Error refreshing data:", error);
   }
 };
 
@@ -262,13 +169,20 @@ const clearFilters = () => {
   assigneeFilter.value = null;
 };
 
+// Computed to track if any filters are active
+const hasActiveFilters = computed(() => {
+  return !!(
+    searchQuery.value ||
+    statusFilter.value ||
+    priorityFilter.value ||
+    assigneeFilter.value
+  );
+});
+
 const getCategoryLabel = (categoryValue) => {
-  // Fallback to choices lookup for constants
   const choice = categoryChoices.find((c) => c.value === categoryValue);
   return choice ? choice.label : categoryValue;
 };
-
-// Color mapping functions removed - now handled by dedicated badge components
 
 const formatDate = (dateString) => {
   if (!dateString) return "-";
@@ -324,8 +238,8 @@ const getDeadlineColor = (deadline, task = null) => {
 };
 
 // Lifecycle
-onMounted(() => {
-  refreshData();
+onMounted(async () => {
+  await Promise.all([refreshData(), userStore.getUserChoices()]);
 });
 
 // Watch for task changes
@@ -358,48 +272,112 @@ watch(
     </div>
 
     <!-- Filters -->
-    <div class="bg-white p-4 rounded-lg border border-gray-200">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Search -->
-        <UFormField label="Search">
-          <UInput
-            v-model="searchQuery"
-            placeholder="Search tasks, clients, or assignees..."
-            icon="i-heroicons-magnifying-glass-20-solid"
-          />
-        </UFormField>
-
-        <!-- Status Filter -->
-        <UFormField label="Status">
-          <USelect
-            v-model="statusFilter"
-            :items="[{ label: 'All Statuses', value: null }, ...statusChoices]"
-            value-key="value"
-            placeholder="All Statuses"
-          />
-        </UFormField>
-
-        <!-- Priority Filter -->
-        <UFormField label="Priority">
-          <USelect
-            v-model="priorityFilter"
-            :items="[
-              { label: 'All Priorities', value: null },
-              ...priorityChoices,
-            ]"
-            value-key="value"
-            placeholder="All Priorities"
-          />
-        </UFormField>
-
-        <!-- Clear Filters -->
-        <UFormField label=" ">
-          <UButton @click="clearFilters" variant="outline" class="w-full">
-            Clear Filters
+    <UCard class="mb-6">
+      <template #header>
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <UIcon name="i-heroicons-funnel-20-solid" class="text-gray-500" />
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Filter Tasks
+            </h3>
+          </div>
+          <UButton
+            @click="clearFilters"
+            variant="ghost"
+            size="sm"
+            icon="i-heroicons-x-mark-20-solid"
+            :disabled="!hasActiveFilters"
+            class="text-gray-500 hover:text-gray-700"
+          >
+            Clear All
           </UButton>
-        </UFormField>
+        </div>
+      </template>
+
+      <div class="space-y-4">
+        <!-- Search Row -->
+        <div class="w-full">
+          <UFormField label="Search" class="mb-1">
+            <UInput
+              v-model="searchQuery"
+              placeholder="Search by task description, or client name..."
+              icon="i-heroicons-magnifying-glass-20-solid"
+              size="lg"
+              class="w-full"
+            />
+          </UFormField>
+        </div>
+
+        <!-- Filter Controls Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Status Filter -->
+          <UFormField label="Filter by Status">
+            <USelect
+              v-model="statusFilter"
+              :items="[
+                { label: 'All Statuses', value: null },
+                ...statusChoices,
+              ]"
+              value-key="value"
+              placeholder="Select status..."
+              size="md"
+              :search-input="{
+                placeholder: 'Search statuses...',
+              }"
+            >
+              <template #leading>
+                <UIcon
+                  name="i-heroicons-check-circle-20-solid"
+                  class="text-gray-400"
+                />
+              </template>
+            </USelect>
+          </UFormField>
+
+          <!-- Priority Filter -->
+          <UFormField label="Filter by Priority">
+            <USelect
+              v-model="priorityFilter"
+              :items="[
+                { label: 'All Priorities', value: null },
+                ...priorityChoices,
+              ]"
+              value-key="value"
+              placeholder="Select priority..."
+              size="md"
+              :search-input="{
+                placeholder: 'Search priorities...',
+              }"
+            >
+              <template #leading>
+                <UIcon
+                  name="i-heroicons-exclamation-triangle-20-solid"
+                  class="text-gray-400"
+                />
+              </template>
+            </USelect>
+          </UFormField>
+
+          <!-- Assignee Filter -->
+          <UFormField label="Filter by Assignee">
+            <USelectMenu
+              v-model="assigneeFilter"
+              :items="assigneeOptions"
+              value-key="value"
+              placeholder="Select assignee..."
+              size="md"
+              :search-input="{
+                placeholder: 'Search assignees...',
+              }"
+            >
+              <template #leading>
+                <UIcon name="i-heroicons-user-20-solid" class="text-gray-400" />
+              </template>
+            </USelectMenu>
+          </UFormField>
+        </div>
       </div>
-    </div>
+    </UCard>
 
     <!-- Task Table -->
     <div class="bg-white rounded-lg border border-gray-200">
@@ -464,15 +442,7 @@ watch(
 
       <!-- Pagination -->
       <div v-if="pagination.count > 0" class="p-4 border-t border-gray-200">
-        <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-700">
-            Showing
-            {{
-              Math.min((pagination.current_page - 1) * 10 + 1, pagination.count)
-            }}
-            to {{ Math.min(pagination.current_page * 10, pagination.count) }} of
-            {{ pagination.count }} results
-          </div>
+        <div class="flex items-center justify-end">
           <UPagination
             v-if="pagination.num_pages > 1"
             :page-count="pagination.num_pages"
