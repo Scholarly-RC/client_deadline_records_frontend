@@ -21,7 +21,11 @@ const daysRemaining = computed(() => {
 });
 
 const history = computed(() => {
-  return props.deadline.status_history;
+  return props.deadline.status_history || [];
+});
+
+const hasHistory = computed(() => {
+  return history.value && history.value.length > 0;
 });
 </script>
 
@@ -92,7 +96,7 @@ const history = computed(() => {
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <UPopover arrow>
+        <UPopover v-if="hasHistory" arrow>
           <UButton label="View History" variant="soft" color="primary" />
           <template #content>
             <div class="p-4 space-y-2 max-h-96 overflow-y-auto">

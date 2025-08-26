@@ -4,11 +4,38 @@ import { UCard } from "#components";
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const dashboardStore = useDashboardStore();
-const { stats, isLoading } = storeToRefs(dashboardStore);
+const { stats, taskStatistics, overdueTasks, tasksDueSoon, isAnyLoading } =
+  storeToRefs(dashboardStore);
+
+// Computed values for unified statistics
+const totalTasks = computed(() => taskStatistics.value?.total_tasks || 0);
+const completedTasks = computed(
+  () => taskStatistics.value?.completed_tasks || 0
+);
+const pendingTasks = computed(() => taskStatistics.value?.pending_tasks || 0);
+const overdueTasksCount = computed(() => overdueTasks.value?.length || 0);
+const tasksDueSoonCount = computed(() => tasksDueSoon.value?.length || 0);
+const inProgressTasks = computed(
+  () => taskStatistics.value?.by_status?.IN_PROGRESS || 0
+);
+
+// Legacy stats for backward compatibility
+const totalClients = computed(() => stats.value?.total_clients || 0);
+const completedThisMonth = computed(
+  () => stats.value?.completed_deadlines || 0
+);
+
+// Task statistics by category
+const tasksByCategory = computed(() => taskStatistics.value?.by_category || {});
+
+// Load all dashboard data on mount
+onMounted(async () => {
+  await dashboardStore.loadAllDashboardData();
+});
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+  <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
     <!-- Total Clients -->
     <UCard
       v-if="isAdmin"
@@ -22,14 +49,14 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
             >
               Total Clients
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.total_clients }}
+                {{ totalClients }}
               </p>
             </template>
           </div>
@@ -42,7 +69,7 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
       </div>
     </UCard>
 
-    <!-- Upcoming Deadlines -->
+    <!-- Total Tasks -->
     <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
@@ -52,16 +79,48 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
             <p
               class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
             >
-              Upcoming Deadlines
+              Total Tasks
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.upcoming_deadlines }}
+                {{ totalTasks }}
+              </p>
+            </template>
+          </div>
+          <div
+            class="p-1 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200"
+          >
+            <UIcon name="mdi:format-list-bulleted" class="w-7 h-7 mx-1 mt-1" />
+          </div>
+        </div>
+      </div>
+    </UCard>
+
+    <!-- Tasks Due Soon -->
+    <UCard
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
+    >
+      <div class="p-1">
+        <div class="flex items-center justify-between">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
+              Due Soon (Next 7 Days)
+            </p>
+            <template v-if="isAnyLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ tasksDueSoonCount }}
               </p>
             </template>
           </div>
@@ -86,14 +145,14 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
             >
               Overdue Tasks
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.overdue_deadlines }}
+                {{ overdueTasksCount }}
               </p>
             </template>
           </div>
@@ -109,7 +168,7 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
       </div>
     </UCard>
 
-    <!-- Pending Deadlines -->
+    <!-- In Progress Tasks -->
     <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
@@ -119,16 +178,16 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
             <p
               class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
             >
-              Pending Deadlines
+              In Progress
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.pending_deadlines }}
+                {{ inProgressTasks }}
               </p>
             </template>
           </div>
@@ -144,7 +203,7 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
       </div>
     </UCard>
 
-    <!-- Cancelled Deadlines -->
+    <!-- Pending Tasks -->
     <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
@@ -154,21 +213,21 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
             <p
               class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
             >
-              Cancelled Deadlines
+              Pending Tasks
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.cancelled_deadlines }}
+                {{ pendingTasks }}
               </p>
             </template>
           </div>
           <div
-            class="p-1 rounded-lg bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-200"
+            class="p-1 rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-200"
           >
             <UIcon
               name="mdi:calendar-minus-outline"
@@ -179,7 +238,7 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
       </div>
     </UCard>
 
-    <!-- Completed This Month -->
+    <!-- Completed Tasks -->
     <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
@@ -189,23 +248,54 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
             <p
               class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
             >
-              Completed This Month
+              Completed Tasks
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.monthly_completed_deadlines }}
+                {{ completedTasks }}
               </p>
             </template>
           </div>
           <div
             class="p-1 rounded-lg bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200"
           >
-            <UIcon name="mdi:calendar-star-outline" class="w-7 h-7 mx-1 mt-1" />
+            <UIcon
+              name="mdi:calendar-check-outline"
+              class="w-7 h-7 mx-1 mt-1"
+            />
+          </div>
+        </div>
+      </div>
+    </UCard>
+
+    <!-- Task Category Breakdown (if admin) -->
+    <UCard
+      v-if="
+        isAdmin && tasksByCategory && Object.keys(tasksByCategory).length > 0
+      "
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden col-span-full"
+    >
+      <div class="p-4">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          Tasks by Category
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div
+            v-for="(count, category) in tasksByCategory"
+            :key="category"
+            class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg"
+          >
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
+              {{ category.replace(/_/g, " ") }}
+            </p>
+            <p class="text-xl font-semibold text-gray-900 dark:text-white">
+              {{ count }}
+            </p>
           </div>
         </div>
       </div>

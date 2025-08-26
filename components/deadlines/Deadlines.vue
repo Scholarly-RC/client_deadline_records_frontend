@@ -2,6 +2,7 @@
 // Components
 import PageHeader from "../ui/PageHeader.vue";
 import AddDeadlineModal from "./AddDeadlineModal.vue";
+import DeadlineTabs from "./DeadlineTabs.vue";
 </script>
 
 <template>
