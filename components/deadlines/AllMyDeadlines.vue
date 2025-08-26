@@ -1,5 +1,4 @@
 <script setup>
-import ComplianceTable from "./ComplianceTable.vue";
 import DeadlineTabs from "./DeadlineTabs.vue";
 </script>
 

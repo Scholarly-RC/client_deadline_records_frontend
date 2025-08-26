@@ -30,10 +30,10 @@ const handleModalSuccess = () => {
   // Optionally refresh data or show success message
   const toast = useToast();
   toast.add({
-    title: 'Success',
-    description: 'Task has been created successfully.',
-    color: 'success',
-    icon: 'i-lucide-check-circle',
+    title: "Success",
+    description: "Task has been created successfully.",
+    color: "success",
+    icon: "i-lucide-check-circle",
     duration: 3000,
   });
 };
@@ -56,7 +56,7 @@ const handleModalSuccess = () => {
       </div>
       <DeadlineTabs />
     </main>
-    
+
     <!-- Unified Task Form Modal -->
     <UnifiedTaskFormModal
       :is-open="showAddTaskModal"
