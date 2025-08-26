@@ -1,8 +1,42 @@
 <script setup>
 // Components
 import PageHeader from "../ui/PageHeader.vue";
-import AddDeadlineModal from "./AddDeadlineModal.vue";
+import UnifiedTaskFormModal from "../tasks/UnifiedTaskFormModal.vue";
 import DeadlineTabs from "./DeadlineTabs.vue";
+
+// Stores
+const clientStore = useClientStore();
+const userStore = useUserStore();
+
+// State
+const showAddTaskModal = ref(false);
+
+// Fetch initial data
+onMounted(async () => {
+  await clientStore.getAllClients();
+  await userStore.getUserChoices();
+});
+
+const openAddTaskModal = () => {
+  showAddTaskModal.value = true;
+};
+
+const handleModalClose = () => {
+  showAddTaskModal.value = false;
+};
+
+const handleModalSuccess = () => {
+  showAddTaskModal.value = false;
+  // Optionally refresh data or show success message
+  const toast = useToast();
+  toast.add({
+    title: 'Success',
+    description: 'Task has been created successfully.',
+    color: 'success',
+    icon: 'i-lucide-check-circle',
+    duration: 3000,
+  });
+};
 </script>
 
 <template>
@@ -13,9 +47,21 @@ import DeadlineTabs from "./DeadlineTabs.vue";
       style="max-height: calc(100vh - 4rem)"
     >
       <div class="flex justify-end">
-        <AddDeadlineModal />
+        <UButton
+          @click="openAddTaskModal"
+          icon="mdi:plus-circle"
+          label="Add Deadline"
+          size="md"
+        />
       </div>
       <DeadlineTabs />
     </main>
+    
+    <!-- Unified Task Form Modal -->
+    <UnifiedTaskFormModal
+      :is-open="showAddTaskModal"
+      @close="handleModalClose"
+      @success="handleModalSuccess"
+    />
   </div>
 </template>
