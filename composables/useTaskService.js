@@ -1,5 +1,8 @@
 // composables/useTaskService.js
-import { TASK_CATEGORIES, LEGACY_CATEGORY_MAPPING } from '~/constants/choices.js';
+import {
+  TASK_CATEGORIES,
+  LEGACY_CATEGORY_MAPPING,
+} from "~/constants/choices.js";
 
 /**
  * Unified Task Service for the new backend API
@@ -21,15 +24,17 @@ export const useTaskService = () => {
    */
   const getTasks = async (filters = {}) => {
     const params = new URLSearchParams();
-    
+
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
+      if (value !== null && value !== undefined && value !== "") {
         params.append(key, value);
       }
     });
 
-    const url = `/api/tasks/${params.toString() ? '?' + params.toString() : ''}`;
-    return await $apiFetch(url, { method: 'GET' });
+    const url = `/api/tasks/${
+      params.toString() ? "?" + params.toString() : ""
+    }`;
+    return await $apiFetch(url, { method: "GET" });
   };
 
   /**
@@ -45,13 +50,20 @@ export const useTaskService = () => {
   /**
    * Helper methods for specific categories (backward compatibility)
    */
-  const getComplianceTasks = (filters = {}) => getTasksByCategory(TASK_CATEGORIES.COMPLIANCE, filters);
-  const getAccountingAudits = (filters = {}) => getTasksByCategory(TASK_CATEGORIES.ACCOUNTING_AUDIT, filters);
-  const getTaxCases = (filters = {}) => getTasksByCategory(TASK_CATEGORIES.TAX_CASE, filters);
-  const getFinancialStatements = (filters = {}) => getTasksByCategory(TASK_CATEGORIES.FINANCIAL_STATEMENT, filters);
-  const getFinanceImplementations = (filters = {}) => getTasksByCategory(TASK_CATEGORIES.FINANCE_IMPLEMENTATION, filters);
-  const getHRImplementations = (filters = {}) => getTasksByCategory(TASK_CATEGORIES.HR_IMPLEMENTATION, filters);
-  const getMiscellaneousTasks = (filters = {}) => getTasksByCategory(TASK_CATEGORIES.MISCELLANEOUS, filters);
+  const getComplianceTasks = (filters = {}) =>
+    getTasksByCategory(TASK_CATEGORIES.COMPLIANCE, filters);
+  const getAccountingAudits = (filters = {}) =>
+    getTasksByCategory(TASK_CATEGORIES.ACCOUNTING_AUDIT, filters);
+  const getTaxCases = (filters = {}) =>
+    getTasksByCategory(TASK_CATEGORIES.TAX_CASE, filters);
+  const getFinancialStatements = (filters = {}) =>
+    getTasksByCategory(TASK_CATEGORIES.FINANCIAL_STATEMENT, filters);
+  const getFinanceImplementations = (filters = {}) =>
+    getTasksByCategory(TASK_CATEGORIES.FINANCE_IMPLEMENTATION, filters);
+  const getHRImplementations = (filters = {}) =>
+    getTasksByCategory(TASK_CATEGORIES.HR_IMPLEMENTATION, filters);
+  const getMiscellaneousTasks = (filters = {}) =>
+    getTasksByCategory(TASK_CATEGORIES.MISCELLANEOUS, filters);
 
   /**
    * Create a new task
@@ -59,9 +71,9 @@ export const useTaskService = () => {
    * @returns {Promise} Created task response
    */
   const createTask = async (taskData) => {
-    return await $apiFetch('/api/tasks/', {
-      method: 'POST',
-      body: taskData
+    return await $apiFetch("/api/tasks/", {
+      method: "POST",
+      body: taskData,
     });
   };
 
@@ -73,8 +85,8 @@ export const useTaskService = () => {
    */
   const updateTask = async (taskId, taskData) => {
     return await $apiFetch(`/api/tasks/${taskId}/`, {
-      method: 'PUT',
-      body: taskData
+      method: "PUT",
+      body: taskData,
     });
   };
 
@@ -86,8 +98,8 @@ export const useTaskService = () => {
    */
   const patchTask = async (taskId, taskData) => {
     return await $apiFetch(`/api/tasks/${taskId}/`, {
-      method: 'PATCH',
-      body: taskData
+      method: "PATCH",
+      body: taskData,
     });
   };
 
@@ -98,7 +110,7 @@ export const useTaskService = () => {
    */
   const deleteTask = async (taskId) => {
     return await $apiFetch(`/api/tasks/${taskId}/`, {
-      method: 'DELETE'
+      method: "DELETE",
     });
   };
 
@@ -109,20 +121,20 @@ export const useTaskService = () => {
    */
   const getTask = async (taskId) => {
     return await $apiFetch(`/api/tasks/${taskId}/`, {
-      method: 'GET'
+      method: "GET",
     });
   };
 
   /**
    * New custom actions from the updated backend
    */
-  
+
   /**
    * Get overdue tasks
    * @returns {Promise} Overdue tasks
    */
   const getOverdueTasks = async () => {
-    return await $apiFetch('/api/tasks/overdue/', { method: 'GET' });
+    return await $apiFetch("/api/tasks/overdue/", { method: "GET" });
   };
 
   /**
@@ -130,7 +142,7 @@ export const useTaskService = () => {
    * @returns {Promise} Tasks due soon
    */
   const getTasksDueSoon = async () => {
-    return await $apiFetch('/api/tasks/due_soon/', { method: 'GET' });
+    return await $apiFetch("/api/tasks/due_soon/", { method: "GET" });
   };
 
   /**
@@ -139,7 +151,9 @@ export const useTaskService = () => {
    * @returns {Promise} User's tasks
    */
   const getTasksByUser = async (userId) => {
-    return await $apiFetch(`/api/tasks/by_user/?user_id=${userId}`, { method: 'GET' });
+    return await $apiFetch(`/api/tasks/by_user/?user_id=${userId}`, {
+      method: "GET",
+    });
   };
 
   /**
@@ -147,7 +161,7 @@ export const useTaskService = () => {
    * @returns {Promise} Task statistics
    */
   const getTaskStatistics = async () => {
-    return await $apiFetch('/api/tasks/statistics/', { method: 'GET' });
+    return await $apiFetch("/api/tasks/statistics/", { method: "GET" });
   };
 
   /**
@@ -161,8 +175,8 @@ export const useTaskService = () => {
    */
   const markTaskCompleted = async (taskId, completionData) => {
     return await $apiFetch(`/api/tasks/${taskId}/mark_completed/`, {
-      method: 'POST',
-      body: completionData
+      method: "POST",
+      body: completionData,
     });
   };
 
@@ -176,8 +190,8 @@ export const useTaskService = () => {
    */
   const updateTaskDeadline = async (taskId, updateData) => {
     return await $apiFetch(`/api/tasks/${taskId}/update-deadline/`, {
-      method: 'POST',
-      body: updateData
+      method: "POST",
+      body: updateData,
     });
   };
 
@@ -194,8 +208,8 @@ export const useTaskService = () => {
    */
   const initiateApproval = async (taskId, approvalData) => {
     return await $apiFetch(`/api/tasks/${taskId}/initiate-approval/`, {
-      method: 'POST',
-      body: approvalData
+      method: "POST",
+      body: approvalData,
     });
   };
 
@@ -210,8 +224,8 @@ export const useTaskService = () => {
    */
   const processApproval = async (taskId, decisionData) => {
     return await $apiFetch(`/api/tasks/${taskId}/process-approval/`, {
-      method: 'POST',
-      body: decisionData
+      method: "POST",
+      body: decisionData,
     });
   };
 
@@ -222,7 +236,7 @@ export const useTaskService = () => {
    */
   const getApprovalHistory = async (taskId) => {
     return await $apiFetch(`/api/tasks/${taskId}/approval-history/`, {
-      method: 'GET'
+      method: "GET",
     });
   };
 
@@ -231,8 +245,8 @@ export const useTaskService = () => {
    * @returns {Promise} Array of tasks pending current user's approval
    */
   const getPendingApprovals = async () => {
-    return await $apiFetch('/api/tasks/pending-approvals/', {
-      method: 'GET'
+    return await $apiFetch("/api/tasks/pending-approvals/", {
+      method: "GET",
     });
   };
 
@@ -243,7 +257,7 @@ export const useTaskService = () => {
    */
   const getUserDeadlines = async (userId) => {
     return await $apiFetch(`/api/users/${userId}/deadlines-tasks/`, {
-      method: 'GET'
+      method: "GET",
     });
   };
 
@@ -265,7 +279,7 @@ export const useTaskService = () => {
     patchTask,
     deleteTask,
     getTask,
-    
+
     // Category-specific getters (backward compatibility)
     getComplianceTasks,
     getAccountingAudits,
@@ -274,7 +288,7 @@ export const useTaskService = () => {
     getFinanceImplementations,
     getHRImplementations,
     getMiscellaneousTasks,
-    
+
     // New custom actions
     getOverdueTasks,
     getTasksDueSoon,
@@ -282,13 +296,13 @@ export const useTaskService = () => {
     getTaskStatistics,
     markTaskCompleted,
     updateTaskDeadline,
-    
+
     // Approval workflow methods
     initiateApproval,
     processApproval,
     getApprovalHistory,
     getPendingApprovals,
-    
+
     // Legacy compatibility
     getUserDeadlines,
     convertLegacyCategory,

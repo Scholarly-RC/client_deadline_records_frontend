@@ -7,19 +7,19 @@ export const useTaskStore = defineStore("taskStore", {
     tasks: [],
     currentTask: null,
     pagination: {},
-    
+
     // Loading states
     isLoading: false,
     isCreating: false,
     isUpdating: false,
     isDeleting: false,
-    
+
     // Approval states
     isInitiatingApproval: false,
     isProcessingApproval: false,
     pendingApprovals: [],
     approvalHistory: {},
-    
+
     // Filter states
     filters: {
       category: null,
@@ -30,14 +30,14 @@ export const useTaskStore = defineStore("taskStore", {
       page: 1,
       search: null,
     },
-    
+
     // Modal states
     showAddModal: false,
     showEditModal: false,
     showFilterModal: false,
     showApprovalModal: false,
     showApprovalHistoryModal: false,
-    
+
     // Statistics
     statistics: null,
     overdueTasks: [],
@@ -49,28 +49,28 @@ export const useTaskStore = defineStore("taskStore", {
      * Get tasks filtered by category
      */
     tasksByCategory: (state) => (category) => {
-      return state.tasks.filter(task => task.category === category);
+      return state.tasks.filter((task) => task.category === category);
     },
 
     /**
      * Get tasks by status
      */
     tasksByStatus: (state) => (status) => {
-      return state.tasks.filter(task => task.status === status);
+      return state.tasks.filter((task) => task.status === status);
     },
 
     /**
      * Get tasks assigned to specific user
      */
     tasksByUser: (state) => (userId) => {
-      return state.tasks.filter(task => task.assigned_to === userId);
+      return state.tasks.filter((task) => task.assigned_to === userId);
     },
 
     /**
      * Get tasks requiring approval
      */
     tasksRequiringApproval: (state) => {
-      return state.tasks.filter(task => task.requires_approval);
+      return state.tasks.filter((task) => task.requires_approval);
     },
 
     /**
@@ -78,9 +78,10 @@ export const useTaskStore = defineStore("taskStore", {
      */
     tasksPendingMyApproval: (state) => {
       const authStore = useAuthStore();
-      return state.tasks.filter(task => 
-        task.requires_approval && 
-        task.pending_approver?.id === authStore.user?.id
+      return state.tasks.filter(
+        (task) =>
+          task.requires_approval &&
+          task.pending_approver?.id === authStore.user?.id
       );
     },
 
@@ -104,7 +105,7 @@ export const useTaskStore = defineStore("taskStore", {
       return (
         (task.assigned_to === authStore.user?.id || authStore.user?.is_admin) &&
         !task.requires_approval &&
-        task.status !== 'COMPLETED'
+        task.status !== "COMPLETED"
       );
     },
 
@@ -112,15 +113,15 @@ export const useTaskStore = defineStore("taskStore", {
      * Get completed tasks count
      */
     completedTasksCount: (state) => {
-      return state.tasks.filter(task => task.status === 'COMPLETED').length;
+      return state.tasks.filter((task) => task.status === "COMPLETED").length;
     },
 
     /**
      * Get pending tasks count
      */
     pendingTasksCount: (state) => {
-      return state.tasks.filter(task => 
-        ['PENDING', 'NOT_YET_STARTED', 'ON_GOING'].includes(task.status)
+      return state.tasks.filter((task) =>
+        ["PENDING", "NOT_YET_STARTED", "ON_GOING"].includes(task.status)
       ).length;
     },
 
@@ -134,21 +135,46 @@ export const useTaskStore = defineStore("taskStore", {
     /**
      * Category-specific getters for backward compatibility
      */
-    complianceTasks: (state) => state.tasks.filter(task => task.category === TASK_CATEGORIES.COMPLIANCE),
-    accountingAuditTasks: (state) => state.tasks.filter(task => task.category === TASK_CATEGORIES.ACCOUNTING_AUDIT),
-    taxTasks: (state) => state.tasks.filter(task => task.category === TASK_CATEGORIES.TAX_CASE),
-    financialStatementTasks: (state) => state.tasks.filter(task => task.category === TASK_CATEGORIES.FINANCIAL_STATEMENT),
-    financeImplementationTasks: (state) => state.tasks.filter(task => task.category === TASK_CATEGORIES.FINANCE_IMPLEMENTATION),
-    hrImplementationTasks: (state) => state.tasks.filter(task => task.category === TASK_CATEGORIES.HR_IMPLEMENTATION),
-    miscellaneousTasks: (state) => state.tasks.filter(task => task.category === TASK_CATEGORIES.MISCELLANEOUS),
-    
+    complianceTasks: (state) =>
+      state.tasks.filter(
+        (task) => task.category === TASK_CATEGORIES.COMPLIANCE
+      ),
+    accountingAuditTasks: (state) =>
+      state.tasks.filter(
+        (task) => task.category === TASK_CATEGORIES.ACCOUNTING_AUDIT
+      ),
+    taxTasks: (state) =>
+      state.tasks.filter((task) => task.category === TASK_CATEGORIES.TAX_CASE),
+    financialStatementTasks: (state) =>
+      state.tasks.filter(
+        (task) => task.category === TASK_CATEGORIES.FINANCIAL_STATEMENT
+      ),
+    financeImplementationTasks: (state) =>
+      state.tasks.filter(
+        (task) => task.category === TASK_CATEGORIES.FINANCE_IMPLEMENTATION
+      ),
+    hrImplementationTasks: (state) =>
+      state.tasks.filter(
+        (task) => task.category === TASK_CATEGORIES.HR_IMPLEMENTATION
+      ),
+    miscellaneousTasks: (state) =>
+      state.tasks.filter(
+        (task) => task.category === TASK_CATEGORIES.MISCELLANEOUS
+      ),
+
     /**
      * Check if any category has loading state
      */
     hasActiveLoading: (state) => {
-      return state.isLoading || state.isCreating || state.isUpdating || state.isDeleting || 
-             state.isInitiatingApproval || state.isProcessingApproval;
-    }
+      return (
+        state.isLoading ||
+        state.isCreating ||
+        state.isUpdating ||
+        state.isDeleting ||
+        state.isInitiatingApproval ||
+        state.isProcessingApproval
+      );
+    },
   },
 
   actions: {
@@ -160,7 +186,7 @@ export const useTaskStore = defineStore("taskStore", {
       try {
         const taskService = useTaskService();
         const response = await taskService.getTasks(this.filters);
-        
+
         if (response.results) {
           this.tasks = response.results;
           const { results, ...paginationData } = response;
@@ -186,9 +212,9 @@ export const useTaskStore = defineStore("taskStore", {
         const taskService = useTaskService();
         const response = await taskService.getTasksByCategory(category, {
           ...this.filters,
-          ...additionalFilters
+          ...additionalFilters,
         });
-        
+
         if (response.results) {
           this.tasks = response.results;
           const { results, ...paginationData } = response;
@@ -213,10 +239,10 @@ export const useTaskStore = defineStore("taskStore", {
       try {
         const taskService = useTaskService();
         const newTask = await taskService.createTask(taskData);
-        
+
         this.tasks.unshift(newTask);
         this.showAddModal = false;
-        
+
         return newTask;
       } catch (error) {
         console.error("Error creating task:", error);
@@ -235,15 +261,15 @@ export const useTaskStore = defineStore("taskStore", {
       try {
         const taskService = useTaskService();
         const updatedTask = await taskService.updateTask(taskId, taskData);
-        
-        const index = this.tasks.findIndex(task => task.id === taskId);
+
+        const index = this.tasks.findIndex((task) => task.id === taskId);
         if (index !== -1) {
           this.tasks[index] = updatedTask;
         }
-        
+
         this.showEditModal = false;
         this.currentTask = null;
-        
+
         const toast = useToast();
         toast.add({
           title: "Success",
@@ -252,7 +278,7 @@ export const useTaskStore = defineStore("taskStore", {
           icon: "mdi:checkbox-multiple-marked",
           duration: 2000,
         });
-        
+
         return updatedTask;
       } catch (error) {
         console.error("Error updating task:", error);
@@ -271,9 +297,9 @@ export const useTaskStore = defineStore("taskStore", {
       try {
         const taskService = useTaskService();
         await taskService.deleteTask(taskId);
-        
-        this.tasks = this.tasks.filter(task => task.id !== taskId);
-        
+
+        this.tasks = this.tasks.filter((task) => task.id !== taskId);
+
         const toast = useToast();
         toast.add({
           title: "Success",
@@ -315,13 +341,16 @@ export const useTaskStore = defineStore("taskStore", {
     async markCompleted(taskId, completionData) {
       try {
         const taskService = useTaskService();
-        const updatedTask = await taskService.markTaskCompleted(taskId, completionData);
-        
-        const index = this.tasks.findIndex(task => task.id === taskId);
+        const updatedTask = await taskService.markTaskCompleted(
+          taskId,
+          completionData
+        );
+
+        const index = this.tasks.findIndex((task) => task.id === taskId);
         if (index !== -1) {
           this.tasks[index] = updatedTask;
         }
-        
+
         const toast = useToast();
         toast.add({
           title: "Success",
@@ -330,7 +359,7 @@ export const useTaskStore = defineStore("taskStore", {
           icon: "mdi:checkbox-multiple-marked",
           duration: 2000,
         });
-        
+
         return updatedTask;
       } catch (error) {
         console.error("Error marking task completed:", error);
@@ -344,13 +373,16 @@ export const useTaskStore = defineStore("taskStore", {
     async updateDeadline(taskId, updateData) {
       try {
         const taskService = useTaskService();
-        const updatedTask = await taskService.updateTaskDeadline(taskId, updateData);
-        
-        const index = this.tasks.findIndex(task => task.id === taskId);
+        const updatedTask = await taskService.updateTaskDeadline(
+          taskId,
+          updateData
+        );
+
+        const index = this.tasks.findIndex((task) => task.id === taskId);
         if (index !== -1) {
           this.tasks[index] = updatedTask;
         }
-        
+
         const toast = useToast();
         toast.add({
           title: "Success",
@@ -359,7 +391,7 @@ export const useTaskStore = defineStore("taskStore", {
           icon: "mdi:checkbox-multiple-marked",
           duration: 2000,
         });
-        
+
         return updatedTask;
       } catch (error) {
         console.error("Error updating task deadline:", error);
@@ -417,18 +449,20 @@ export const useTaskStore = defineStore("taskStore", {
       this.isInitiatingApproval = true;
       try {
         const taskService = useTaskService();
-        await taskService.initiateApproval(taskId, { approvers });
-        
+        await taskService.initiateApproval(taskId, {
+          approvers: approvers.map((approver) => approver.id),
+        });
+
         // Update the task in the local state
-        const taskIndex = this.tasks.findIndex(task => task.id === taskId);
+        const taskIndex = this.tasks.findIndex((task) => task.id === taskId);
         if (taskIndex !== -1) {
           // Refresh the task data to get updated approval fields
           const updatedTask = await taskService.getTask(taskId);
           this.tasks[taskIndex] = updatedTask;
         }
-        
+
         this.showApprovalModal = false;
-        
+
         const toast = useToast();
         toast.add({
           title: "Success",
@@ -437,7 +471,7 @@ export const useTaskStore = defineStore("taskStore", {
           icon: "mdi:check-circle",
           duration: 3000,
         });
-        
+
         return true;
       } catch (error) {
         console.error("Error initiating approval:", error);
@@ -451,7 +485,12 @@ export const useTaskStore = defineStore("taskStore", {
     /**
      * Process approval decision
      */
-    async processApproval(taskId, action, comments = null, nextApprover = null) {
+    async processApproval(
+      taskId,
+      action,
+      comments = null,
+      nextApprover = null
+    ) {
       this.isProcessingApproval = true;
       try {
         const taskService = useTaskService();
@@ -459,28 +498,28 @@ export const useTaskStore = defineStore("taskStore", {
         if (nextApprover) {
           decisionData.next_approver = nextApprover;
         }
-        
+
         await taskService.processApproval(taskId, decisionData);
-        
+
         // Update the task in the local state
-        const taskIndex = this.tasks.findIndex(task => task.id === taskId);
+        const taskIndex = this.tasks.findIndex((task) => task.id === taskId);
         if (taskIndex !== -1) {
           const updatedTask = await taskService.getTask(taskId);
           this.tasks[taskIndex] = updatedTask;
         }
-        
+
         // Refresh pending approvals
         await this.fetchPendingApprovals();
-        
+
         const toast = useToast();
         toast.add({
           title: "Success",
           description: `Task ${action} successfully`,
           color: "success",
-          icon: action === 'approved' ? "mdi:check-circle" : "mdi:close-circle",
+          icon: action === "approved" ? "mdi:check-circle" : "mdi:close-circle",
           duration: 3000,
         });
-        
+
         return true;
       } catch (error) {
         console.error("Error processing approval:", error);
@@ -605,8 +644,10 @@ export const useTaskStore = defineStore("taskStore", {
      */
     handleError(error, defaultMessage) {
       const toast = useToast();
-      const errorMessage = getErrorMessage ? getErrorMessage(error) : defaultMessage;
-      
+      const errorMessage = getErrorMessage
+        ? getErrorMessage(error)
+        : defaultMessage;
+
       toast.add({
         title: "Error",
         description: errorMessage,

@@ -26,7 +26,6 @@ export const useAddDeadlineStore = defineStore("addDeadlineModal", {
     handleNext() {
       this.close();
       const toast = useToast();
-      console.log(this.selectedCategorys);
       switch (this.selectedCategory) {
         case "compliance":
           const complianceModalStore = useComplianceModalStore();

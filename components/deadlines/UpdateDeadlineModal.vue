@@ -9,8 +9,6 @@ const filteredStatusChoices = statusChoices.filter((choice) =>
   ["not_yet_started", "pending", "on_going"].includes(choice.value)
 );
 
-console.log(filteredStatusChoices);
-
 const deadlineUpdate = useDeadlineUpdate();
 const { showModal, deadline, category } = storeToRefs(deadlineUpdate);
 const userDeadlineStore = useUserDeadlinesStore();
