@@ -3,8 +3,8 @@ import { getDaysRemaining } from "~/utils/getDaysRemaining";
 import PriorityBadge from "../ui/PriorityBadge.vue";
 import StatusBadge from "../ui/StatusBadge.vue";
 import ApprovalActionsPanel from "../tasks/ApprovalActionsPanel.vue";
-import ApprovalWorkflowModal from "../tasks/ApprovalWorkflowModal.vue";
 import ApprovalHistoryComponent from "../tasks/ApprovalHistoryComponent.vue";
+import ApprovalWorkflowModal from "../tasks/ApprovalWorkflowModal.vue";
 
 const deadlineUpdate = useDeadlineUpdate();
 const taskStore = useTaskStore();
@@ -21,13 +21,17 @@ const props = defineProps({
   },
 });
 
-const showApprovalModal = ref(false);
+const emit = defineEmits(['task-updated', 'approval-initiated']);
+
 const showApprovalHistoryModal = ref(false);
 const showStatusHistoryModal = ref(false);
+const showApprovalModal = ref(false);
 
 const daysRemaining = computed(() => {
   return getDaysRemaining(props.deadline.deadline_days_remaining);
 });
+
+
 
 const history = computed(() => {
   return props.deadline.status_history || [];
@@ -37,30 +41,31 @@ const hasHistory = computed(() => {
   return history.value && history.value.length > 0;
 });
 
-const canInitiateApproval = computed(() => {
-  const allowedStatuses = ["on_going", "for_revision"];
-  return (
-    taskStore.canInitiateApproval(props.deadline) &&
-    allowedStatuses.includes(props.deadline.status)
-  );
-});
-
 const canApprove = computed(() => {
   return taskStore.canApproveTask(props.deadline);
+});
+
+const canInitiateApproval = computed(() => {
+  return taskStore.canInitiateApproval(props.deadline);
 });
 
 const hasApprovalWorkflow = computed(() => {
   return props.deadline.requires_approval;
 });
 
-const canShowAddUpdateButton = computed(() => {
-  const hiddenStatuses = ["for_revision", "cancelled", "completed"];
-  return !hiddenStatuses.includes(props.deadline.status);
+const shouldShowApprovalHistory = computed(() => {
+  // Show if has approval workflow OR status is completed
+  return props.deadline.requires_approval || 
+         props.deadline.current_approval_step || 
+         props.deadline.approval_history?.length > 0 ||
+         props.deadline.status === "completed";
 });
 
-const openApprovalWorkflow = () => {
-  showApprovalModal.value = true;
-};
+const canShowAddUpdateButton = computed(() => {
+  // Show Add Update if status is NOT for_revision, completed, for_checking, or cancelled
+  const hiddenStatuses = ["for_revision", "completed", "for_checking", "cancelled"];
+  return !hiddenStatuses.includes(props.deadline.status);
+});
 
 const openApprovalHistory = () => {
   showApprovalHistoryModal.value = true;
@@ -70,10 +75,38 @@ const openStatusHistory = () => {
   showStatusHistoryModal.value = true;
 };
 
-const onApprovalAction = () => {
-  // Refresh task data after approval action
-  taskStore.fetchTasks();
+const onApprovalAction = async () => {
+  // Emit event to notify parent to refresh only this specific task
+  emit('task-updated', props.deadline.id);
 };
+
+const initiateApproval = () => {
+  showApprovalModal.value = true;
+};
+
+const onApprovalInitiated = async () => {
+  showApprovalModal.value = false;
+  // Emit event to notify parent to refresh only this specific task
+  emit('approval-initiated', props.deadline.id);
+};
+
+const openAddUpdate = () => {
+  deadlineUpdate.open(props.category, props.deadline);
+};
+
+// Watch for when the deadline update modal closes (indicating completion)
+watch(
+  () => deadlineUpdate.showModal,
+  async (newValue, oldValue) => {
+    // If modal was open and is now closed, update was likely completed
+    if (oldValue && !newValue && deadlineUpdate.deadline?.id === props.deadline.id) {
+      // Small delay to ensure backend update is complete
+      await nextTick();
+      // Emit event to notify parent to refresh only this specific task
+      emit('task-updated', props.deadline.id);
+    }
+  }
+);
 </script>
 
 <template>
@@ -175,8 +208,8 @@ const onApprovalAction = () => {
     <template #footer>
       <div class="flex flex-col gap-2">
         <!-- History Buttons Row -->
-        <div 
-          v-if="hasHistory || hasApprovalWorkflow" 
+        <div
+          v-if="hasHistory || shouldShowApprovalHistory"
           class="flex gap-2 justify-center"
         >
           <UButton
@@ -189,7 +222,7 @@ const onApprovalAction = () => {
             size="xs"
           />
           <UButton
-            v-if="hasApprovalWorkflow"
+            v-if="shouldShowApprovalHistory"
             @click="openApprovalHistory"
             label="Approval History"
             icon="i-lucide-scroll-text"
@@ -200,38 +233,28 @@ const onApprovalAction = () => {
         </div>
 
         <!-- Action Buttons Row -->
-        <div 
-          v-if="canInitiateApproval || canShowAddUpdateButton" 
-          class="flex gap-2 justify-center"
-        >
-          <UButton
-            v-if="canInitiateApproval"
-            @click="openApprovalWorkflow"
-            label="Request Approval"
-            icon="i-lucide-check-circle"
-            variant="soft"
-            color="success"
-            size="sm"
-          />
+        <div v-if="canShowAddUpdateButton || canInitiateApproval" class="flex gap-2 justify-center">
           <UButton
             v-if="canShowAddUpdateButton"
-            @click="deadlineUpdate.open(category, deadline)"
+            @click="openAddUpdate"
             label="Add Update"
             icon="i-lucide-plus"
             variant="soft"
             color="primary"
             size="sm"
           />
+          <UButton
+            v-if="canInitiateApproval"
+            @click="initiateApproval"
+            label="Request Approval"
+            icon="i-lucide-check-circle"
+            variant="soft"
+            color="blue"
+            size="sm"
+          />
         </div>
       </div>
     </template>
-
-    <!-- Approval Workflow Modal -->
-    <ApprovalWorkflowModal
-      v-model="showApprovalModal"
-      :task="deadline"
-      @approved="onApprovalAction"
-    />
 
     <!-- Approval History Modal -->
     <UModal
@@ -261,6 +284,7 @@ const onApprovalAction = () => {
         </UCard>
       </template>
     </UModal>
+
     <!-- Status History Modal -->
     <UModal
       v-model:open="showStatusHistoryModal"
@@ -289,7 +313,7 @@ const onApprovalAction = () => {
                       {{ historyItem.change_type || "Status Change" }}
                     </span>
                   </div>
-                  <span class="text-xs text-gray-500 pe-2.5">
+                  <span class="text-xs text-gray-500 pe-3">
                     {{ historyItem.date }}
                   </span>
                 </div>
@@ -354,5 +378,12 @@ const onApprovalAction = () => {
         </UCard>
       </template>
     </UModal>
+
+    <!-- Approval Workflow Modal -->
+    <ApprovalWorkflowModal
+      v-model="showApprovalModal"
+      :task="deadline"
+      @approved="onApprovalInitiated"
+    />
   </UCard>
 </template>

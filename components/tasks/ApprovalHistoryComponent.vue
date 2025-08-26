@@ -1,18 +1,20 @@
 <template>
   <div class="space-y-6">
     <!-- Approval Workflow Status -->
-    <div v-if="task.requires_approval" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+    <div v-if="task.requires_approval || task.current_approval_step" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
       <div class="flex items-center space-x-2 mb-3">
         <UIcon name="i-lucide-check-circle" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
-        <h3 class="font-medium text-blue-800 dark:text-blue-200">Approval Workflow Active</h3>
+        <h3 class="font-medium text-blue-800 dark:text-blue-200">
+          {{ task.requires_approval ? 'Approval Workflow Active' : 'Approval Workflow Completed' }}
+        </h3>
       </div>
       
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-        <div>
+        <div v-if="task.current_approval_step">
           <span class="text-gray-600 dark:text-gray-400">Current Step:</span>
           <span class="ml-2 font-medium">{{ task.current_approval_step }}</span>
         </div>
-        <div>
+        <div v-if="task.requires_approval && task.pending_approver">
           <span class="text-gray-600 dark:text-gray-400">Pending Approver:</span>
           <span class="ml-2 font-medium">{{ task.pending_approver?.fullname || 'None' }}</span>
         </div>
@@ -70,58 +72,10 @@
       </div>
     </div>
 
-    <!-- Status History Timeline -->
-    <div v-if="approvalHistory?.status_history?.length > 0">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-        Status History
-      </h3>
-      
-      <div class="space-y-3">
-        <div 
-          v-for="statusChange in approvalHistory.status_history" 
-          :key="statusChange.id"
-          class="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-        >
-          <div class="flex-shrink-0">
-            <UIcon name="i-lucide-arrow-right-left" class="h-5 w-5 text-gray-400 mt-0.5" />
-          </div>
-          
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center space-x-2 mb-1">
-              <span class="text-sm text-gray-600 dark:text-gray-400">Changed from</span>
-              <StatusPill v-if="statusChange.old_status" :status="statusChange.old_status" />
-              <span v-else class="text-sm text-gray-500 italic">Initial</span>
-              <span class="text-sm text-gray-600 dark:text-gray-400">to</span>
-              <StatusPill :status="statusChange.new_status" />
-            </div>
-            
-            <div class="flex items-center justify-between text-sm">
-              <div class="flex items-center space-x-2">
-                <span class="text-gray-600 dark:text-gray-400">by</span>
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ statusChange.changed_by.fullname }}
-                </span>
-                <span class="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded">
-                  {{ statusChange.change_type_display }}
-                </span>
-              </div>
-              <span class="text-gray-500 dark:text-gray-400">
-                {{ statusChange.formatted_date }}
-              </span>
-            </div>
-            
-            <div v-if="statusChange.remarks" class="mt-2 text-sm text-gray-600 dark:text-gray-400 italic">
-              {{ statusChange.remarks }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- No History Message -->
-    <div v-if="!approvalHistory?.approvals?.length && !approvalHistory?.status_history?.length" class="text-center py-8">
+    <div v-if="!approvalHistory?.approvals?.length" class="text-center py-8">
       <UIcon name="i-lucide-history" class="h-12 w-12 text-gray-400 mx-auto mb-4" />
-      <p class="text-gray-500 dark:text-gray-400">No approval or status history available</p>
+      <p class="text-gray-500 dark:text-gray-400">No approval history available</p>
     </div>
   </div>
 </template>

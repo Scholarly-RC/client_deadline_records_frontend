@@ -29,11 +29,18 @@ const allItems = [
       label: "Clients",
       icon: "i-lucide-users",
       to: "/clients",
+      adminOnly: true,
     },
     {
       label: "Deadlines",
       icon: "i-lucide-calendar",
       to: "/deadlines",
+      adminOnly: true,
+    },
+    {
+      label: "My Deadlines",
+      icon: "i-lucide-user-check",
+      to: "/my-deadlines",
     },
     {
       label: "Pending Approvals",
@@ -45,11 +52,13 @@ const allItems = [
       label: "Users",
       icon: "i-lucide-user-cog",
       to: "/users",
+      adminOnly: true,
     },
     {
       label: "Logs",
       icon: "i-lucide-list",
       to: "/logs",
+      adminOnly: true,
     },
   ],
 ];
@@ -60,7 +69,7 @@ const items = computed(() => {
   }
   return [
     allItems[0].filter((item) => 
-      ["Dashboard", "Deadlines"].includes(item.label) && !item.adminOnly
+      ["Dashboard", "My Deadlines"].includes(item.label) && !item.adminOnly
     ),
   ];
 });
@@ -162,6 +171,7 @@ onUnmounted(() => {
             Dashboard
           </NuxtLink>
           <NuxtLink
+            v-if="isAdmin"
             to="/clients"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
             :class="getLinkClasses('/clients')"
@@ -184,6 +194,7 @@ onUnmounted(() => {
             Clients
           </NuxtLink>
           <NuxtLink
+            v-if="isAdmin"
             to="/deadlines"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
             :class="getLinkClasses('/deadlines')"
@@ -204,6 +215,28 @@ onUnmounted(() => {
               />
             </svg>
             Deadlines
+          </NuxtLink>
+          <NuxtLink
+            to="/my-deadlines"
+            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
+            :class="getLinkClasses('/my-deadlines')"
+          >
+            <svg
+              class="w-6 h-6 mr-4"
+              :class="getIconClasses('/my-deadlines')"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.502 20.118a7.5 7.5 0 0114.996 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.498-1.632z"
+              />
+            </svg>
+            My Deadlines
           </NuxtLink>
           <NuxtLink
             v-if="isAdmin"

@@ -70,7 +70,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen">
+  <UModal v-model:open="isOpen" :dismissible="false">
     <template #content>
       <UCard>
         <template #header>

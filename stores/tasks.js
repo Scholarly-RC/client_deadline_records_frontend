@@ -105,7 +105,7 @@ export const useTaskStore = defineStore("taskStore", {
       return (
         (task.assigned_to === authStore.user?.id || authStore.user?.is_admin) &&
         !task.requires_approval &&
-        task.status !== "COMPLETED"
+        (task.status === "for_revision" || task.status === "on_going")
       );
     },
 
@@ -113,7 +113,7 @@ export const useTaskStore = defineStore("taskStore", {
      * Get completed tasks count
      */
     completedTasksCount: (state) => {
-      return state.tasks.filter((task) => task.status === "COMPLETED").length;
+      return state.tasks.filter((task) => task.status === "completed").length;
     },
 
     /**
@@ -121,7 +121,7 @@ export const useTaskStore = defineStore("taskStore", {
      */
     pendingTasksCount: (state) => {
       return state.tasks.filter((task) =>
-        ["PENDING", "NOT_YET_STARTED", "ON_GOING"].includes(task.status)
+        ["pending", "not_yet_started", "on_going"].includes(task.status)
       ).length;
     },
 

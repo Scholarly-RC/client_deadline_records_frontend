@@ -1,7 +1,6 @@
 <script setup>
 // Components
 import Deadlines from "~/components/deadlines/Deadlines.vue";
-import UserDeadlines from "~/components/deadlines/UserDeadlines.vue";
 import { useAuthStore } from "~/stores/auth";
 
 const authStore = useAuthStore();
@@ -15,9 +14,16 @@ definePageMeta({
 useHead({
   title: "Client Deadline Tracker | Deadlines",
 });
+
+// Redirect non-admin users
+if (!authStore.isAdmin) {
+  throw createError({
+    statusCode: 403,
+    statusMessage: "Access denied. Admin privileges required."
+  });
+}
 </script>
 
 <template>
-  <Deadlines v-if="authStore.isAdmin" />
-  <UserDeadlines v-else />
+  <Deadlines />
 </template>

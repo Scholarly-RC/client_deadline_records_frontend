@@ -1,14 +1,23 @@
 <script setup>
-import PageHeader from "../ui/PageHeader.vue";
-import DeadlineCard from "./DeadlineCard.vue";
+import PageHeader from "~/components/ui/PageHeader.vue";
+import DeadlineCard from "~/components/deadlines/DeadlineCard.vue";
 import { useUserDeadlinesStore } from "~/stores/userDeadlines";
 import { useAuthStore } from "~/stores/auth";
-import UpdateDeadlineModal from "./UpdateDeadlineModal.vue";
-import DeadlinesFilterModal from "./DeadlinesFilterModal.vue";
-import AllMyDeadlines from "./AllMyDeadlines.vue";
+import UpdateDeadlineModal from "~/components/deadlines/UpdateDeadlineModal.vue";
+import AllMyDeadlines from "~/components/deadlines/AllMyDeadlines.vue";
 
 const userDeadlinesStore = useUserDeadlinesStore();
 const authStore = useAuthStore();
+
+// Page Configuration
+definePageMeta({
+  layout: "menu",
+  middleware: "auth",
+});
+
+useHead({
+  title: "Client Deadline Tracker | My Deadlines",
+});
 
 const categorizedDeadlines = computed(() => userDeadlinesStore.deadlines);
 const isLoading = computed(() => userDeadlinesStore.isLoading);

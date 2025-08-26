@@ -151,6 +151,25 @@ export const useUserDeadlinesStore = defineStore("userDeadlinesStore", {
     },
     
     /**
+     * Fetch and update a specific task by ID without refreshing all data
+     */
+    async refreshSingleTask(taskId) {
+      try {
+        const taskService = useTaskService();
+        const updatedTask = await taskService.getTask(taskId);
+        
+        // Update the task in both structures
+        this.updateTaskInState(taskId, updatedTask);
+        
+        return updatedTask;
+      } catch (error) {
+        console.error(`Error refreshing task ${taskId}:`, error);
+        // Silently fail for refresh operations to avoid disrupting UX
+        throw error;
+      }
+    },
+
+    /**
      * Update task in both new and legacy state structures
      */
     updateTaskInState(taskId, updatedTask) {

@@ -87,17 +87,14 @@ const items = [
 // Event handlers for table actions
 const handleEditTask = (task) => {
   // TODO: Implement edit functionality
-  console.log('Edit task:', task);
 };
 
 const handleViewTask = (task) => {
   // TODO: Implement view functionality or navigation to task details
-  console.log('View task:', task);
 };
 
 const handleDeleteTask = (task) => {
   // TODO: Implement delete functionality if needed
-  console.log('Delete task:', task);
 };
 
 const active = computed({
@@ -107,7 +104,7 @@ const active = computed({
   set(tab) {
     // Hash is specified here to prevent the page from scrolling to the top
     router.push({
-      path: "/deadlines",
+      path: "/my-deadlines",
       query: { tab },
     });
   },
