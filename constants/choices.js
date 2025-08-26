@@ -5,7 +5,7 @@ export const statusChoices = [
   { label: "Completed", value: "completed" },
   { label: "For Revision", value: "for_revision" },
   { label: "For Checking", value: "for_checking" },
-  { label: "In Progress", value: "in_progress" },
+  { label: "On Going", value: "on_going" },
   { label: "Pending", value: "pending" },
   { label: "Not Yet Started", value: "not_yet_started" },
   { label: "Cancelled", value: "cancelled" },

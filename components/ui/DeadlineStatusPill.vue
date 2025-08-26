@@ -17,10 +17,10 @@ const props = defineProps({
   </span>
 
   <span
-    v-else-if="status === 'in_progress'"
+    v-else-if="status === 'on_going'"
     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
   >
-    In Progress
+    On Going
   </span>
 
   <span

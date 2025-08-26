@@ -165,7 +165,7 @@ onMounted(async () => {
             >
               <option value="">All Status</option>
               <option value="pending">Pending</option>
-              <option value="in_progress">In Progress</option>
+              <option value="on_going">On Going</option>
               <option value="completed">Completed</option>
               <option value="overdue">Overdue</option>
               <option value="cancelled">Cancelled</option>

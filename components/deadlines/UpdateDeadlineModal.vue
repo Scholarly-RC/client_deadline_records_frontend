@@ -6,7 +6,7 @@ import { z } from "zod";
 import { statusChoices } from "~/constants/choices";
 
 const filteredStatusChoices = statusChoices.filter((choice) =>
-  ["not_yet_started", "pending", "in_progress", "for_checking"].includes(
+  ["not_yet_started", "pending", "on_going", "for_checking"].includes(
     choice.value
   )
 );

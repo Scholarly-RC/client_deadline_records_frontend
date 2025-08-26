@@ -172,7 +172,7 @@ const getCategoryLabel = (categoryValue) => {
 const getStatusColor = (status) => {
   const colorMap = {
     'COMPLETED': 'green',
-    'IN_PROGRESS': 'blue',
+    'ON_GOING': 'blue',
     'PENDING': 'yellow',
     'NOT_YET_STARTED': 'gray',
     'CANCELLED': 'red',

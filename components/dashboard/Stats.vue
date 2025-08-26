@@ -4,6 +4,7 @@ import { UCard } from "#components";
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const dashboardStore = useDashboardStore();
+const taskStore = useTaskStore();
 const { stats, taskStatistics, overdueTasks, tasksDueSoon, isAnyLoading } =
   storeToRefs(dashboardStore);
 
@@ -15,9 +16,12 @@ const completedTasks = computed(
 const pendingTasks = computed(() => taskStatistics.value?.pending_tasks || 0);
 const overdueTasksCount = computed(() => overdueTasks.value?.length || 0);
 const tasksDueSoonCount = computed(() => tasksDueSoon.value?.length || 0);
-const inProgressTasks = computed(
-  () => taskStatistics.value?.by_status?.IN_PROGRESS || 0
+const onGoingTasks = computed(
+  () => taskStatistics.value?.by_status?.ON_GOING || 0
 );
+
+// Approval-related statistics
+const pendingApprovalsCount = computed(() => taskStore.pendingApprovalsCount);
 
 // Legacy stats for backward compatibility
 const totalClients = computed(() => stats.value?.total_clients || 0);
@@ -31,6 +35,9 @@ const tasksByCategory = computed(() => taskStatistics.value?.by_category || {});
 // Load all dashboard data on mount
 onMounted(async () => {
   await dashboardStore.loadAllDashboardData();
+  if (isAdmin.value) {
+    await taskStore.fetchPendingApprovals();
+  }
 });
 </script>
 
@@ -168,7 +175,7 @@ onMounted(async () => {
       </div>
     </UCard>
 
-    <!-- In Progress Tasks -->
+    <!-- On Going Tasks -->
     <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
@@ -178,7 +185,7 @@ onMounted(async () => {
             <p
               class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
             >
-              In Progress
+              On Going
             </p>
             <template v-if="isAnyLoading">
               <div
@@ -187,7 +194,7 @@ onMounted(async () => {
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ inProgressTasks }}
+                {{ onGoingTasks }}
               </p>
             </template>
           </div>
@@ -266,6 +273,43 @@ onMounted(async () => {
           >
             <UIcon
               name="mdi:calendar-check-outline"
+              class="w-7 h-7 mx-1 mt-1"
+            />
+          </div>
+        </div>
+      </div>
+    </UCard>
+
+    <!-- Pending Approvals (Admin only) -->
+    <UCard
+      v-if="isAdmin"
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+      @click="$router.push('/approvals')"
+    >
+      <div class="p-1">
+        <div class="flex items-center justify-between">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
+              Pending Approvals
+            </p>
+            <template v-if="isAnyLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ pendingApprovalsCount }}
+              </p>
+            </template>
+          </div>
+          <div
+            class="p-1 rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-200"
+          >
+            <UIcon
+              name="i-lucide-user-check"
               class="w-7 h-7 mx-1 mt-1"
             />
           </div>

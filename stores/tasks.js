@@ -14,6 +14,12 @@ export const useTaskStore = defineStore("taskStore", {
     isUpdating: false,
     isDeleting: false,
     
+    // Approval states
+    isInitiatingApproval: false,
+    isProcessingApproval: false,
+    pendingApprovals: [],
+    approvalHistory: {},
+    
     // Filter states
     filters: {
       category: null,
@@ -29,6 +35,8 @@ export const useTaskStore = defineStore("taskStore", {
     showAddModal: false,
     showEditModal: false,
     showFilterModal: false,
+    showApprovalModal: false,
+    showApprovalHistoryModal: false,
     
     // Statistics
     statistics: null,
@@ -59,6 +67,48 @@ export const useTaskStore = defineStore("taskStore", {
     },
 
     /**
+     * Get tasks requiring approval
+     */
+    tasksRequiringApproval: (state) => {
+      return state.tasks.filter(task => task.requires_approval);
+    },
+
+    /**
+     * Get tasks pending approval for current user
+     */
+    tasksPendingMyApproval: (state) => {
+      const authStore = useAuthStore();
+      return state.tasks.filter(task => 
+        task.requires_approval && 
+        task.pending_approver?.id === authStore.user?.id
+      );
+    },
+
+    /**
+     * Check if user can approve specific task
+     */
+    canApproveTask: (state) => (task) => {
+      const authStore = useAuthStore();
+      return (
+        authStore.user?.is_admin &&
+        task.pending_approver?.id === authStore.user?.id &&
+        task.requires_approval
+      );
+    },
+
+    /**
+     * Check if user can initiate approval for task
+     */
+    canInitiateApproval: (state) => (task) => {
+      const authStore = useAuthStore();
+      return (
+        (task.assigned_to === authStore.user?.id || authStore.user?.is_admin) &&
+        !task.requires_approval &&
+        task.status !== 'COMPLETED'
+      );
+    },
+
+    /**
      * Get completed tasks count
      */
     completedTasksCount: (state) => {
@@ -70,8 +120,15 @@ export const useTaskStore = defineStore("taskStore", {
      */
     pendingTasksCount: (state) => {
       return state.tasks.filter(task => 
-        ['PENDING', 'NOT_YET_STARTED', 'IN_PROGRESS'].includes(task.status)
+        ['PENDING', 'NOT_YET_STARTED', 'ON_GOING'].includes(task.status)
       ).length;
+    },
+
+    /**
+     * Get pending approvals count
+     */
+    pendingApprovalsCount: (state) => {
+      return state.pendingApprovals.length;
     },
 
     /**
@@ -89,7 +146,8 @@ export const useTaskStore = defineStore("taskStore", {
      * Check if any category has loading state
      */
     hasActiveLoading: (state) => {
-      return state.isLoading || state.isCreating || state.isUpdating || state.isDeleting;
+      return state.isLoading || state.isCreating || state.isUpdating || state.isDeleting || 
+             state.isInitiatingApproval || state.isProcessingApproval;
     }
   },
 
@@ -356,6 +414,119 @@ export const useTaskStore = defineStore("taskStore", {
     },
 
     /**
+     * APPROVAL WORKFLOW ACTIONS
+     */
+
+    /**
+     * Initiate approval workflow for a task
+     */
+    async initiateApproval(taskId, approvers) {
+      this.isInitiatingApproval = true;
+      try {
+        const taskService = useTaskService();
+        await taskService.initiateApproval(taskId, { approvers });
+        
+        // Update the task in the local state
+        const taskIndex = this.tasks.findIndex(task => task.id === taskId);
+        if (taskIndex !== -1) {
+          // Refresh the task data to get updated approval fields
+          const updatedTask = await taskService.getTask(taskId);
+          this.tasks[taskIndex] = updatedTask;
+        }
+        
+        this.showApprovalModal = false;
+        
+        const toast = useToast();
+        toast.add({
+          title: "Success",
+          description: "Approval workflow initiated successfully",
+          color: "success",
+          icon: "mdi:check-circle",
+          duration: 3000,
+        });
+        
+        return true;
+      } catch (error) {
+        console.error("Error initiating approval:", error);
+        this.handleError(error, "Failed to initiate approval workflow");
+        throw error;
+      } finally {
+        this.isInitiatingApproval = false;
+      }
+    },
+
+    /**
+     * Process approval decision
+     */
+    async processApproval(taskId, action, comments = null, nextApprover = null) {
+      this.isProcessingApproval = true;
+      try {
+        const taskService = useTaskService();
+        const decisionData = { action, comments };
+        if (nextApprover) {
+          decisionData.next_approver = nextApprover;
+        }
+        
+        await taskService.processApproval(taskId, decisionData);
+        
+        // Update the task in the local state
+        const taskIndex = this.tasks.findIndex(task => task.id === taskId);
+        if (taskIndex !== -1) {
+          const updatedTask = await taskService.getTask(taskId);
+          this.tasks[taskIndex] = updatedTask;
+        }
+        
+        // Refresh pending approvals
+        await this.fetchPendingApprovals();
+        
+        const toast = useToast();
+        toast.add({
+          title: "Success",
+          description: `Task ${action} successfully`,
+          color: "success",
+          icon: action === 'approved' ? "mdi:check-circle" : "mdi:close-circle",
+          duration: 3000,
+        });
+        
+        return true;
+      } catch (error) {
+        console.error("Error processing approval:", error);
+        this.handleError(error, `Failed to ${action} task`);
+        throw error;
+      } finally {
+        this.isProcessingApproval = false;
+      }
+    },
+
+    /**
+     * Fetch approval history for a task
+     */
+    async fetchApprovalHistory(taskId) {
+      try {
+        const taskService = useTaskService();
+        const history = await taskService.getApprovalHistory(taskId);
+        this.approvalHistory[taskId] = history;
+        return history;
+      } catch (error) {
+        console.error("Error fetching approval history:", error);
+        this.handleError(error, "Failed to fetch approval history");
+      }
+    },
+
+    /**
+     * Fetch pending approvals for current user
+     */
+    async fetchPendingApprovals() {
+      try {
+        const taskService = useTaskService();
+        this.pendingApprovals = await taskService.getPendingApprovals();
+      } catch (error) {
+        console.error("Error fetching pending approvals:", error);
+        this.handleError(error, "Failed to fetch pending approvals");
+      }
+    },
+
+    /**
      * Set page for pagination
      */
     async setPage(page) {
@@ -414,6 +585,26 @@ export const useTaskStore = defineStore("taskStore", {
 
     closeFilterModal() {
       this.showFilterModal = false;
+    },
+
+    openApprovalModal(task) {
+      this.currentTask = task;
+      this.showApprovalModal = true;
+    },
+
+    closeApprovalModal() {
+      this.showApprovalModal = false;
+      this.currentTask = null;
+    },
+
+    openApprovalHistoryModal(task) {
+      this.currentTask = task;
+      this.showApprovalHistoryModal = true;
+    },
+
+    closeApprovalHistoryModal() {
+      this.showApprovalHistoryModal = false;
+      this.currentTask = null;
     },
 
     /**
