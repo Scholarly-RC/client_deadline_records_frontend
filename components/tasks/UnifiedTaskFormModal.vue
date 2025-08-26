@@ -755,7 +755,7 @@ onMounted(() => {
     </template>
 
     <template #footer="{ close }">
-      <div class="w-full flex justify-end space-x-3 ">
+      <div class="w-full flex justify-end space-x-3">
         <UButton
           color="gray"
           variant="ghost"

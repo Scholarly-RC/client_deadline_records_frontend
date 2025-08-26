@@ -23,6 +23,7 @@ const props = defineProps({
 
 const showApprovalModal = ref(false);
 const showApprovalHistoryModal = ref(false);
+const showStatusHistoryModal = ref(false);
 
 const daysRemaining = computed(() => {
   return getDaysRemaining(props.deadline.deadline_days_remaining);
@@ -37,7 +38,11 @@ const hasHistory = computed(() => {
 });
 
 const canInitiateApproval = computed(() => {
-  return taskStore.canInitiateApproval(props.deadline);
+  const allowedStatuses = ["on_going", "for_revision"];
+  return (
+    taskStore.canInitiateApproval(props.deadline) &&
+    allowedStatuses.includes(props.deadline.status)
+  );
 });
 
 const canApprove = computed(() => {
@@ -59,6 +64,10 @@ const openApprovalWorkflow = () => {
 
 const openApprovalHistory = () => {
   showApprovalHistoryModal.value = true;
+};
+
+const openStatusHistory = () => {
+  showStatusHistoryModal.value = true;
 };
 
 const onApprovalAction = () => {
@@ -164,33 +173,56 @@ const onApprovalAction = () => {
     />
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <UButton
-          v-if="hasApprovalWorkflow"
-          @click="openApprovalHistory"
-          label="Approval History"
-          variant="soft"
-          color="blue"
-          size="sm"
-        />
+      <div class="flex flex-col gap-2">
+        <!-- History Buttons Row -->
+        <div 
+          v-if="hasHistory || hasApprovalWorkflow" 
+          class="flex gap-2 justify-center"
+        >
+          <UButton
+            v-if="hasHistory"
+            @click="openStatusHistory"
+            label="Status History"
+            icon="i-lucide-history"
+            variant="outline"
+            color="neutral"
+            size="xs"
+          />
+          <UButton
+            v-if="hasApprovalWorkflow"
+            @click="openApprovalHistory"
+            label="Approval History"
+            icon="i-lucide-scroll-text"
+            variant="outline"
+            color="neutral"
+            size="xs"
+          />
+        </div>
 
-        <UButton
-          v-if="canInitiateApproval"
-          @click="openApprovalWorkflow"
-          label="Request Approval"
-          variant="soft"
-          color="green"
-          size="sm"
-        />
-
-        <UButton
-          v-if="canShowAddUpdateButton"
-          @click="deadlineUpdate.open(category, deadline)"
-          label="Add Update"
-          variant="soft"
-          color="primary"
-          size="sm"
-        />
+        <!-- Action Buttons Row -->
+        <div 
+          v-if="canInitiateApproval || canShowAddUpdateButton" 
+          class="flex gap-2 justify-center"
+        >
+          <UButton
+            v-if="canInitiateApproval"
+            @click="openApprovalWorkflow"
+            label="Request Approval"
+            icon="i-lucide-check-circle"
+            variant="soft"
+            color="success"
+            size="sm"
+          />
+          <UButton
+            v-if="canShowAddUpdateButton"
+            @click="deadlineUpdate.open(category, deadline)"
+            label="Add Update"
+            icon="i-lucide-plus"
+            variant="soft"
+            color="primary"
+            size="sm"
+          />
+        </div>
       </div>
     </template>
 
@@ -222,6 +254,99 @@ const onApprovalAction = () => {
                 @click="showApprovalHistoryModal = false"
                 variant="ghost"
               >
+                Close
+              </UButton>
+            </div>
+          </template>
+        </UCard>
+      </template>
+    </UModal>
+    <!-- Status History Modal -->
+    <UModal
+      v-model:open="showStatusHistoryModal"
+      :ui="{ width: 'sm:max-w-4xl' }"
+    >
+      <template #content>
+        <UCard>
+          <template #header>
+            <h3 class="text-lg font-semibold">
+              Status History - {{ deadline.description }}
+            </h3>
+          </template>
+
+          <div class="space-y-4">
+            <div v-if="hasHistory" class="max-h-96 overflow-y-auto">
+              <div
+                v-for="(historyItem, index) in history"
+                :key="index"
+                class="border-l-4 border-blue-200 pl-4 py-3 mb-3 bg-gray-50 dark:bg-gray-800 rounded-r-lg"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center space-x-2">
+                    <span
+                      class="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full font-medium"
+                    >
+                      {{ historyItem.change_type || "Status Change" }}
+                    </span>
+                  </div>
+                  <span class="text-xs text-gray-500 pe-2.5">
+                    {{ historyItem.date }}
+                  </span>
+                </div>
+
+                <div class="space-y-1">
+                  <div
+                    v-if="historyItem.old_status !== historyItem.new_status"
+                    class="flex items-center space-x-2 text-sm"
+                  >
+                    <span class="text-gray-600 dark:text-gray-400"
+                      >Status:</span
+                    >
+                    <StatusBadge :status="historyItem.old_status" />
+                    <UIcon
+                      name="i-lucide-arrow-right"
+                      class="h-3 w-3 text-gray-400"
+                    />
+                    <StatusBadge :status="historyItem.new_status" />
+                  </div>
+
+                  <div v-else class="flex items-center space-x-2 text-sm">
+                    <span class="text-gray-600 dark:text-gray-400"
+                      >Status:</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs"
+                    >
+                      {{ historyItem.new_status }}
+                    </span>
+                    <span class="text-xs text-gray-500">(No change)</span>
+                  </div>
+
+                  <div v-if="historyItem.remarks" class="text-sm">
+                    <span class="text-gray-600 dark:text-gray-400 font-medium"
+                      >Remarks:</span
+                    >
+                    <p class="text-gray-700 dark:text-gray-300 mt-1">
+                      {{ historyItem.remarks }}
+                    </p>
+                  </div>
+
+                  <div class="text-xs text-gray-500 mt-2">
+                    <span class="font-medium">Changed by:</span>
+                    {{ historyItem.changed_by }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-center py-8 text-gray-500">
+              <UIcon name="i-lucide-clock" class="h-12 w-12 mx-auto mb-2" />
+              <p>No status history available</p>
+            </div>
+          </div>
+
+          <template #footer>
+            <div class="flex justify-end">
+              <UButton @click="showStatusHistoryModal = false" variant="ghost">
                 Close
               </UButton>
             </div>

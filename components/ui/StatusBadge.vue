@@ -4,27 +4,33 @@ const props = defineProps({
     type: String,
     required: true,
   },
-});
+})
+
+const normalizeStatus = (val) => {
+  if (!val) return ""
+  return val.toLowerCase().replace(/\s+/g, "_")
+}
 </script>
 
 <template>
   <UBadge
     :color="
-      status === 'completed'
+      normalizeStatus(status) === 'completed'
         ? 'success'
-        : status === 'for_revision'
+        : normalizeStatus(status) === 'for_revision'
         ? 'warning'
-        : status === 'for_checking'
+        : normalizeStatus(status) === 'for_checking'
         ? 'info'
-        : status === 'on_going'
+        : normalizeStatus(status) === 'on_going'
         ? 'primary'
-        : status === 'pending'
+        : normalizeStatus(status) === 'pending'
         ? 'secondary'
-        : status === 'cancelled'
+        : normalizeStatus(status) === 'cancelled'
         ? 'error'
         : 'neutral'
     "
     variant="subtle"
-    >{{ convertToTitleCase(status) }}</UBadge
   >
+    {{ convertToTitleCase(normalizeStatus(status)) }}
+  </UBadge>
 </template>
