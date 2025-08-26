@@ -26,17 +26,18 @@ export const useAddDeadlineStore = defineStore("addDeadlineModal", {
     handleNext() {
       this.close();
       const toast = useToast();
+      console.log(this.selectedCategorys);
       switch (this.selectedCategory) {
         case "compliance":
           const complianceModalStore = useComplianceModalStore();
           complianceModalStore.open();
           break;
-        case "financial_statement_prep":
+        case "financial_statement":
           const financialStatementModalStore =
             useFinancialStatementModalStore();
           financialStatementModalStore.open();
           break;
-        case "accounting_auditing":
+        case "accounting_audit":
           const auditingAccountingModalStore =
             useAuditingAccountingModalStore();
           auditingAccountingModalStore.open();
@@ -54,7 +55,7 @@ export const useAddDeadlineStore = defineStore("addDeadlineModal", {
           const miscellaneousModalStore = useMiscellaneousStore();
           miscellaneousModalStore.open();
           break;
-        case "tax":
+        case "tax_case":
           const taxModalStore = useTaxStore();
           taxModalStore.open();
           break;

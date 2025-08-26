@@ -7,7 +7,8 @@ import {
   birFormChoices,
   typeOfTaxCaseChoices,
 } from "~/constants/choices";
-import { taxSchema } from "~/schema/tax.schema";
+import { taxSchema } from "~/schema/task.schema";
+import { TASK_CATEGORIES } from "~/constants/choices";
 
 const emit = defineEmits(["clearAddDeadlineForm"]);
 
@@ -105,26 +106,24 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
-    const { $apiFetch } = useNuxtApp();
-    const response = await $apiFetch("/api/tax-cases/", {
-      method: "POST",
-      body: {
-        client: selectedClient.value,
-        category: values.category,
-        type: values.tax_type,
-        form: values.form,
-        working_paper: values.working_paper,
-        tax_payable: values.tax_payable,
-        period_covered: values.period_covered,
-        assigned_to: values.assigned_to,
-        priority: values.priority,
-        engagement_date: values.engagement_date,
-        deadline: values.deadline,
-        remarks: values.remarks || null,
-        date_complied: values.date_complied || null,
-        completion_date: values.completion_date || null,
-        last_update: new Date().toISOString(),
-      },
+    const taskService = useTaskService();
+    const response = await taskService.createTask({
+      client: selectedClient.value,
+      category: TASK_CATEGORIES.TAX_CASE,
+      tax_category: values.category,
+      tax_type: values.tax_type,
+      form: values.form,
+      working_paper: values.working_paper,
+      tax_payable: values.tax_payable,
+      period_covered: values.period_covered,
+      assigned_to: values.assigned_to,
+      priority: values.priority,
+      engagement_date: values.engagement_date,
+      deadline: values.deadline,
+      remarks: values.remarks || null,
+      date_complied: values.date_complied || null,
+      completion_date: values.completion_date || null,
+      last_update: new Date().toISOString(),
     });
 
     toast.add({

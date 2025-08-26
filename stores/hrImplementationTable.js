@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { TASK_CATEGORIES } from "~/constants/choices.js";
 
 export const useHrImplementationTableStore = defineStore(
   "hrImplementationTable",
@@ -8,34 +9,79 @@ export const useHrImplementationTableStore = defineStore(
       pagination: {},
       isLoading: false,
       page: null,
+      filters: {},
     }),
 
     actions: {
       async getAllHrImplementations() {
         try {
           this.isLoading = true;
-          const { $apiFetch } = useNuxtApp();
-          let url = `/api/human-resource-implementations/?`;
-          const params = new URLSearchParams();
+          const taskService = useTaskService();
+          
+          const params = {
+            category: TASK_CATEGORIES.HR_IMPLEMENTATION,
+          };
+          
           if (this.page) {
-            params.append("page", this.page);
+            params.page = this.page;
           }
-          url += params.toString();
-          const response = await $apiFetch(url, {
-            method: "GET",
+          
+          Object.entries(this.filters).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+              params[key] = value;
+            }
           });
-          const { results, ...pagination } = response;
-          this.hrImplementations = results;
-          this.pagination = pagination;
+          
+          const response = await taskService.getTasks(params);
+          
+          if (response.results) {
+            this.hrImplementations = response.results;
+            const { results, ...pagination } = response;
+            this.pagination = pagination;
+          } else {
+            this.hrImplementations = response;
+            this.pagination = {};
+          }
         } catch (error) {
-          console.error(error);
+          console.error("Error fetching HR implementation tasks:", error);
+          this.handleError(error, "Failed to fetch HR implementation tasks");
         } finally {
           this.isLoading = false;
         }
       },
+      
       async setPage(page) {
         this.page = page;
         await this.getAllHrImplementations();
+      },
+      
+      async updateFilters(newFilters) {
+        this.filters = { ...this.filters, ...newFilters };
+        this.page = 1;
+        await this.getAllHrImplementations();
+      },
+      
+      async clearFilters() {
+        this.filters = {};
+        this.page = 1;
+        await this.getAllHrImplementations();
+      },
+      
+      async refresh() {
+        await this.getAllHrImplementations();
+      },
+      
+      handleError(error, defaultMessage) {
+        const toast = useToast();
+        const errorMessage = getErrorMessage ? getErrorMessage(error) : defaultMessage;
+        
+        toast.add({
+          title: "Error",
+          description: errorMessage,
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
       },
     },
   }

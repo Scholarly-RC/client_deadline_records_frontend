@@ -2,7 +2,8 @@
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { priorityChoices, fsrTypeChoices } from "~/constants/choices";
-import { financialStatementSchema } from "~/schema/financialStatement.schema";
+import { financialStatementSchema } from "~/schema/task.schema";
+import { TASK_CATEGORIES } from "~/constants/choices";
 
 const emit = defineEmits(["clearAddDeadlineForm"]);
 
@@ -88,22 +89,21 @@ const onSubmit = handleSubmit(async (values) => {
   }
 
   try {
-    const { $apiFetch } = useNuxtApp();
-    const response = await $apiFetch("/api/financial-statement-preparations/", {
-      method: "POST",
-      body: {
-        client: selectedClient.value,
-        type: values.fsr_type,
-        needed_data: values.needed_data,
-        assigned_to: values.assigned_to,
-        priority: values.priority,
-        engagement_date: values.engagement_date,
-        deadline: values.deadline,
-        remarks: values.remarks || null,
-        date_complied: values.date_complied || null,
-        completion_date: values.completion_date || null,
-        last_update: new Date().toISOString(),
-      },
+    const taskService = useTaskService();
+    const response = await taskService.createTask({
+      client: selectedClient.value,
+      category: TASK_CATEGORIES.FINANCIAL_STATEMENT,
+      type: values.fsr_type,
+      needed_data: values.needed_data,
+      period_covered: values.period_covered,
+      assigned_to: values.assigned_to,
+      priority: values.priority,
+      engagement_date: values.engagement_date,
+      deadline: values.deadline,
+      remarks: values.remarks || null,
+      date_complied: values.date_complied || null,
+      completion_date: values.completion_date || null,
+      last_update: new Date().toISOString(),
     });
 
     toast.add({

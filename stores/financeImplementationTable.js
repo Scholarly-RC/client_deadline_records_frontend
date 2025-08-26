@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import { TASK_CATEGORIES } from "~/constants/choices.js";
 
 export const useFinanceImplementationTableStore = defineStore(
   "financeImplementationTable",
@@ -8,34 +9,79 @@ export const useFinanceImplementationTableStore = defineStore(
       pagination: {},
       isLoading: false,
       page: null,
+      filters: {},
     }),
 
     actions: {
       async getAllFinanceImplementations() {
         try {
           this.isLoading = true;
-          const { $apiFetch } = useNuxtApp();
-          let url = `/api/finance-implementations/?`;
-          const params = new URLSearchParams();
+          const taskService = useTaskService();
+          
+          const params = {
+            category: TASK_CATEGORIES.FINANCE_IMPLEMENTATION,
+          };
+          
           if (this.page) {
-            params.append("page", this.page);
+            params.page = this.page;
           }
-          url += params.toString();
-          const response = await $apiFetch(url, {
-            method: "GET",
+          
+          Object.entries(this.filters).forEach(([key, value]) => {
+            if (value !== null && value !== undefined && value !== '') {
+              params[key] = value;
+            }
           });
-          const { results, ...pagination } = response;
-          this.financeImplementations = results;
-          this.pagination = pagination;
+          
+          const response = await taskService.getTasks(params);
+          
+          if (response.results) {
+            this.financeImplementations = response.results;
+            const { results, ...pagination } = response;
+            this.pagination = pagination;
+          } else {
+            this.financeImplementations = response;
+            this.pagination = {};
+          }
         } catch (error) {
-          console.error(error);
+          console.error("Error fetching finance implementation tasks:", error);
+          this.handleError(error, "Failed to fetch finance implementation tasks");
         } finally {
           this.isLoading = false;
         }
       },
+      
       async setPage(page) {
         this.page = page;
         await this.getAllFinanceImplementations();
+      },
+      
+      async updateFilters(newFilters) {
+        this.filters = { ...this.filters, ...newFilters };
+        this.page = 1;
+        await this.getAllFinanceImplementations();
+      },
+      
+      async clearFilters() {
+        this.filters = {};
+        this.page = 1;
+        await this.getAllFinanceImplementations();
+      },
+      
+      async refresh() {
+        await this.getAllFinanceImplementations();
+      },
+      
+      handleError(error, defaultMessage) {
+        const toast = useToast();
+        const errorMessage = getErrorMessage ? getErrorMessage(error) : defaultMessage;
+        
+        toast.add({
+          title: "Error",
+          description: errorMessage,
+          color: "error",
+          icon: "mdi:close-box-multiple",
+          duration: 5000,
+        });
       },
     },
   }

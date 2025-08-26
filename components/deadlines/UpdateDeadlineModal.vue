@@ -4,13 +4,14 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 
 import { statusChoices } from "~/constants/choices";
-import { date } from "zod/v4";
 
 const filteredStatusChoices = statusChoices.filter((choice) =>
-  ["not_yet_started", "pending", "on_going", "for_checking"].includes(
+  ["not_yet_started", "pending", "in_progress", "for_checking"].includes(
     choice.value
   )
 );
+
+console.log(filteredStatusChoices);
 
 const deadlineUpdate = useDeadlineUpdate();
 const { showModal, deadline, category } = storeToRefs(deadlineUpdate);
@@ -88,6 +89,8 @@ watch(initialValues, (val) => {
             <USelect
               v-model="status"
               :items="filteredStatusChoices"
+              option-attribute="label"
+              value-attribute="value"
               size="lg"
               placeholder="Select Status"
               class="w-full"
