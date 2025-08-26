@@ -182,6 +182,61 @@ export const useTaskService = () => {
   };
 
   /**
+   * APPROVAL WORKFLOW METHODS
+   */
+
+  /**
+   * Initiate approval workflow for a task
+   * @param {number} taskId - Task ID
+   * @param {Object} approvalData - Approval initiation data
+   * @param {number[]} approvalData.approvers - Array of admin user IDs in sequence order
+   * @returns {Promise} Approval initiation response
+   */
+  const initiateApproval = async (taskId, approvalData) => {
+    return await $apiFetch(`/api/tasks/${taskId}/initiate-approval/`, {
+      method: 'POST',
+      body: approvalData
+    });
+  };
+
+  /**
+   * Process approval decision for a task
+   * @param {number} taskId - Task ID
+   * @param {Object} decisionData - Approval decision data
+   * @param {string} decisionData.action - "approved" or "rejected"
+   * @param {string} decisionData.comments - Optional approval comments
+   * @param {number} decisionData.next_approver - Optional: forward to another admin
+   * @returns {Promise} Approval decision response
+   */
+  const processApproval = async (taskId, decisionData) => {
+    return await $apiFetch(`/api/tasks/${taskId}/process-approval/`, {
+      method: 'POST',
+      body: decisionData
+    });
+  };
+
+  /**
+   * Get approval history for a task
+   * @param {number} taskId - Task ID
+   * @returns {Promise} Approval history with approvals and status history
+   */
+  const getApprovalHistory = async (taskId) => {
+    return await $apiFetch(`/api/tasks/${taskId}/approval-history/`, {
+      method: 'GET'
+    });
+  };
+
+  /**
+   * Get pending approvals for current user
+   * @returns {Promise} Array of tasks pending current user's approval
+   */
+  const getPendingApprovals = async () => {
+    return await $apiFetch('/api/tasks/pending-approvals/', {
+      method: 'GET'
+    });
+  };
+
+  /**
    * Legacy compatibility method for user deadlines
    * @param {number} userId - User ID
    * @returns {Promise} User deadlines in new format
@@ -227,6 +282,12 @@ export const useTaskService = () => {
     getTaskStatistics,
     markTaskCompleted,
     updateTaskDeadline,
+    
+    // Approval workflow methods
+    initiateApproval,
+    processApproval,
+    getApprovalHistory,
+    getPendingApprovals,
     
     // Legacy compatibility
     getUserDeadlines,

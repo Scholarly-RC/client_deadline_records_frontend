@@ -22,27 +22,33 @@ const allItems = [
   [
     {
       label: "Dashboard",
-      icon: "mdi:view-dashboard-outline",
+      icon: "i-lucide-layout-dashboard",
       to: "/",
     },
     {
       label: "Clients",
-      icon: "mdi:account-star-outline",
+      icon: "i-lucide-users",
       to: "/clients",
     },
     {
       label: "Deadlines",
-      icon: "mdi:account-file-text-outline",
+      icon: "i-lucide-calendar",
       to: "/deadlines",
     },
     {
+      label: "Pending Approvals",
+      icon: "i-lucide-check-circle",
+      to: "/approvals",
+      adminOnly: true,
+    },
+    {
       label: "Users",
-      icon: "mdi:account-supervisor-circle-outline",
+      icon: "i-lucide-user-cog",
       to: "/users",
     },
     {
       label: "Logs",
-      icon: "mdi:view-list-outline",
+      icon: "i-lucide-list",
       to: "/logs",
     },
   ],
@@ -53,8 +59,8 @@ const items = computed(() => {
     return allItems;
   }
   return [
-    allItems[0].filter((item) =>
-      ["Dashboard", "Deadlines"].includes(item.label)
+    allItems[0].filter((item) => 
+      ["Dashboard", "Deadlines"].includes(item.label) && !item.adminOnly
     ),
   ];
 });
@@ -200,6 +206,30 @@ onUnmounted(() => {
             Deadlines
           </NuxtLink>
           <NuxtLink
+            v-if="isAdmin"
+            to="/approvals"
+            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
+            :class="getLinkClasses('/approvals')"
+          >
+            <svg
+              class="w-6 h-6 mr-4"
+              :class="getIconClasses('/approvals')"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            Pending Approvals
+          </NuxtLink>
+          <NuxtLink
+            v-if="isAdmin"
             to="/users"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
             :class="getLinkClasses('/users')"
