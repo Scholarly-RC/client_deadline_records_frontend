@@ -10,6 +10,7 @@ const userStore = useUserStore();
 
 // State
 const showAddTaskModal = ref(false);
+const deadlineTabsRef = ref(null);
 
 // Fetch initial data
 onMounted(async () => {
@@ -25,17 +26,13 @@ const handleModalClose = () => {
   showAddTaskModal.value = false;
 };
 
-const handleModalSuccess = () => {
+const handleModalSuccess = async () => {
   showAddTaskModal.value = false;
-  // Optionally refresh data or show success message
-  const toast = useToast();
-  toast.add({
-    title: "Success",
-    description: "Task has been created successfully.",
-    color: "success",
-    icon: "i-lucide-check-circle",
-    duration: 3000,
-  });
+  // The toast is already shown by the UnifiedTaskFormModal
+  // Refresh the task tables to show the new task
+  if (deadlineTabsRef.value?.refreshAllTables) {
+    await deadlineTabsRef.value.refreshAllTables();
+  }
 };
 </script>
 
@@ -54,7 +51,7 @@ const handleModalSuccess = () => {
           size="md"
         />
       </div>
-      <DeadlineTabs />
+      <DeadlineTabs ref="deadlineTabsRef" />
     </main>
 
     <!-- Unified Task Form Modal -->

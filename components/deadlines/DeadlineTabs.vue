@@ -5,6 +5,40 @@ import { TASK_CATEGORIES } from "~/constants/choices.js";
 const route = useRoute();
 const router = useRouter();
 
+// Refs to UnifiedTaskTable components
+const complianceTableRef = ref(null);
+const financialStatementTableRef = ref(null);
+const financeImplementationTableRef = ref(null);
+const hrImplementationTableRef = ref(null);
+const auditingAccountingTableRef = ref(null);
+const miscellaneousTableRef = ref(null);
+const taxTableRef = ref(null);
+
+// Method to refresh all tables
+const refreshAllTables = async () => {
+  const tableRefs = [
+    complianceTableRef.value,
+    financialStatementTableRef.value,
+    financeImplementationTableRef.value,
+    hrImplementationTableRef.value,
+    auditingAccountingTableRef.value,
+    miscellaneousTableRef.value,
+    taxTableRef.value,
+  ];
+  
+  // Refresh all tables that are currently mounted
+  await Promise.all(
+    tableRefs
+      .filter(ref => ref && ref.refreshData)
+      .map(ref => ref.refreshData())
+  );
+};
+
+// Expose the refresh method to parent components
+defineExpose({
+  refreshAllTables,
+});
+
 const items = [
   {
     label: "Compliance",
@@ -84,6 +118,7 @@ const active = computed({
   <UTabs v-model="active" :items="items" class="w-full">
     <template #compliance>
       <UnifiedTaskTable
+        ref="complianceTableRef"
         :category="TASK_CATEGORIES.COMPLIANCE"
         title="Compliance Tasks"
         :show-category-column="false"
@@ -94,6 +129,7 @@ const active = computed({
     </template>
     <template #financial_statement>
       <UnifiedTaskTable
+        ref="financialStatementTableRef"
         :category="TASK_CATEGORIES.FINANCIAL_STATEMENT"
         title="Financial Statement Tasks"
         :show-category-column="false"
@@ -104,6 +140,7 @@ const active = computed({
     </template>
     <template #finance_implementation>
       <UnifiedTaskTable
+        ref="financeImplementationTableRef"
         :category="TASK_CATEGORIES.FINANCE_IMPLEMENTATION"
         title="Finance Implementation Tasks"
         :show-category-column="false"
@@ -114,6 +151,7 @@ const active = computed({
     </template>
     <template #hr_implementation>
       <UnifiedTaskTable
+        ref="hrImplementationTableRef"
         :category="TASK_CATEGORIES.HR_IMPLEMENTATION"
         title="HR Implementation Tasks"
         :show-category-column="false"
@@ -124,6 +162,7 @@ const active = computed({
     </template>
     <template #auditing_accounting>
       <UnifiedTaskTable
+        ref="auditingAccountingTableRef"
         :category="TASK_CATEGORIES.ACCOUNTING_AUDIT"
         title="Auditing & Accounting Tasks"
         :show-category-column="false"
@@ -134,6 +173,7 @@ const active = computed({
     </template>
     <template #miscellaneous>
       <UnifiedTaskTable
+        ref="miscellaneousTableRef"
         :category="TASK_CATEGORIES.MISCELLANEOUS"
         title="Miscellaneous Tasks"
         :show-category-column="false"
@@ -144,6 +184,7 @@ const active = computed({
     </template>
     <template #tax>
       <UnifiedTaskTable
+        ref="taxTableRef"
         :category="TASK_CATEGORIES.TAX_CASE"
         title="Tax Tasks"
         :show-category-column="false"

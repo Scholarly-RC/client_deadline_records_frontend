@@ -134,6 +134,9 @@ const columns = [
 
 // Methods
 const refreshData = async () => {
+  // Clear all filters to ensure we see the refreshed data
+  clearFilters();
+  
   try {
     if (props.category) {
       await taskStore.fetchTasksByCategory(props.category);
@@ -250,6 +253,11 @@ watch(
   },
   { deep: true, immediate: true }
 );
+
+// Expose methods to parent components
+defineExpose({
+  refreshData,
+});
 </script>
 
 <template>

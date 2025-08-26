@@ -215,15 +215,6 @@ export const useTaskStore = defineStore("taskStore", {
         this.tasks.unshift(newTask);
         this.showAddModal = false;
         
-        const toast = useToast();
-        toast.add({
-          title: "Success",
-          description: "Task created successfully",
-          color: "success",
-          icon: "mdi:checkbox-multiple-marked",
-          duration: 2000,
-        });
-        
         return newTask;
       } catch (error) {
         console.error("Error creating task:", error);

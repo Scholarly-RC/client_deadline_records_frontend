@@ -1,10 +1,13 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
-import { useForm } from 'vee-validate';
-import { toTypedSchema } from '@vee-validate/zod';
-import { z } from 'zod';
-import { categoryChoices } from '~/constants/choices';
-import UnifiedTaskFormModal from '~/components/tasks/UnifiedTaskFormModal.vue';
+import { ref, computed, watch, onMounted } from "vue";
+import { useForm } from "vee-validate";
+import { toTypedSchema } from "@vee-validate/zod";
+import { z } from "zod";
+import { categoryChoices } from "~/constants/choices";
+import UnifiedTaskFormModal from "~/components/tasks/UnifiedTaskFormModal.vue";
+
+// Define emits
+const emit = defineEmits(["success"]);
 
 // Stores
 const clientStore = useClientStore();
@@ -27,8 +30,8 @@ const { activeClients } = storeToRefs(clientStore);
 // Form validation
 const validationSchema = toTypedSchema(
   z.object({
-    client: z.number().min(1, 'Client is required.'),
-    category: z.string().nonempty('Category is required.'),
+    client: z.number().min(1, "Client is required."),
+    category: z.string().nonempty("Category is required."),
   })
 );
 
@@ -44,12 +47,12 @@ const {
   validationSchema,
   initialValues: {
     client: null,
-    category: '',
+    category: "",
   },
 });
 
-const [client, clientAttrs] = defineField('client');
-const [category, categoryAttrs] = defineField('category');
+const [client, clientAttrs] = defineField("client");
+const [category, categoryAttrs] = defineField("category");
 
 const clientItems = computed(() =>
   activeClients.value.map((client) => ({
@@ -82,14 +85,9 @@ const handleUnifiedModalClose = () => {
 
 const handleUnifiedModalSuccess = () => {
   handleUnifiedModalClose();
-  // Optionally, you can add a success message here
-  const toast = useToast();
-  toast.add({
-    title: 'Success',
-    description: 'Task has been created successfully.',
-    color: 'success',
-    icon: 'i-heroicons-check-circle',
-  });
+  // The toast is already shown by the UnifiedTaskFormModal
+  // Emit success event to parent component
+  emit("success");
 };
 </script>
 
@@ -120,7 +118,12 @@ const handleUnifiedModalSuccess = () => {
         </template>
 
         <UForm :state="values" @submit="handleNext" class="space-y-4">
-          <UFormGroup label="Client" name="client" :error="errors.client" required>
+          <UFormGroup
+            label="Client"
+            name="client"
+            :error="errors.client"
+            required
+          >
             <USelectMenu
               v-model="client"
               v-bind="clientAttrs"
@@ -132,7 +135,12 @@ const handleUnifiedModalSuccess = () => {
             />
           </UFormGroup>
 
-          <UFormGroup label="Category" name="category" :error="errors.category" required>
+          <UFormGroup
+            label="Category"
+            name="category"
+            :error="errors.category"
+            required
+          >
             <URadioGroup
               v-model="category"
               v-bind="categoryAttrs"
