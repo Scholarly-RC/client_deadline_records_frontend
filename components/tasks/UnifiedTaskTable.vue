@@ -5,6 +5,8 @@ import {
   statusChoices,
   priorityChoices,
 } from "~/constants/choices";
+import StatusBadge from "../ui/StatusBadge.vue";
+import PriorityBadge from "../ui/PriorityBadge.vue";
 
 const props = defineProps({
   category: {
@@ -261,60 +263,12 @@ const clearFilters = () => {
 };
 
 const getCategoryLabel = (categoryValue) => {
-  // Handle API category values and map to display labels
-  const categoryMapping = {
-    compliance: "Compliance",
-    accounting_audit: "Accounting / Auditing",
-    financial_statement: "Financial Statement Preparation",
-    finance_implementation: "Finance Implementation",
-    hr_implementation: "Human Resource Implementation",
-    miscellaneous: "Miscellaneous Tasks",
-    tax_case: "Tax",
-  };
-
-  // Try direct mapping first
-  if (categoryMapping[categoryValue]) {
-    return categoryMapping[categoryValue];
-  }
-
   // Fallback to choices lookup for constants
   const choice = categoryChoices.find((c) => c.value === categoryValue);
   return choice ? choice.label : categoryValue;
 };
 
-const getStatusColor = (status) => {
-  const colorMap = {
-    completed: "green",
-    on_going: "blue",
-    pending: "yellow",
-    not_yet_started: "gray",
-    cancelled: "red",
-    for_revision: "orange",
-    for_checking: "purple",
-    // Legacy uppercase versions for compatibility
-    COMPLETED: "green",
-    ON_GOING: "blue",
-    PENDING: "yellow",
-    NOT_YET_STARTED: "gray",
-    CANCELLED: "red",
-    FOR_REVISION: "orange",
-    FOR_CHECKING: "purple",
-  };
-  return colorMap[status] || "gray";
-};
-
-const getPriorityColor = (priority) => {
-  const colorMap = {
-    high: "red",
-    medium: "yellow",
-    low: "green",
-    // Legacy uppercase versions for compatibility
-    HIGH: "red",
-    MEDIUM: "yellow",
-    LOW: "green",
-  };
-  return colorMap[priority] || "gray";
-};
+// Color mapping functions removed - now handled by dedicated badge components
 
 const formatDate = (dateString) => {
   if (!dateString) return "-";
@@ -362,11 +316,11 @@ const getDaysRemaining = (deadline, task = null) => {
 
 const getDeadlineColor = (deadline, task = null) => {
   const daysRemaining = getDaysRemaining(deadline, task);
-  if (daysRemaining === null) return "gray";
-  if (daysRemaining < 0) return "red"; // Overdue
-  if (daysRemaining <= 3) return "orange"; // Due soon
-  if (daysRemaining <= 7) return "yellow"; // Due this week
-  return "green"; // More than a week
+  if (daysRemaining === null) return "secondary";
+  if (daysRemaining < 0) return "error"; // Overdue
+  if (daysRemaining <= 3) return "warning"; // Due soon
+  if (daysRemaining <= 7) return "primary"; // Due this week
+  return "success"; // More than a week
 };
 
 // Lifecycle
@@ -390,9 +344,6 @@ watch(
     <div class="flex justify-between items-center">
       <div>
         <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
-        <p v-if="category" class="text-sm text-gray-600">
-          {{ getCategoryLabel(category) }} tasks
-        </p>
       </div>
       <div class="flex space-x-3">
         <UButton
@@ -460,24 +411,15 @@ watch(
       >
         <!-- Custom cell templates -->
         <template #category-cell="{ row }">
-          <UBadge :color="getStatusColor(row.original.category)" variant="soft">
-            {{ getCategoryLabel(row.original.category) }}
-          </UBadge>
+          {{ getCategoryLabel(row.original.category) }}
         </template>
 
         <template #status-cell="{ row }">
-          <UBadge :color="getStatusColor(row.original.status)" variant="soft">
-            {{ row.original.status.replace("_", " ") }}
-          </UBadge>
+          <StatusBadge :status="row.original.status" />
         </template>
 
         <template #priority-cell="{ row }">
-          <UBadge
-            :color="getPriorityColor(row.original.priority)"
-            variant="soft"
-          >
-            {{ row.original.priority }}
-          </UBadge>
+          <PriorityBadge :priority="row.original.priority" />
         </template>
 
         <template #deadline-cell="{ row }">
@@ -485,15 +427,10 @@ watch(
             <span class="font-medium">{{
               formatDate(row.original.deadline)
             }}</span>
-            <UBadge
-              :color="getDeadlineColor(row.original.deadline, row.original)"
-              variant="soft"
-              size="xs"
-              class="mt-1"
-            >
+            <span class="font-ligh text-xs">
               {{ getDaysRemaining(row.original.deadline, row.original) }} days
               remaining
-            </UBadge>
+            </span>
           </div>
           <span v-else class="text-gray-400">No deadline</span>
         </template>
