@@ -1,40 +1,37 @@
 <script setup>
-import { useForm } from "vee-validate";
-import { toTypedSchema } from "@vee-validate/zod";
-import { categoryChoices } from "~/constants/choices";
-import { z } from "zod";
-import ComplianceFormModal from "./ComplianceFormModal.vue";
-import FinancialStatementFormModal from "./FinancialStatementFormModal.vue";
-import HrImplementationFormModal from "./HrImplementationFormModal.vue";
-import FinanceImplementationFormModal from "./FinanceImplementationFormModal.vue";
-import AuditingAccountingFormModal from "./AuditingAccountingFormModal.vue";
-import MiscellaneousFormModal from "./MiscellaneousFormModal.vue";
-import TaxFormModal from "./TaxFormModal.vue";
+import { ref, computed, watch, onMounted } from 'vue';
+import { useForm } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/zod';
+import { z } from 'zod';
+import { categoryChoices } from '~/constants/choices';
+import UnifiedTaskFormModal from '~/components/tasks/UnifiedTaskFormModal.vue';
 
 // Stores
 const clientStore = useClientStore();
-const addDeadlineStore = useAddDeadlineStore();
 const userStore = useUserStore();
 
-// Reactive Variables
+// State
+const showAddDeadlineModal = ref(false);
+const showUnifiedTaskFormModal = ref(false);
+const selectedClient = ref(null);
+const selectedCategory = ref(null);
+
+// Fetch initial data
+onMounted(async () => {
+  await clientStore.getAllClients();
+  await userStore.getUserChoices();
+});
+
 const { activeClients } = storeToRefs(clientStore);
-const { showModal } = storeToRefs(addDeadlineStore);
 
-// Form initial values
-const initialValues = computed(() => ({
-  client: null,
-  category: "",
-}));
-
-// Form validation schema
+// Form validation
 const validationSchema = toTypedSchema(
   z.object({
-    client: z.number().min(1, "Client is required."),
-    category: z.string().nonempty("Category is required."),
+    client: z.number().min(1, 'Client is required.'),
+    category: z.string().nonempty('Category is required.'),
   })
 );
 
-// Form setup
 const {
   values,
   errors,
@@ -44,129 +41,124 @@ const {
   isSubmitting,
   resetForm,
 } = useForm({
-  initialValues: initialValues.value,
   validationSchema,
+  initialValues: {
+    client: null,
+    category: '',
+  },
 });
 
-// Form fields
-const [client] = defineField("client");
-const [category] = defineField("category");
+const [client, clientAttrs] = defineField('client');
+const [category, categoryAttrs] = defineField('category');
 
-// Computed items for client select
-const clientItems = computed(() => {
-  return activeClients.value.map((client) => ({
+const clientItems = computed(() =>
+  activeClients.value.map((client) => ({
     label: client.name,
     id: client.id,
-  }));
-});
+  }))
+);
 
-// Disable submit button
 const disableSubmit = computed(() => {
-  return !formMeta.value.dirty || !formMeta.value.valid || isSubmitting.value;
+  return !formMeta.value.valid || isSubmitting.value;
 });
 
-// Form submission handler
-const handleNext = handleSubmit(() => {
-  addDeadlineStore.handleNext();
-});
-
-const handleClearAddDeadlineForm = () => {
+const openAddDeadlineModal = () => {
   resetForm();
+  showAddDeadlineModal.value = true;
 };
 
-watch(client, (value) => {
-  addDeadlineStore.setClient(value);
+const handleNext = handleSubmit((formValues) => {
+  selectedClient.value = formValues.client;
+  selectedCategory.value = formValues.category;
+  showAddDeadlineModal.value = false;
+  showUnifiedTaskFormModal.value = true;
 });
 
-watch(category, (value) => {
-  addDeadlineStore.setCategory(value);
-});
+const handleUnifiedModalClose = () => {
+  showUnifiedTaskFormModal.value = false;
+  selectedClient.value = null;
+  selectedCategory.value = null;
+};
 
-onMounted(async () => {
-  await clientStore.getAllClients();
-  await userStore.getUserChoices();
-});
+const handleUnifiedModalSuccess = () => {
+  handleUnifiedModalClose();
+  // Optionally, you can add a success message here
+  const toast = useToast();
+  toast.add({
+    title: 'Success',
+    description: 'Task has been created successfully.',
+    color: 'success',
+    icon: 'i-heroicons-check-circle',
+  });
+};
 </script>
 
 <template>
-  <UModal
-    v-model:open="showModal"
-    title="Add Deadline - Step 1 of 2"
-    description="Enter the details to create a new client deadline."
-    :ui="{ content: 'min-w-3xl' }"
-  >
-    <UButton icon="mdi:calendar-plus-outline" label="Add Deadline" size="xl" />
+  <div>
+    <UButton
+      @click="openAddDeadlineModal"
+      icon="i-heroicons-plus-circle"
+      label="Add Deadline"
+      size="md"
+    />
 
-    <template #body>
-      <UForm :state="values" @submit.prevent="handleNext" class="space-y-4">
-        <div class="grid grid-cols-1 gap-y-4 gap-x-6 sm:grid-cols-6">
-          <!-- Client -->
-          <div class="sm:col-span-6">
-            <UFormField
-              label="Client"
-              name="client"
-              :error="errors.client"
-              required
-              help="Select the client for whom you want to add a deadline"
-            >
-              <USelect
-                v-model="client"
-                :items="clientItems"
-                value-key="id"
-                size="lg"
-                placeholder="Select Client"
-                class="w-full"
-                :disabled="isSubmitting"
-              />
-            </UFormField>
+    <UModal v-model="showAddDeadlineModal" prevent-close>
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Add Deadline - Step 1 of 2</h2>
+            <UButton
+              color="gray"
+              variant="ghost"
+              icon="i-heroicons-x-mark-20-solid"
+              @click="showAddDeadlineModal = false"
+            />
           </div>
+          <p class="text-sm text-gray-500">
+            Select a client and a category to create a new deadline.
+          </p>
+        </template>
 
-          <!-- Category -->
-          <div class="sm:col-span-6">
-            <UFormField
-              label="Category"
-              name="category"
-              :error="errors.category"
-              required
-              help="Choose the type of deadline you want to create"
-            >
-              <URadioGroup
-                v-model="category"
-                :items="categoryChoices"
-                variant="card"
-                :disabled="isSubmitting"
-              />
-            </UFormField>
+        <UForm :state="values" @submit="handleNext" class="space-y-4">
+          <UFormGroup label="Client" name="client" :error="errors.client" required>
+            <USelectMenu
+              v-model="client"
+              v-bind="clientAttrs"
+              :options="clientItems"
+              value-attribute="id"
+              option-attribute="label"
+              placeholder="Select a client"
+              searchable
+            />
+          </UFormGroup>
+
+          <UFormGroup label="Category" name="category" :error="errors.category" required>
+            <URadioGroup
+              v-model="category"
+              v-bind="categoryAttrs"
+              :options="categoryChoices"
+              :ui="{ fieldset: 'space-y-2' }"
+            />
+          </UFormGroup>
+
+          <div class="flex justify-end pt-4">
+            <UButton
+              type="submit"
+              label="Next"
+              :loading="isSubmitting"
+              :disabled="disableSubmit"
+            />
           </div>
-        </div>
+        </UForm>
+      </UCard>
+    </UModal>
 
-        <!-- Form actions -->
-        <div class="mt-6 flex items-center justify-end">
-          <UButton
-            type="submit"
-            icon="mdi:arrow-right"
-            label="Next"
-            size="xl"
-            :loading="isSubmitting"
-            :disabled="disableSubmit"
-          />
-        </div>
-      </UForm>
-    </template>
-  </UModal>
-  <ComplianceFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
-  <FinancialStatementFormModal
-    @clearAddDeadlineForm="handleClearAddDeadlineForm"
-  />
-  <FinanceImplementationFormModal
-    @clearAddDeadlineForm="handleClearAddDeadlineForm"
-  />
-  <HrImplementationFormModal
-    @clearAddDeadlineForm="handleClearAddDeadlineForm"
-  />
-  <AuditingAccountingFormModal
-    @clearAddDeadlineForm="handleClearAddDeadlineForm"
-  />
-  <MiscellaneousFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
-  <TaxFormModal @clearAddDeadlineForm="handleClearAddDeadlineForm" />
+    <UnifiedTaskFormModal
+      :is-open="showUnifiedTaskFormModal"
+      :selected-client="selectedClient"
+      :selected-category="selectedCategory"
+      @close="handleUnifiedModalClose"
+      @success="handleUnifiedModalSuccess"
+    />
+  </div>
 </template>
