@@ -98,7 +98,7 @@ const history = computed(() => {
             <div class="p-4 space-y-2 max-h-96 overflow-y-auto">
               <div v-for="(item, index) in history" :key="index">
                 <p class="text-sm font-medium">Status: {{ item.status }}</p>
-                <p class="text-sm max-w-xs break-words">
+                <p class="text-sm max-w-3xs break-words">
                   Remarks: {{ item.remarks }}
                 </p>
                 <p class="text-xs text-gray-500">Date: {{ item.date }}</p>

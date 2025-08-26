@@ -1,5 +1,6 @@
 <script setup>
-import { convertToTitleCase } from "~/utils/convertToTitleCase";
+import StatusBadge from "../ui/StatusBadge.vue";
+import PriorityBadge from "../ui/PriorityBadge.vue";
 // Stores
 const miscellaneousTableStore = useMiscellaneousTableStore();
 
@@ -44,9 +45,16 @@ const columns = [
   },
   {
     accessorKey: "actions",
-    header: "",
+    header: "Actions",
   },
 ];
+
+const authStore = useAuthStore();
+const { isAdmin } = storeToRefs(authStore);
+
+const filteredColumns = isAdmin.value
+  ? columns
+  : columns.filter((col) => col.accessorKey !== "actions");
 
 // Methods
 const handleSetPage = async (page) => {
@@ -71,7 +79,7 @@ onMounted(async () => {
     >
       <UTable
         :data="miscellaneousTasks"
-        :columns="columns"
+        :columns="filteredColumns"
         :loading="isLoading"
         class="flex-1 h-[calc(100vh-18rem)]"
         :ui="{
@@ -84,22 +92,12 @@ onMounted(async () => {
         <template #priority-cell="{ row }">
           <PriorityBadge :priority="row.original.priority" />
         </template>
-        <template #actions-cell="{ row }">
-          <UButton
-            :to="`/deadlines/${row.original.id}`"
-            icon="mdi:eye-arrow-right-outline"
-            label="View"
-            color="info"
-            size="lg"
-          >
-            View
-          </UButton>
-        </template>
       </UTable>
     </div>
 
     <!-- Pagination with Loading State -->
     <div
+      v-if="pagination.count || isLoading"
       class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4"
     >
       <div

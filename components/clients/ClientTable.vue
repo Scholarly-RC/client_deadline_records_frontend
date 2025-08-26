@@ -169,6 +169,7 @@ watchDebounced(
 
     <!-- Pagination -->
     <div
+    v-if="pagination.count || isLoading"
       class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4"
     >
       <div

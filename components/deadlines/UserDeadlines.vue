@@ -4,6 +4,8 @@ import DeadlineCard from "./DeadlineCard.vue";
 import { useUserDeadlinesStore } from "~/stores/userDeadlines";
 import { useAuthStore } from "~/stores/auth";
 import UpdateDeadlineModal from "./UpdateDeadlineModal.vue";
+import DeadlinesFilterModal from "./DeadlinesFilterModal.vue";
+import AllMyDeadlines from "./AllMyDeadlines.vue";
 
 const userDeadlinesStore = useUserDeadlinesStore();
 const authStore = useAuthStore();
@@ -28,9 +30,12 @@ onMounted(async () => {
   <div class="h-screen flex flex-col flex-1 overflow-hidden">
     <PageHeader page="My Deadlines" />
     <main
-      class="flex-1 overflow-y-auto p-4 bg-white dark:bg-gray-900"
+      class="overflow-y-auto px-10 bg-white dark:bg-gray-900"
       style="max-height: calc(100vh - 4rem)"
     >
+      <div class="mt-2 flex justify-end">
+        <AllMyDeadlines />
+      </div>
       <div v-if="isLoading" class="text-center py-12">
         <UIcon
           name="mdi:gamepad-circle-up"
@@ -46,16 +51,15 @@ onMounted(async () => {
           class="w-10 h-10 text-gray-400 mx-auto"
         />
         <p class="text-lg text-gray-600 dark:text-gray-300">
-          No deadlines assigned to you.
+          No active deadlines assigned to you.
         </p>
       </div>
       <div v-else>
         <div
           v-for="(deadlines, category) in categorizedDeadlines"
           :key="category"
-          class="mb-8"
         >
-          <div v-if="deadlines.length > 0">
+          <div v-if="deadlines.length > 0" class="mb-8">
             <h2
               class="text-2xl font-bold capitalize mb-6 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100"
             >
