@@ -4,7 +4,6 @@ import { toTypedSchema } from "@vee-validate/zod";
 import {
   TASK_CATEGORIES,
   categoryChoices,
-  statusChoices,
   priorityChoices,
   taxCaseCategoryChoices,
   birFormChoices,
@@ -50,7 +49,19 @@ const { users } = storeToRefs(userStore);
 const { activeClients } = storeToRefs(clientStore);
 
 // Reactive form state
-const selectedCategory = ref(props.selectedCategory || props.editTask?.category || null);
+const selectedCategory = ref(
+  props.selectedCategory || props.editTask?.category || null
+);
+
+// Computed for modal open state
+const modalOpen = computed({
+  get: () => props.isOpen,
+  set: (value) => {
+    if (!value) {
+      emit("close");
+    }
+  },
+});
 
 // Watch for category changes to update form validation
 watch(selectedCategory, (newCategory) => {
@@ -64,7 +75,7 @@ const initialValues = computed(() => {
   if (props.editTask) {
     return { ...props.editTask };
   }
-  
+
   if (selectedCategory.value) {
     return {
       ...getDefaultValuesForCategory(selectedCategory.value),
@@ -76,9 +87,8 @@ const initialValues = computed(() => {
     client: props.selectedClient,
     category: null,
     description: "",
-    status: "NOT_YET_STARTED",
     assigned_to: null,
-    priority: "MEDIUM",
+    priority: "medium",
     deadline: "",
     remarks: "",
     date_complied: null,
@@ -119,7 +129,6 @@ const {
 const [client] = defineField("client");
 const [category] = defineField("category");
 const [description] = defineField("description");
-const [status] = defineField("status");
 const [assigned_to] = defineField("assigned_to");
 const [priority] = defineField("priority");
 const [deadline] = defineField("deadline");
@@ -173,21 +182,23 @@ const modalTitle = computed(() => {
   if (isEditMode.value) {
     return "Edit Task";
   }
-  return selectedCategory.value 
+  return selectedCategory.value
     ? `Create ${getCategoryLabel(selectedCategory.value)} Task - Step 2 of 2`
     : "Create Task";
 });
 
 const modalDescription = computed(() => {
   if (selectedClientName.value) {
-    return `${isEditMode.value ? 'Editing' : 'Creating'} task for ${selectedClientName.value}`;
+    return `${isEditMode.value ? "Editing" : "Creating"} task for ${
+      selectedClientName.value
+    }`;
   }
-  return isEditMode.value ? 'Edit task details' : 'Create a new task';
+  return isEditMode.value ? "Edit task details" : "Create a new task";
 });
 
 // Helper function to get category label
 const getCategoryLabel = (categoryValue) => {
-  const choice = categoryChoices.find(c => c.value === categoryValue);
+  const choice = categoryChoices.find((c) => c.value === categoryValue);
   return choice ? choice.label : categoryValue;
 };
 
@@ -208,7 +219,10 @@ const isFieldRequired = (fieldName) => {
 const handleCategoryChange = (newCategory) => {
   selectedCategory.value = newCategory;
   category.value = newCategory;
-  
+
+  // Update form validation schema
+  updateFormValidation(newCategory);
+
   // Update form values with category defaults
   const defaultValues = getDefaultValuesForCategory(newCategory);
   setValues({
@@ -228,7 +242,7 @@ const onSubmit = handleSubmit(async (formValues) => {
       title: "Error",
       description: "No client selected. Please select a client.",
       color: "error",
-      icon: "mdi:alert-circle",
+      icon: "i-lucide-alert-circle",
       duration: 5000,
     });
     return;
@@ -237,13 +251,25 @@ const onSubmit = handleSubmit(async (formValues) => {
   try {
     // Clean up form values - remove null/undefined category-specific fields
     const cleanedValues = { ...formValues };
-    
+
     // Only include category-specific fields that are relevant
     if (category.value) {
       const relevantFields = getFieldsForCategory(category.value);
-      Object.keys(cleanedValues).forEach(key => {
-        if (!['client', 'category', 'description', 'status', 'assigned_to', 'priority', 'deadline', 'remarks', 'date_complied', 'completion_date'].includes(key) && 
-            !relevantFields.includes(key)) {
+      Object.keys(cleanedValues).forEach((key) => {
+        if (
+          ![
+            "client",
+            "category",
+            "description",
+            "assigned_to",
+            "priority",
+            "deadline",
+            "remarks",
+            "date_complied",
+            "completion_date",
+          ].includes(key) &&
+          !relevantFields.includes(key)
+        ) {
           delete cleanedValues[key];
         }
       });
@@ -255,7 +281,7 @@ const onSubmit = handleSubmit(async (formValues) => {
         title: "Success",
         description: "Task updated successfully.",
         color: "success",
-        icon: "mdi:checkbox-multiple-marked",
+        icon: "i-lucide-check-circle",
         duration: 3000,
       });
     } else {
@@ -267,7 +293,7 @@ const onSubmit = handleSubmit(async (formValues) => {
         title: "Success",
         description: "Task created successfully.",
         color: "success",
-        icon: "mdi:checkbox-multiple-marked",
+        icon: "i-lucide-check-circle",
         duration: 3000,
       });
     }
@@ -283,7 +309,7 @@ const onSubmit = handleSubmit(async (formValues) => {
       title: isEditMode.value ? "Update Failed" : "Creation Failed",
       description: getErrorMessage(error),
       color: "error",
-      icon: "mdi:close-box-multiple",
+      icon: "i-lucide-alert-circle",
       duration: 5000,
     });
   }
@@ -299,31 +325,48 @@ onMounted(() => {
   if (props.editTask) {
     selectedCategory.value = props.editTask.category;
     updateFormValidation(props.editTask.category);
+    // Set form values for edit mode
+    setValues({
+      ...props.editTask,
+    });
+  } else if (props.selectedCategory) {
+    // Set initial category if provided
+    selectedCategory.value = props.selectedCategory;
+    category.value = props.selectedCategory;
+    updateFormValidation(props.selectedCategory);
+    // Set default values for the category
+    const defaultValues = getDefaultValuesForCategory(props.selectedCategory);
+    setValues({
+      ...defaultValues,
+      client: props.selectedClient,
+    });
   }
 });
 </script>
 
 <template>
   <UModal
-    :model-value="isOpen"
+    v-model:open="modalOpen"
     :title="modalTitle"
     :description="modalDescription"
-    :ui="{ content: 'min-w-4xl max-w-6xl' }"
-    @close="handleClose"
+    class="max-w-[90vw]"
   >
     <template #body>
-      <UForm :state="values" @submit.prevent="onSubmit" class="space-y-8">
-        
+      <UForm
+        id="unified-task-form"
+        :state="values"
+        @submit.prevent="onSubmit"
+        class="space-y-8"
+      >
         <!-- Basic Task Information -->
-        <div class="bg-primary-50 p-6 rounded-lg">
+        <div class="bg-primary-50 p-4 rounded-lg">
           <h3 class="text-lg font-medium text-gray-900 mb-4">
             Task Information
           </h3>
-          <div class="space-y-6">
-            
+          <div class="space-y-4">
             <!-- Client Selection (if not pre-selected) -->
             <UFormField
-              v-if="!selectedClient"
+              v-if="!props.selectedClient"
               label="Client"
               name="client"
               :error="errors.client"
@@ -341,7 +384,7 @@ onMounted(() => {
 
             <!-- Category Selection (if not pre-selected) -->
             <UFormField
-              v-if="!selectedCategory || isEditMode"
+              v-if="!props.selectedCategory || isEditMode"
               label="Task Category"
               name="category"
               :error="errors.category"
@@ -354,7 +397,7 @@ onMounted(() => {
                 placeholder="Select Category"
                 class="w-full"
                 :disabled="isSubmitting"
-                @change="handleCategoryChange"
+                @update:model-value="handleCategoryChange"
               />
             </UFormField>
 
@@ -375,41 +418,24 @@ onMounted(() => {
               />
             </UFormField>
 
-            <!-- Status and Priority -->
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <UFormField
-                label="Status"
-                name="status"
-                :error="errors.status"
-                required
-              >
-                <USelect
-                  v-model="status"
-                  :items="statusChoices"
-                  value-key="value"
-                  class="w-full"
-                  :disabled="isSubmitting"
-                />
-              </UFormField>
+            <!-- Priority -->
+            <UFormField
+              label="Priority"
+              name="priority"
+              :error="errors.priority"
+              required
+            >
+              <USelect
+                v-model="priority"
+                :items="priorityChoices"
+                value-key="value"
+                class="w-full"
+                :disabled="isSubmitting"
+              />
+            </UFormField>
 
-              <UFormField
-                label="Priority"
-                name="priority"
-                :error="errors.priority"
-                required
-              >
-                <USelect
-                  v-model="priority"
-                  :items="priorityChoices"
-                  value-key="value"
-                  class="w-full"
-                  :disabled="isSubmitting"
-                />
-              </UFormField>
-            </div>
-
-            <!-- Assignment and Deadline -->
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <!-- Assignment, Deadline and Engagement Date -->
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
               <UFormField
                 label="Assigned To"
                 name="assigned_to"
@@ -421,6 +447,21 @@ onMounted(() => {
                   :items="userItems"
                   value-key="value"
                   placeholder="Select User"
+                  class="w-full"
+                  :disabled="isSubmitting"
+                />
+              </UFormField>
+
+              <UFormField
+                v-if="shouldShowField('engagement_date')"
+                label="Engagement Date"
+                name="engagement_date"
+                :error="errors.engagement_date"
+                :required="isFieldRequired('engagement_date')"
+              >
+                <UInput
+                  v-model="engagement_date"
+                  type="date"
                   class="w-full"
                   :disabled="isSubmitting"
                 />
@@ -444,15 +485,14 @@ onMounted(() => {
         </div>
 
         <!-- Category-Specific Fields -->
-        <div v-if="category" class="bg-gray-50 p-6 rounded-lg">
+        <div v-if="category" class="bg-gray-50 p-4 rounded-lg">
           <h3 class="text-lg font-medium text-gray-900 mb-4">
             {{ getCategoryLabel(category) }} Details
           </h3>
-          <div class="space-y-6">
-
+          <div class="space-y-4">
             <!-- Compliance Fields -->
             <template v-if="category === TASK_CATEGORIES.COMPLIANCE">
-              <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <UFormField
                   label="Steps"
                   name="steps"
@@ -489,7 +529,7 @@ onMounted(() => {
 
             <!-- Financial Statement Fields -->
             <template v-if="category === TASK_CATEGORIES.FINANCIAL_STATEMENT">
-              <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <UFormField
                   label="Type"
                   name="type"
@@ -525,7 +565,7 @@ onMounted(() => {
 
             <!-- Tax Case Fields -->
             <template v-if="category === TASK_CATEGORIES.TAX_CASE">
-              <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <UFormField
                   label="Tax Category"
                   name="tax_category"
@@ -639,48 +679,30 @@ onMounted(() => {
             </template>
 
             <!-- Common Fields for Most Categories -->
-            <template v-if="shouldShowField('period_covered') || shouldShowField('engagement_date')">
-              <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <UFormField
-                  v-if="shouldShowField('period_covered')"
-                  label="Period Covered"
-                  name="period_covered"
-                  :error="errors.period_covered"
-                  :required="isFieldRequired('period_covered')"
-                >
-                  <UInput
-                    v-model="period_covered"
-                    placeholder="Enter period covered (e.g., 2024 Q1)"
-                    class="w-full"
-                    :disabled="isSubmitting"
-                  />
-                </UFormField>
-
-                <UFormField
-                  v-if="shouldShowField('engagement_date')"
-                  label="Engagement Date"
-                  name="engagement_date"
-                  :error="errors.engagement_date"
-                  :required="isFieldRequired('engagement_date')"
-                >
-                  <UInput
-                    v-model="engagement_date"
-                    type="date"
-                    class="w-full"
-                    :disabled="isSubmitting"
-                  />
-                </UFormField>
-              </div>
+            <template v-if="shouldShowField('period_covered')">
+              <UFormField
+                label="Period Covered"
+                name="period_covered"
+                :error="errors.period_covered"
+                :required="isFieldRequired('period_covered')"
+              >
+                <UInput
+                  v-model="period_covered"
+                  placeholder="Enter period covered (e.g., 2024 Q1)"
+                  class="w-full"
+                  :disabled="isSubmitting"
+                />
+              </UFormField>
             </template>
           </div>
         </div>
 
         <!-- Additional Information -->
-        <div class="bg-gray-50 p-6 rounded-lg">
+        <div class="bg-gray-50 p-4 rounded-lg">
           <h3 class="text-lg font-medium text-gray-900 mb-4">
             Additional Information
           </h3>
-          <div class="space-y-6">
+          <div class="space-y-4">
             <!-- Remarks -->
             <UFormField
               label="Remarks"
@@ -699,7 +721,7 @@ onMounted(() => {
 
             <!-- Completion Fields (for edit mode) -->
             <template v-if="isEditMode">
-              <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 <UFormField
                   label="Date Complied"
                   name="date_complied"
@@ -729,27 +751,28 @@ onMounted(() => {
             </template>
           </div>
         </div>
-
-        <!-- Form Actions -->
-        <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-          <UButton
-            type="button"
-            color="gray"
-            variant="outline"
-            @click="handleClose"
-            :disabled="isSubmitting"
-          >
-            Cancel
-          </UButton>
-          <UButton
-            type="submit"
-            :loading="isSubmitting"
-            :disabled="disableSubmit"
-          >
-            {{ isEditMode ? 'Update' : 'Create' }} Task
-          </UButton>
-        </div>
       </UForm>
+    </template>
+
+    <template #footer="{ close }">
+      <div class="flex justify-end space-x-3">
+        <UButton
+          color="gray"
+          variant="ghost"
+          @click="handleClose"
+          :disabled="isSubmitting"
+        >
+          Cancel
+        </UButton>
+        <UButton
+          type="submit"
+          form="unified-task-form"
+          :loading="isSubmitting"
+          :disabled="disableSubmit"
+        >
+          {{ isEditMode ? "Update" : "Create" }} Task
+        </UButton>
+      </div>
     </template>
   </UModal>
 </template>
