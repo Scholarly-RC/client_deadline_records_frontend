@@ -181,11 +181,10 @@ onMounted(async () => {
             </div>
 
             <UFormField
-              :label="`Comments ${
-                decisionAction === 'rejected' ? '(Required)' : '(Optional)'
-              }`"
+              label="Comments"
               name="comments"
-              :required="decisionAction === 'rejected'"
+              required
+              hint="Required"
               :help="`Add your ${
                 decisionAction === 'approved' ? 'approval' : 'rejection'
               } comments`"
@@ -235,7 +234,7 @@ onMounted(async () => {
                 :color="decisionAction === 'approved' ? 'success' : 'error'"
                 @click="processDecision"
                 :loading="taskStore.isProcessingApproval"
-                :disabled="decisionAction === 'rejected' && !comments.trim()"
+                :disabled="!comments.trim()"
               >
                 {{ decisionAction === "approved" ? "Approve" : "Reject" }}
               </UButton>

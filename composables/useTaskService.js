@@ -235,7 +235,18 @@ export const useTaskService = () => {
    * @returns {Promise} Approval history with approvals and status history
    */
   const getApprovalHistory = async (taskId) => {
-    return await $apiFetch(`/api/tasks/${taskId}/approval-history/`, {
+    return await $apiFetch(`/api/tasks/${taskId}/task-approvals/`, {
+      method: "GET",
+    });
+  };
+
+  /**
+   * Get status history for a task
+   * @param {number} taskId - Task ID
+   * @returns {Promise} Status history
+   */
+  const getStatusHistory = async (taskId) => {
+    return await $apiFetch(`/api/tasks/${taskId}/status-history/`, {
       method: "GET",
     });
   };
@@ -301,6 +312,7 @@ export const useTaskService = () => {
     initiateApproval,
     processApproval,
     getApprovalHistory,
+    getStatusHistory,
     getPendingApprovals,
 
     // Legacy compatibility

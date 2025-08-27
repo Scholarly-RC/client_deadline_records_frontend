@@ -1,12 +1,16 @@
 <script setup>
 // Props
 const props = defineProps({
-  notification: Object,
+  notification: {
+    type: Object,
+    required: true,
+  },
 });
 
 // State and stores
 const isRead = ref(props.notification.is_read);
 const router = useRouter();
+const route = useRoute();
 const notificationStore = useNotificationStore();
 const unreadNotificationStore = useUnreadNotificationStore();
 
@@ -21,7 +25,32 @@ const handleNotificationClick = async () => {
   notificationStore.close();
 
   if (props.notification.link) {
+    // Check if the user is already on the same page
+    if (route.path === props.notification.link) {
+      // Refresh the page content based on the current route
+      await refreshCurrentPageContent();
+    }
     router.push(props.notification.link);
+  }
+};
+
+// Refresh page content based on the current route
+const refreshCurrentPageContent = async () => {
+  // For approvals page
+  if (route.path === "/approvals") {
+    const { useTaskStore } = await import("~/stores/tasks");
+    const taskStore = useTaskStore();
+    await taskStore.fetchPendingApprovals();
+  }
+  // For my-deadlines page
+  else if (route.path === "/my-deadlines") {
+    const { useUserDeadlinesStore } = await import("~/stores/userDeadlines");
+    const userDeadlinesStore = useUserDeadlinesStore();
+    const { useAuthStore } = await import("~/stores/auth");
+    const authStore = useAuthStore();
+    if (authStore.user && authStore.user.id) {
+      await userDeadlinesStore.fetchUserDeadlines(authStore.user.id);
+    }
   }
 };
 </script>

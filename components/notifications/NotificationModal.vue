@@ -9,23 +9,49 @@ const { showNotification, notifications, showMoreNotification } =
 const unreadNotificationStore = useUnreadNotificationStore();
 const { unreadNotificationCount } = storeToRefs(unreadNotificationStore);
 
+// Function to handle "Show more" button click
 const handleShowMoreNotification = async () => {
-  await notificationStore.getNotifications();
+  try {
+    await notificationStore.getNotifications();
+  } catch (error) {
+    console.error("Failed to load more notifications:", error);
+  }
 };
 
-watch(showNotification, async (value) => {
-  if (value) {
-    await notificationStore.getNotifications();
+// Function to handle popover open/close
+const handlePopoverUpdate = async (isOpen) => {
+  if (isOpen) {
+    // Fetch notifications when popover opens
+    try {
+      // Use refresh to get the latest notifications
+      await notificationStore.refreshNotifications();
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
   }
-});
+  // Sync the store state with popover state
+  notificationStore.showNotification = isOpen;
+};
+
+// Function to handle notification button click (in addition to popover open)
+const handleNotificationButtonClick = async () => {
+  // Ensure we fetch notifications when the button is clicked
+  if (!showNotification.value) {
+    try {
+      await notificationStore.refreshNotifications();
+    } catch (error) {
+      console.error("Failed to fetch notifications on button click:", error);
+    }
+  }
+};
 </script>
 
 <template>
-  <UPopover>
-    <UChip
-      :show="unreadNotificationCount > 0"
+  <UPopover :open="showNotification" @update:open="handlePopoverUpdate">
+    <UChip 
+      :show="unreadNotificationCount > 0" 
       :text="unreadNotificationCount"
-      size="3xl"
+      size="xl"
     >
       <UButton
         icon="mdi:bell-ring-outline"
@@ -33,6 +59,7 @@ watch(showNotification, async (value) => {
         variant="subtle"
         size="xl"
         color="neutral"
+        @click="handleNotificationButtonClick"
       />
     </UChip>
 
@@ -55,10 +82,9 @@ watch(showNotification, async (value) => {
         >
           <template v-if="notifications.length > 0">
             <Notification
-              v-for="(notification, index) in notifications"
+              v-for="notification in notifications"
               :key="notification.id"
               :notification="notification"
-              :count="index"
             />
           </template>
           <template v-else>
@@ -75,17 +101,28 @@ watch(showNotification, async (value) => {
 
         <!-- Dropdown footer -->
         <div
-          class="px-4 py-2 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-center"
+          class="px-4 py-3 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-center"
         >
           <UButton
             v-if="showMoreNotification"
-            `
             @click="handleShowMoreNotification"
-            label="Show more"
-            variant="outline"
-            size="xs"
-            color="neutral"
-          />
+            label="Load more notifications"
+            variant="soft"
+            color="primary"
+            size="sm"
+            class="w-full justify-center"
+            :loading="notificationStore.isLoading"
+          >
+            <template #leading>
+              <UIcon name="mdi:reload" />
+            </template>
+          </UButton>
+          <p 
+            v-else-if="notifications.length > 0" 
+            class="text-xs text-gray-500 dark:text-gray-400"
+          >
+            No more notifications to load
+          </p>
         </div>
       </div>
     </template>

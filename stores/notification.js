@@ -25,6 +25,16 @@ export const useNotificationStore = defineStore("notificationStore", {
     toggle() {
       this.showNotification = !this.showNotification;
     },
+    // Method to clear notifications
+    clear() {
+      this.notifications = [];
+      this.pagination = {};
+    },
+    // Method to refresh notifications (clear and fetch new ones)
+    async refreshNotifications() {
+      this.clear();
+      await this.getNotifications();
+    },
     async getNotifications() {
       const authStore = useAuthStore();
       const { userProfile } = storeToRefs(authStore);
@@ -37,8 +47,14 @@ export const useNotificationStore = defineStore("notificationStore", {
         const params = new URLSearchParams();
         params.append("recipient", userProfile.value.id);
         params.append("page_size", 5);
+        // Add ordering by created_at descending to get latest notifications first
+        params.append("ordering", "-created_at");
 
-        if (this.pagination["next"]) {
+        // For loading more notifications, we need to preserve the existing notifications
+        // and append new ones. For initial load, we should clear the list.
+        const isLoadMore = this.pagination && this.pagination["next"];
+        
+        if (isLoadMore) {
           params.append("page", this.pagination["current_page"] + 1);
         }
 
@@ -50,14 +66,25 @@ export const useNotificationStore = defineStore("notificationStore", {
 
         const { results, ...pagination } = response;
 
-        for (const result of results) {
-          const exists = this.notifications.some(
-            (item) => item.id === result.id
-          );
+        if (isLoadMore) {
+          // For loading more, append to existing notifications
+          let updatedNotifications = [...this.notifications];
+          
+          for (const result of results) {
+            const exists = updatedNotifications.some(
+              (item) => item.id === result.id
+            );
 
-          if (!exists) {
-            this.notifications.push(result);
+            if (!exists) {
+              // For load more, we add to the end
+              updatedNotifications.push(result);
+            }
           }
+          
+          this.notifications = updatedNotifications;
+        } else {
+          // For initial load, replace notifications with new ones (already sorted by API)
+          this.notifications = results;
         }
 
         this.pagination = pagination;
@@ -69,7 +96,7 @@ export const useNotificationStore = defineStore("notificationStore", {
           icon: "mdi:close-box-multiple",
           duration: 5000,
         });
-        console.error(error);
+        console.error('Error fetching notifications:', error);
       } finally {
         this.isLoading = false;
       }
@@ -138,7 +165,7 @@ export const useUnreadNotificationStore = defineStore(
             icon: "mdi:close-box-multiple",
             duration: 5000,
           });
-          console.error(error);
+          console.error('Error fetching unread notifications:', error);
         } finally {
           this.isLoading = false;
         }

@@ -19,6 +19,7 @@ export const useTaskStore = defineStore("taskStore", {
     isProcessingApproval: false,
     pendingApprovals: [],
     approvalHistory: {},
+    statusHistory: {},
 
     // Filter states
     filters: {
@@ -542,6 +543,21 @@ export const useTaskStore = defineStore("taskStore", {
       } catch (error) {
         console.error("Error fetching approval history:", error);
         this.handleError(error, "Failed to fetch approval history");
+      }
+    },
+
+    /**
+     * Fetch status history for a task
+     */
+    async fetchStatusHistory(taskId) {
+      try {
+        const taskService = useTaskService();
+        const history = await taskService.getStatusHistory(taskId);
+        this.statusHistory[taskId] = history;
+        return history;
+      } catch (error) {
+        console.error("Error fetching status history:", error);
+        this.handleError(error, "Failed to fetch status history");
       }
     },
 

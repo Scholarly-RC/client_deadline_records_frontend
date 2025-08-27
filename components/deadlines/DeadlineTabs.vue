@@ -25,12 +25,12 @@ const refreshAllTables = async () => {
     miscellaneousTableRef.value,
     taxTableRef.value,
   ];
-  
+
   // Refresh all tables that are currently mounted
   await Promise.all(
     tableRefs
-      .filter(ref => ref && ref.refreshData)
-      .map(ref => ref.refreshData())
+      .filter((ref) => ref && ref.refreshData)
+      .map((ref) => ref.refreshData())
   );
 };
 
@@ -104,7 +104,7 @@ const active = computed({
   set(tab) {
     // Hash is specified here to prevent the page from scrolling to the top
     router.push({
-      path: "/my-deadlines",
+      path: route.path,
       query: { tab },
     });
   },

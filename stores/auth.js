@@ -137,6 +137,17 @@ export const useAuthStore = defineStore("auth", {
       const refreshCookie = useCookie("refresh_token");
       refreshCookie.value = null;
 
+      // Stop notification polling
+      if (import.meta.client) {
+        // Use dynamic import to avoid circular dependencies
+        import("~/stores/notification").then(({ useUnreadNotificationStore }) => {
+          const unreadNotificationStore = useUnreadNotificationStore();
+          unreadNotificationStore.stopPolling();
+        }).catch(error => {
+          console.error("Failed to stop notification polling:", error);
+        });
+      }
+
       // We don't need to remove headers, we'll just use the interceptor
       // which will check for accessToken existence
     },

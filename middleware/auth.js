@@ -12,4 +12,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (!authStore.isAuthenticated) {
     return navigateTo("/login");
   }
+  
+  // Start notification polling if authenticated
+  if (import.meta.client) {
+    const { useUnreadNotificationStore } = await import("~/stores/notification");
+    const unreadNotificationStore = useUnreadNotificationStore();
+    unreadNotificationStore.startPolling();
+  }
 });

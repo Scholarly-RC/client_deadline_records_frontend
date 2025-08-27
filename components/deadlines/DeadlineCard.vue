@@ -21,7 +21,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['task-updated', 'approval-initiated']);
+const emit = defineEmits(["task-updated", "approval-initiated"]);
 
 const showApprovalHistoryModal = ref(false);
 const showStatusHistoryModal = ref(false);
@@ -31,40 +31,78 @@ const daysRemaining = computed(() => {
   return getDaysRemaining(props.deadline.deadline_days_remaining);
 });
 
+// Create a local reactive copy of the deadline to ensure reactivity
+const localDeadline = ref({ ...props.deadline });
 
+// Watch for changes in the deadline prop and update local copy
+watch(
+  () => props.deadline,
+  (newDeadline) => {
+    localDeadline.value = { ...newDeadline };
+    // Fetch status history when deadline prop changes
+    fetchStatusHistory();
+  },
+  { deep: true }
+);
 
+// Fetch status history for the current task
+const fetchStatusHistory = async () => {
+  try {
+    await taskStore.fetchStatusHistory(localDeadline.value.id);
+  } catch (error) {
+    console.error("Error fetching status history:", error);
+  }
+};
+
+// Computed property for status history - now properly fetches from status history endpoint
 const history = computed(() => {
-  return props.deadline.status_history || [];
+  // First check if we have status history for this task
+  const statusHistory = taskStore.statusHistory[localDeadline.value.id];
+  if (statusHistory) {
+    return statusHistory;
+  }
+
+  // Fallback to the direct field if available
+  return localDeadline.value.status_history || [];
 });
 
 const hasHistory = computed(() => {
-  return history.value && history.value.length > 0;
+  // Check if we have any status history to display
+  const statusHistory = history.value;
+  return statusHistory && statusHistory.length > 0;
 });
 
 const canApprove = computed(() => {
-  return taskStore.canApproveTask(props.deadline);
+  return taskStore.canApproveTask(localDeadline.value);
 });
 
 const canInitiateApproval = computed(() => {
-  return taskStore.canInitiateApproval(props.deadline);
+  return taskStore.canInitiateApproval(localDeadline.value);
 });
 
 const hasApprovalWorkflow = computed(() => {
-  return props.deadline.requires_approval;
+  return localDeadline.value.requires_approval;
 });
 
 const shouldShowApprovalHistory = computed(() => {
   // Show if has approval workflow OR status is completed
-  return props.deadline.requires_approval || 
-         props.deadline.current_approval_step || 
-         props.deadline.approval_history?.length > 0 ||
-         props.deadline.status === "completed";
+  return (
+    localDeadline.value.requires_approval ||
+    localDeadline.value.current_approval_step ||
+    localDeadline.value.approval_history?.length > 0 ||
+    localDeadline.value.status === "completed"
+  );
 });
 
 const canShowAddUpdateButton = computed(() => {
   // Show Add Update if status is NOT for_revision, completed, for_checking, or cancelled
-  const hiddenStatuses = ["for_revision", "completed", "for_checking", "cancelled"];
-  return !hiddenStatuses.includes(props.deadline.status);
+  const hiddenStatuses = [
+    "for_revision",
+    "completed",
+    "for_checking",
+    "cancelled",
+  ];
+  return !hiddenStatuses.includes(localDeadline.value.status);
 });
 
 const openApprovalHistory = () => {
@@ -77,7 +115,7 @@ const openStatusHistory = () => {
 
 const onApprovalAction = async () => {
   // Emit event to notify parent to refresh only this specific task
-  emit('task-updated', props.deadline.id);
+  emit("task-updated", localDeadline.value.id);
 };
 
 const initiateApproval = () => {
@@ -87,23 +125,49 @@ const initiateApproval = () => {
 const onApprovalInitiated = async () => {
   showApprovalModal.value = false;
   // Emit event to notify parent to refresh only this specific task
-  emit('approval-initiated', props.deadline.id);
+  emit("approval-initiated", localDeadline.value.id);
 };
 
 const openAddUpdate = () => {
-  deadlineUpdate.open(props.category, props.deadline);
+  deadlineUpdate.open(props.category, localDeadline.value);
 };
+
+// Fetch status history when component is mounted
+onMounted(() => {
+  fetchStatusHistory();
+});
 
 // Watch for when the deadline update modal closes (indicating completion)
 watch(
   () => deadlineUpdate.showModal,
   async (newValue, oldValue) => {
     // If modal was open and is now closed, update was likely completed
-    if (oldValue && !newValue && deadlineUpdate.deadline?.id === props.deadline.id) {
-      // Small delay to ensure backend update is complete
-      await nextTick();
-      // Emit event to notify parent to refresh only this specific task
-      emit('task-updated', props.deadline.id);
+    if (
+      oldValue &&
+      !newValue &&
+      deadlineUpdate.deadline?.id === localDeadline.value.id
+    ) {
+      // Add a small delay to ensure backend processing is complete
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // Refresh the local deadline data immediately
+      try {
+        const taskService = useTaskService();
+        const updatedDeadline = await taskService.getTask(
+          localDeadline.value.id
+        );
+        localDeadline.value = updatedDeadline;
+
+        // Fetch status history which should contain the status history
+        await taskStore.fetchStatusHistory(localDeadline.value.id);
+
+        // Emit event to notify parent to refresh only this specific task
+        emit("task-updated", localDeadline.value.id);
+      } catch (error) {
+        console.error("Error refreshing deadline data:", error);
+        // Fallback to emitting the event even if refresh fails
+        emit("task-updated", localDeadline.value.id);
+      }
     }
   }
 );
@@ -115,17 +179,17 @@ watch(
     variant="subtle"
   >
     <template #header>
-      <h3 class="text-lg font-semibold">{{ deadline.client_name }}</h3>
+      <h3 class="text-lg font-semibold">{{ localDeadline.client_name }}</h3>
     </template>
 
     <div class="space-y-2">
       <div class="flex items-center justify-between">
         <span class="text-sm font-medium">Task ID:</span>
-        <span class="text-sm">#{{ deadline.id }}</span>
+        <span class="text-sm">#{{ localDeadline.id }}</span>
       </div>
       <div class="flex items-center justify-between">
         <span class="text-sm font-medium">Due Date:</span>
-        <span class="text-sm">{{ deadline.deadline }}</span>
+        <span class="text-sm">{{ localDeadline.deadline }}</span>
       </div>
       <div class="flex items-center justify-between">
         <span class="text-sm font-medium">Days Remaining:</span>
@@ -133,11 +197,11 @@ watch(
       </div>
       <div class="flex items-center justify-between">
         <span class="text-sm font-medium">Priority:</span>
-        <PriorityBadge :priority="deadline.priority" />
+        <PriorityBadge :priority="localDeadline.priority" />
       </div>
       <div class="flex items-center justify-between">
         <span class="text-sm font-medium">Status:</span>
-        <StatusBadge :status="deadline.status" />
+        <StatusBadge :status="localDeadline.status" />
       </div>
 
       <!-- Approval Workflow Status -->
@@ -155,51 +219,51 @@ watch(
           >
         </div>
         <div class="text-xs text-blue-700 dark:text-blue-300">
-          <div>Step: {{ deadline.current_approval_step }}</div>
-          <div v-if="deadline.pending_approver">
-            Pending: {{ deadline.pending_approver.fullname }}
+          <div>Step: {{ localDeadline.current_approval_step }}</div>
+          <div v-if="localDeadline.pending_approver">
+            Pending: {{ localDeadline.pending_approver.fullname }}
           </div>
         </div>
       </div>
 
-      <div v-if="deadline.description">
+      <div v-if="localDeadline.description">
         <span class="text-sm font-medium">Description:</span>
-        <p class="text-sm">{{ deadline.description }}</p>
+        <p class="text-sm">{{ localDeadline.description }}</p>
       </div>
-      <div v-if="deadline.needed_data">
+      <div v-if="localDeadline.needed_data">
         <span class="text-sm font-medium">Needed Data:</span>
-        <p class="text-sm">{{ deadline.needed_data }}</p>
+        <p class="text-sm">{{ localDeadline.needed_data }}</p>
       </div>
-      <div v-if="deadline.category_name">
+      <div v-if="localDeadline.category_name">
         <span class="text-sm font-medium">Category:</span>
-        <p class="text-sm">{{ deadline.category_name }}</p>
+        <p class="text-sm">{{ localDeadline.category_name }}</p>
       </div>
-      <div v-if="deadline.type_name">
+      <div v-if="localDeadline.type_name">
         <span class="text-sm font-medium">Type:</span>
-        <p class="text-sm">{{ deadline.type_name }}</p>
+        <p class="text-sm">{{ localDeadline.type_name }}</p>
       </div>
-      <div v-if="deadline.form_name">
+      <div v-if="localDeadline.form_name">
         <span class="text-sm font-medium">Form:</span>
-        <p class="text-sm">{{ deadline.form_name }}</p>
+        <p class="text-sm">{{ localDeadline.form_name }}</p>
       </div>
-      <div v-if="deadline.period_covered">
+      <div v-if="localDeadline.period_covered">
         <span class="text-sm font-medium">Period Covered:</span>
-        <p class="text-sm">{{ deadline.period_covered }}</p>
+        <p class="text-sm">{{ localDeadline.period_covered }}</p>
       </div>
-      <div v-if="deadline.tax_payable">
+      <div v-if="localDeadline.tax_payable">
         <span class="text-sm font-medium">Tax Payable:</span>
-        <p class="text-sm">{{ deadline.tax_payable }}</p>
+        <p class="text-sm">{{ localDeadline.tax_payable }}</p>
       </div>
-      <div v-if="deadline.remarks">
+      <div v-if="localDeadline.remarks">
         <span class="text-sm font-medium">Remarks:</span>
-        <p class="text-sm max-w-xs break-words">{{ deadline.remarks }}</p>
+        <p class="text-sm max-w-xs break-words">{{ localDeadline.remarks }}</p>
       </div>
     </div>
 
     <!-- Approval Actions Panel for Current Approver -->
     <ApprovalActionsPanel
       v-if="canApprove"
-      :task="deadline"
+      :task="localDeadline"
       @approved="onApprovalAction"
       @rejected="onApprovalAction"
       @forwarded="onApprovalAction"
@@ -233,7 +297,10 @@ watch(
         </div>
 
         <!-- Action Buttons Row -->
-        <div v-if="canShowAddUpdateButton || canInitiateApproval" class="flex gap-2 justify-center">
+        <div
+          v-if="canShowAddUpdateButton || canInitiateApproval"
+          class="flex gap-2 justify-center"
+        >
           <UButton
             v-if="canShowAddUpdateButton"
             @click="openAddUpdate"
@@ -265,11 +332,11 @@ watch(
         <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">
-              Approval History - {{ deadline.description }}
+              Approval History - {{ localDeadline.description }}
             </h3>
           </template>
 
-          <ApprovalHistoryComponent :task="deadline" />
+          <ApprovalHistoryComponent :task="localDeadline" />
 
           <template #footer>
             <div class="flex justify-end">
@@ -294,7 +361,7 @@ watch(
         <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">
-              Status History - {{ deadline.description }}
+              Status History - {{ localDeadline.description }}
             </h3>
           </template>
 
@@ -310,11 +377,11 @@ watch(
                     <span
                       class="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full font-medium"
                     >
-                      {{ historyItem.change_type || "Status Change" }}
+                      {{ historyItem.change_type_display || "Status Change" }}
                     </span>
                   </div>
                   <span class="text-xs text-gray-500 pe-3">
-                    {{ historyItem.date }}
+                    {{ historyItem.formatted_date }}
                   </span>
                 </div>
 
@@ -357,7 +424,7 @@ watch(
 
                   <div class="text-xs text-gray-500 mt-2">
                     <span class="font-medium">Changed by:</span>
-                    {{ historyItem.changed_by }}
+                    {{ historyItem.changed_by.fullname }}
                   </div>
                 </div>
               </div>
@@ -382,7 +449,7 @@ watch(
     <!-- Approval Workflow Modal -->
     <ApprovalWorkflowModal
       v-model="showApprovalModal"
-      :task="deadline"
+      :task="localDeadline"
       @approved="onApprovalInitiated"
     />
   </UCard>
