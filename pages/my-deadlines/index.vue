@@ -22,8 +22,19 @@ useHead({
 const categorizedDeadlines = computed(() => userDeadlinesStore.deadlines);
 const isLoading = computed(() => userDeadlinesStore.isLoading);
 
+// Filter out completed and cancelled deadlines
+const filteredCategorizedDeadlines = computed(() => {
+  const filtered = {};
+  Object.entries(categorizedDeadlines.value).forEach(([category, deadlines]) => {
+    filtered[category] = deadlines.filter(deadline => 
+      deadline.status !== 'completed' && deadline.status !== 'cancelled'
+    );
+  });
+  return filtered;
+});
+
 const hasDeadlines = computed(() => {
-  return Object.values(categorizedDeadlines.value).some(
+  return Object.values(filteredCategorizedDeadlines.value).some(
     (category) => category.length > 0
   );
 });
@@ -79,7 +90,7 @@ const handleTaskUpdate = async (taskId) => {
       </div>
       <div v-else>
         <div
-          v-for="(deadlines, category) in categorizedDeadlines"
+          v-for="(deadlines, category) in filteredCategorizedDeadlines"
           :key="category"
         >
           <div v-if="deadlines.length > 0" class="mb-8">
