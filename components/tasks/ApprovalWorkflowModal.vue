@@ -2,6 +2,7 @@
 import { computed, ref, watch, onMounted } from "vue";
 import { useTaskStore } from "~/stores/tasks";
 import { useUserStore } from "~/stores/users";
+import { useAuthStore } from "~/stores/auth";
 
 const props = defineProps({
   modelValue: {
@@ -18,6 +19,7 @@ const emit = defineEmits(["update:modelValue", "approved"]);
 
 const taskStore = useTaskStore();
 const userStore = useUserStore();
+const authStore = useAuthStore();
 
 const selectedApprovers = ref([]);
 
@@ -28,7 +30,7 @@ const isOpen = computed({
 
 const adminUsers = computed(() => {
   return userStore.users
-    .filter((user) => user.is_admin)
+    .filter((user) => user.is_admin && user.id !== authStore.user?.id)
     .map((user) => ({
       label: user.fullname,
       value: user.id,
