@@ -152,11 +152,14 @@ const handleTaskCompletion = async (completionData) => {
     // Use userDeadlines store if available, otherwise use tasks store
     const userDeadlinesStore = useUserDeadlinesStore();
     if (userDeadlinesStore && userDeadlinesStore.markTaskCompleted) {
-      await userDeadlinesStore.markTaskCompleted(localDeadline.value.id, completionData);
+      await userDeadlinesStore.markTaskCompleted(
+        localDeadline.value.id,
+        completionData
+      );
     } else {
       await taskStore.markCompleted(localDeadline.value.id, completionData);
     }
-    
+
     showCompletionModal.value = false;
     // Emit event to notify parent to refresh this specific task
     emit("task-updated", localDeadline.value.id);
@@ -324,7 +327,9 @@ watch(
 
         <!-- Action Buttons Row -->
         <div
-          v-if="canShowAddUpdateButton || canInitiateApproval || canMarkComplete"
+          v-if="
+            canShowAddUpdateButton || canInitiateApproval || canMarkComplete
+          "
           class="flex gap-2 justify-center flex-wrap"
         >
           <UButton
