@@ -2,6 +2,15 @@
 import UnifiedTaskTable from "~/components/tasks/UnifiedTaskTable.vue";
 import { TASK_CATEGORIES } from "~/constants/choices.js";
 
+// Props
+const props = defineProps({
+  showUserTasksOnly: {
+    type: Boolean,
+    default: false,
+    description: "If true, only shows tasks assigned to the current user. Used for 'My Deadlines' view."
+  }
+});
+
 const route = useRoute();
 const router = useRouter();
 
@@ -119,6 +128,7 @@ const active = computed({
         :category="TASK_CATEGORIES.COMPLIANCE"
         title="Compliance Tasks"
         :show-category-column="false"
+        :show-user-tasks-only="props.showUserTasksOnly"
         @edit="handleEditTask"
         @view="handleViewTask"
         @delete="handleDeleteTask"
@@ -130,6 +140,7 @@ const active = computed({
         :category="TASK_CATEGORIES.FINANCIAL_STATEMENT"
         title="Financial Statement Tasks"
         :show-category-column="false"
+        :show-user-tasks-only="props.showUserTasksOnly"
         @edit="handleEditTask"
         @view="handleViewTask"
         @delete="handleDeleteTask"
@@ -141,6 +152,7 @@ const active = computed({
         :category="TASK_CATEGORIES.FINANCE_IMPLEMENTATION"
         title="Finance Implementation Tasks"
         :show-category-column="false"
+        :show-user-tasks-only="props.showUserTasksOnly"
         @edit="handleEditTask"
         @view="handleViewTask"
         @delete="handleDeleteTask"
@@ -152,6 +164,7 @@ const active = computed({
         :category="TASK_CATEGORIES.HR_IMPLEMENTATION"
         title="HR Implementation Tasks"
         :show-category-column="false"
+        :show-user-tasks-only="props.showUserTasksOnly"
         @edit="handleEditTask"
         @view="handleViewTask"
         @delete="handleDeleteTask"
@@ -163,6 +176,7 @@ const active = computed({
         :category="TASK_CATEGORIES.ACCOUNTING_AUDIT"
         title="Auditing & Accounting Tasks"
         :show-category-column="false"
+        :show-user-tasks-only="props.showUserTasksOnly"
         @edit="handleEditTask"
         @view="handleViewTask"
         @delete="handleDeleteTask"
@@ -174,6 +188,7 @@ const active = computed({
         :category="TASK_CATEGORIES.MISCELLANEOUS"
         title="Miscellaneous Tasks"
         :show-category-column="false"
+        :show-user-tasks-only="props.showUserTasksOnly"
         @edit="handleEditTask"
         @view="handleViewTask"
         @delete="handleDeleteTask"
@@ -185,6 +200,7 @@ const active = computed({
         :category="TASK_CATEGORIES.TAX_CASE"
         title="Tax Tasks"
         :show-category-column="false"
+        :show-user-tasks-only="props.showUserTasksOnly"
         @edit="handleEditTask"
         @view="handleViewTask"
         @delete="handleDeleteTask"

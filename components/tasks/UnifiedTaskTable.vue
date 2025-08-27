@@ -20,6 +20,11 @@ const props = defineProps({
     type: String,
     default: "Tasks",
   },
+  showUserTasksOnly: {
+    type: Boolean,
+    default: false,
+    description: "If true, only shows tasks assigned to the current user",
+  },
 });
 
 const emit = defineEmits(["edit", "delete", "view"]);
@@ -27,6 +32,7 @@ const emit = defineEmits(["edit", "delete", "view"]);
 // Stores
 const taskStore = useTaskStore();
 const userStore = useUserStore();
+const authStore = useAuthStore();
 
 // Store refs
 const { tasks, isLoading, pagination } = storeToRefs(taskStore);
@@ -136,9 +142,24 @@ const columns = [
 const refreshData = async () => {
   // Clear all filters to ensure we see the refreshed data
   clearFilters();
-  
+
   try {
-    if (props.category) {
+    if (props.showUserTasksOnly && authStore.user?.id) {
+      // Fetch tasks for the current user only using the new paginated endpoint
+      const taskService = useTaskService();
+      const response = await taskService.getUserDeadlines(authStore.user.id, {
+        category: props.category || undefined // Only include category if specified
+      });
+      
+      // Handle paginated response structure
+      if (response.results) {
+        taskStore.tasks = response.results;
+        const { results, ...paginationData } = response;
+        taskStore.pagination = paginationData;
+      } else {
+        taskStore.tasks = response;
+      }
+    } else if (props.category) {
       await taskStore.fetchTasksByCategory(props.category);
     } else {
       await taskStore.fetchTasks();

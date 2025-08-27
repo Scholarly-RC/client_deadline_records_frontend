@@ -146,17 +146,6 @@ export const useTaskService = () => {
   };
 
   /**
-   * Get tasks by user
-   * @param {number} userId - User ID
-   * @returns {Promise} User's tasks
-   */
-  const getTasksByUser = async (userId) => {
-    return await $apiFetch(`/api/tasks/by_user/?user_id=${userId}`, {
-      method: "GET",
-    });
-  };
-
-  /**
    * Get task statistics
    * @returns {Promise} Task statistics
    */
@@ -261,8 +250,8 @@ export const useTaskService = () => {
   };
 
   /**
-   * Legacy compatibility method for user deadlines
-   * Now supports pagination - returns paginated response
+   * Get user-specific deadlines and tasks (preferred method)
+   * Uses the new /api/users/{id}/deadlines-tasks/ endpoint with pagination support
    * @param {number} userId - User ID
    * @param {Object} filters - Optional pagination and filter parameters
    * @param {number} filters.page - Page number for pagination
@@ -322,7 +311,6 @@ export const useTaskService = () => {
     // New custom actions
     getOverdueTasks,
     getTasksDueSoon,
-    getTasksByUser,
     getTaskStatistics,
     markTaskCompleted,
     updateTaskDeadline,
