@@ -219,7 +219,6 @@ export const useTaskService = () => {
    * @param {Object} decisionData - Approval decision data
    * @param {string} decisionData.action - "approved" or "rejected"
    * @param {string} decisionData.comments - Optional approval comments
-   * @param {number} decisionData.next_approver - Optional: forward to another admin
    * @returns {Promise} Approval decision response
    */
   const processApproval = async (taskId, decisionData) => {

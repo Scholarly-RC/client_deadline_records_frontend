@@ -1,8 +1,7 @@
 <script setup>
-import { computed, ref, onMounted } from "vue";
+import { computed, ref } from "vue";
 import { useTaskStore } from "~/stores/tasks";
 import { useAuthStore } from "~/stores/auth";
-import { useUserStore } from "~/stores/users";
 
 const props = defineProps({
   task: {
@@ -11,32 +10,20 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["approved", "rejected", "forwarded"]);
+const emit = defineEmits(["approved", "rejected"]);
 
 const taskStore = useTaskStore();
 const authStore = useAuthStore();
-const userStore = useUserStore();
 
 const showDecisionModal = ref(false);
-const showForwardModal = ref(false);
 const decisionAction = ref("approved");
 const comments = ref("");
-const forwardComments = ref("");
-const selectedForwardUser = ref(null);
 
 const canShowActions = computed(() => {
   return taskStore.canApproveTask(props.task);
 });
 
-const forwardUserOptions = computed(() => {
-  return userStore.users
-    .filter((user) => user.is_admin && user.id !== authStore.user?.id)
-    .map((user) => ({
-      label: user.fullname,
-      value: user.id,
-      ...user,
-    }));
-});
+
 
 const openApprovalDialog = (action) => {
   decisionAction.value = action;
@@ -44,22 +31,14 @@ const openApprovalDialog = (action) => {
   showDecisionModal.value = true;
 };
 
-const openForwardDialog = () => {
-  selectedForwardUser.value = null;
-  forwardComments.value = "";
-  showForwardModal.value = true;
-};
+
 
 const closeDecisionModal = () => {
   showDecisionModal.value = false;
   comments.value = "";
 };
 
-const closeForwardModal = () => {
-  showForwardModal.value = false;
-  selectedForwardUser.value = null;
-  forwardComments.value = "";
-};
+
 
 const processDecision = async () => {
   try {
@@ -76,28 +55,9 @@ const processDecision = async () => {
   }
 };
 
-const processForward = async () => {
-  try {
-    await taskStore.processApproval(
-      props.task.id,
-      "approved",
-      forwardComments.value || null,
-      selectedForwardUser.value
-    );
 
-    emit("forwarded");
-    closeForwardModal();
-  } catch (error) {
-    console.error("Failed to forward approval:", error);
-  }
-};
 
-// Fetch users when component mounts
-onMounted(async () => {
-  if (userStore.users.length === 0) {
-    await userStore.getUserChoices();
-  }
-});
+
 </script>
 
 <template>
@@ -141,16 +101,7 @@ onMounted(async () => {
             Reject
           </UButton>
 
-          <UButton
-            color="secondary"
-            variant="outline"
-            size="sm"
-            icon="mdi:account-arrow-right"
-            @click="openForwardDialog"
-            :loading="taskStore.isProcessingApproval"
-          >
-            Forward
-          </UButton>
+
         </div>
       </div>
     </div>
@@ -244,87 +195,6 @@ onMounted(async () => {
       </template>
     </UModal>
 
-    <!-- Forward Modal -->
-    <UModal v-model:open="showForwardModal">
-      <template #content>
-        <UCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">Forward to Another Approver</h3>
-          </template>
 
-          <div class="space-y-4">
-            <div class="flex flex-col gap-1">
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                Task: <span class="font-medium">{{ task.description }}</span>
-              </p>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                Client:
-                <span class="font-medium">{{ task.client_name }}</span>
-              </p>
-              <p class="text-sm text-gray-600 dark:text-gray-400">
-                Assigned To:
-                <span class="font-medium">{{ task.assigned_to_name }}</span>
-              </p>
-            </div>
-
-            <UFormField
-              label="Forward to Admin User"
-              name="selectedForwardUser"
-              required
-              help="Select an admin user to forward this approval to"
-            >
-              <USelectMenu
-                v-model="selectedForwardUser"
-                :items="forwardUserOptions"
-                placeholder="Select admin user..."
-                class="w-full"
-              >
-                <template #option="{ option }">
-                  <div class="flex items-center space-x-2">
-                    <div class="flex-1">
-                      <div class="font-medium">{{ option.fullname }}</div>
-                      <div class="text-sm text-gray-500">{{ option.role }}</div>
-                    </div>
-                  </div>
-                </template>
-              </USelectMenu>
-            </UFormField>
-
-            <UFormField
-              label="Forward Comments (Optional)"
-              name="forwardComments"
-              help="Add comments for the next approver"
-            >
-              <UTextarea
-                v-model="forwardComments"
-                placeholder="Add comments for the next approver..."
-                :rows="3"
-                class="w-full"
-              />
-            </UFormField>
-          </div>
-
-          <template #footer>
-            <div class="flex justify-end space-x-2">
-              <UButton
-                variant="ghost"
-                @click="closeForwardModal"
-                :disabled="taskStore.isProcessingApproval"
-              >
-                Cancel
-              </UButton>
-              <UButton
-                color="secondary"
-                @click="processForward"
-                :loading="taskStore.isProcessingApproval"
-                :disabled="!selectedForwardUser"
-              >
-                Forward
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </template>
-    </UModal>
   </div>
 </template>

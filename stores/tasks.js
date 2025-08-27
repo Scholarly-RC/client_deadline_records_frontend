@@ -486,19 +486,11 @@ export const useTaskStore = defineStore("taskStore", {
     /**
      * Process approval decision
      */
-    async processApproval(
-      taskId,
-      action,
-      comments = null,
-      nextApprover = null
-    ) {
+    async processApproval(taskId, action, comments = null) {
       this.isProcessingApproval = true;
       try {
         const taskService = useTaskService();
         const decisionData = { action, comments };
-        if (nextApprover) {
-          decisionData.next_approver = nextApprover;
-        }
 
         await taskService.processApproval(taskId, decisionData);
 

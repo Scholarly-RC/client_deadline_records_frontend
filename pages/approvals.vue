@@ -149,7 +149,7 @@ onMounted(async () => {
                     <span class="text-gray-600 dark:text-gray-400"
                       >Category:</span
                     >
-                    <span class="font-medium">{{ task.category }}</span>
+                    <span class="font-medium">{{ task.category_display }}</span>
                   </div>
                   <div class="flex justify-between">
                     <span class="text-gray-600 dark:text-gray-400"
@@ -249,7 +249,6 @@ onMounted(async () => {
                   :task="task"
                   @approved="onApprovalAction"
                   @rejected="onApprovalAction"
-                  @forwarded="onApprovalAction"
                 />
               </div>
             </UCard>
