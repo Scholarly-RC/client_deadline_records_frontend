@@ -4,12 +4,22 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@pinia/nuxt", "@nuxtjs/color-mode", "@vite-pwa/nuxt", "@nuxt/ui"],
   ssr: false,
+  
+  // Route redirects for backward compatibility
+  nitro: {
+    routeRules: {
+      '/deadlines': { redirect: '/tasks' },
+      '/deadlines/**': { redirect: '/tasks/**' },
+      '/my-deadlines': { redirect: '/my-tasks' },
+      '/my-deadlines/**': { redirect: '/my-tasks/**' }
+    }
+  },
   pwa: {
     registerType: "autoUpdate",
     manifest: {
-      name: "Client Deadline Tracker",
-      short_name: "CDT PWA",
-      description: "A Client Deadline Tracker PWA App",
+      name: "Client Task Tracker",
+      short_name: "CTT PWA",
+      description: "A Client Task Tracker PWA App",
       background_color: "#ffffff",
       display: "standalone",
       start_url: "/",

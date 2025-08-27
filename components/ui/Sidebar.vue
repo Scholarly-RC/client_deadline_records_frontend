@@ -5,7 +5,7 @@ import LogoutButton from "./LogoutButton.vue";
 
 const appTitle = ref(null);
 const { startTyping, stopTyping } = useTypewriter(
-  "Client Deadline Tracker",
+  "Client Task Tracker",
   appTitle
 );
 
@@ -32,15 +32,15 @@ const allItems = [
       adminOnly: true,
     },
     {
-      label: "Deadlines",
+      label: "Tasks",
       icon: "i-lucide-calendar",
-      to: "/deadlines",
+      to: "/tasks",
       adminOnly: true,
     },
     {
-      label: "My Deadlines",
+      label: "My Tasks",
       icon: "i-lucide-user-check",
-      to: "/my-deadlines",
+      to: "/my-tasks",
     },
     {
       label: "Pending Approvals",
@@ -69,7 +69,7 @@ const items = computed(() => {
   }
   return [
     allItems[0].filter((item) => 
-      ["Dashboard", "My Deadlines"].includes(item.label) && !item.adminOnly
+      ["Dashboard", "My Tasks"].includes(item.label) && !item.adminOnly
     ),
   ];
 });
@@ -144,7 +144,7 @@ onUnmounted(() => {
       <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
         <div class="flex items-center flex-shrink-0 px-4">
           <h1 class="text-xl font-bold text-gray-800 dark:text-white">
-            Client Deadline Tracker
+            Client Task Tracker
           </h1>
         </div>
         <nav class="px-2 mt-5 space-y-1">
@@ -195,13 +195,13 @@ onUnmounted(() => {
           </NuxtLink>
           <NuxtLink
             v-if="isAdmin"
-            to="/deadlines"
+            to="/tasks"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/deadlines')"
+            :class="getLinkClasses('/tasks')"
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/deadlines')"
+              :class="getIconClasses('/tasks')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -214,16 +214,16 @@ onUnmounted(() => {
                 d="M8 6V4m8 2V4m-9 4h10M5 8h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2zm7 5v2l1.5 1.5"
               />
             </svg>
-            Deadlines
+            Tasks
           </NuxtLink>
           <NuxtLink
-            to="/my-deadlines"
+            to="/my-tasks"
             class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/my-deadlines')"
+            :class="getLinkClasses('/my-tasks')"
           >
             <svg
               class="w-6 h-6 mr-4"
-              :class="getIconClasses('/my-deadlines')"
+              :class="getIconClasses('/my-tasks')"
               fill="none"
               stroke="currentColor"
               stroke-width="1.5"
@@ -236,7 +236,7 @@ onUnmounted(() => {
                 d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.502 20.118a7.5 7.5 0 0114.996 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.498-1.632z"
               />
             </svg>
-            My Deadlines
+            My Tasks
           </NuxtLink>
           <NuxtLink
             v-if="isAdmin"

@@ -1,6 +1,6 @@
 <script setup>
-import DeadlinePriorityPill from "../ui/DeadlinePriorityPill.vue";
-import DeadlineStatusPill from "../ui/DeadlineStatusPill.vue";
+import TaskPriorityPill from "../ui/TaskPriorityPill.vue";
+import TaskStatusPill from "../ui/TaskStatusPill.vue";
 
 // const upcomingDeadlineStore = useUpcomingDeadlineStore();
 // const { deadlines, isLoading } = storeToRefs(upcomingDeadlineStore);
@@ -20,7 +20,7 @@ import DeadlineStatusPill from "../ui/DeadlineStatusPill.vue";
         <h3 class="text-lg font-medium text-gray-900 dark:text-white">
           Upcoming Deadlines
         </h3>
-        <UButton to="/deadlines" variant="subtle" color="neutral" size="md">
+        <UButton to="/tasks" variant="subtle" color="neutral" size="md">
           View All
         </UButton>
       </div>
@@ -67,10 +67,10 @@ import DeadlineStatusPill from "../ui/DeadlineStatusPill.vue";
             </p>
           </div>
           <div class="flex mt-2 sm:mt-0 space-x-2">
-            <DeadlinePriorityPill :priority="deadline.priority" />
-            <DeadlineStatusPill :status="deadline.status" />
+            <TaskPriorityPill :priority="deadline.priority" />
+            <TaskStatusPill :status="deadline.status" />
             <NuxtLink
-              :to="`/deadlines/${deadline.id}`"
+              :to="`/tasks/${deadline.id}`"
               class="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600 dark:hover:bg-gray-700"
             >
               Update

@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "client-task-tracker",
   "private": true,
   "type": "module",
   "scripts": {

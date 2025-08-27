@@ -1,4 +1,5 @@
 <script setup>
+import { watchDebounced } from "@vueuse/core";
 import User from "./User.vue";
 import { storeToRefs } from "pinia";
 
@@ -6,14 +7,21 @@ const addUserStore = useAddUserStore();
 const userStore = useUserStore();
 const { users, pagination, isLoading } = storeToRefs(userStore);
 
+const search = ref("");
+
 // Methods
 const handleSetPage = async (page) => {
   await userStore.setPage(page);
 };
 
 // Search with debounce
-const { source: search, debounced: debouncedSearch } = useDebouncedRef("", 750);
-watch(debouncedSearch, async (value) => await userStore.setSearch(value));
+watchDebounced(
+  search,
+  async (value) => {
+    await userStore.setSearch(value);
+  },
+  { debounce: 750, maxWait: 5000 }
+);
 </script>
 
 <template>

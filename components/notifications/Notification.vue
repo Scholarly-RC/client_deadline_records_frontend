@@ -42,14 +42,14 @@ const refreshCurrentPageContent = async () => {
     const taskStore = useTaskStore();
     await taskStore.fetchPendingApprovals();
   }
-  // For my-deadlines page
-  else if (route.path === "/my-deadlines") {
-    const { useUserDeadlinesStore } = await import("~/stores/userDeadlines");
-    const userDeadlinesStore = useUserDeadlinesStore();
+  // For my-tasks page
+  else if (route.path === "/my-tasks") {
+    const { useUserTasksStore } = await import("~/stores/userTasks");
+    const userTasksStore = useUserTasksStore();
     const { useAuthStore } = await import("~/stores/auth");
     const authStore = useAuthStore();
     if (authStore.user && authStore.user.id) {
-      await userDeadlinesStore.fetchUserDeadlines(authStore.user.id);
+      await userTasksStore.fetchUserTasks(authStore.user.id);
     }
   }
 };
