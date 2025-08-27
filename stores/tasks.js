@@ -111,6 +111,19 @@ export const useTaskStore = defineStore("taskStore", {
     },
 
     /**
+     * Check if admin user can mark their own task as complete
+     */
+    canMarkTaskComplete: (state) => (task) => {
+      const authStore = useAuthStore();
+      return (
+        authStore.user?.is_admin &&
+        task.assigned_to === authStore.user?.id &&
+        task.status === "on_going" &&
+        !task.requires_approval
+      );
+    },
+
+    /**
      * Get completed tasks count
      */
     completedTasksCount: (state) => {

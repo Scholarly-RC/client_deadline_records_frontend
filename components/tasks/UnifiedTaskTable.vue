@@ -6,6 +6,7 @@ import {
 } from "~/constants/choices";
 import StatusBadge from "../ui/StatusBadge.vue";
 import PriorityBadge from "../ui/PriorityBadge.vue";
+import TaskCompletionModal from "./TaskCompletionModal.vue";
 
 const props = defineProps({
   category: {
@@ -54,6 +55,11 @@ const searchQuery = ref("");
 const statusFilter = ref(null);
 const priorityFilter = ref(null);
 const assigneeFilter = ref(null);
+
+// Completion modal state
+const showCompletionModal = ref(false);
+const selectedTaskForCompletion = ref(null);
+const isCompletingTask = ref(false);
 
 // Computed
 const filteredTasks = computed(() => {
@@ -179,6 +185,28 @@ const handleDelete = async (task) => {
     } catch (error) {
       console.error("Error deleting task:", error);
     }
+  }
+};
+
+// Task completion methods
+const openCompletionModal = (task) => {
+  selectedTaskForCompletion.value = task;
+  showCompletionModal.value = true;
+};
+
+const handleTaskCompletion = async (completionData) => {
+  if (!selectedTaskForCompletion.value) return;
+  
+  isCompletingTask.value = true;
+  try {
+    await taskStore.markCompleted(selectedTaskForCompletion.value.id, completionData);
+    showCompletionModal.value = false;
+    selectedTaskForCompletion.value = null;
+    await refreshData();
+  } catch (error) {
+    console.error("Error completing task:", error);
+  } finally {
+    isCompletingTask.value = false;
   }
 };
 
@@ -444,6 +472,16 @@ defineExpose({
 
         <template #actions-cell="{ row }">
           <div class="flex gap-1">
+            <!-- Mark Complete button for admin users on their own ongoing tasks -->
+            <UButton
+              v-if="taskStore.canMarkTaskComplete(row.original)"
+              @click="openCompletionModal(row.original)"
+              label="Mark Complete"
+              color="success"
+              size="sm"
+              variant="soft"
+              icon="i-heroicons-check-circle"
+            />
             <UButton
               @click="emit('view', row.original)"
               label="View"
@@ -483,4 +521,13 @@ defineExpose({
       </div>
     </div>
   </div>
+
+  <!-- Task Completion Modal -->
+  <TaskCompletionModal
+    v-if="selectedTaskForCompletion"
+    v-model="showCompletionModal"
+    :task="selectedTaskForCompletion"
+    :is-submitting="isCompletingTask"
+    @complete="handleTaskCompletion"
+  />
 </template>

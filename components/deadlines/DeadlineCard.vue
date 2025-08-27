@@ -4,10 +4,12 @@ import PriorityBadge from "../ui/PriorityBadge.vue";
 import StatusBadge from "../ui/StatusBadge.vue";
 import ApprovalHistoryComponent from "../tasks/ApprovalHistoryComponent.vue";
 import ApprovalWorkflowModal from "../tasks/ApprovalWorkflowModal.vue";
+import TaskCompletionModal from "../tasks/TaskCompletionModal.vue";
 
 const deadlineUpdate = useDeadlineUpdate();
 const taskStore = useTaskStore();
 const authStore = useAuthStore();
+const userDeadlinesStore = useUserDeadlinesStore();
 
 const props = defineProps({
   deadline: {
@@ -25,6 +27,10 @@ const emit = defineEmits(["task-updated", "approval-initiated"]);
 const showApprovalHistoryModal = ref(false);
 const showStatusHistoryModal = ref(false);
 const showApprovalModal = ref(false);
+
+// Task completion state
+const showCompletionModal = ref(false);
+const isCompletingTask = ref(false);
 
 const daysRemaining = computed(() => {
   return getDaysRemaining(props.deadline.deadline_days_remaining);
@@ -79,6 +85,10 @@ const canInitiateApproval = computed(() => {
   return taskStore.canInitiateApproval(localDeadline.value);
 });
 
+const canMarkComplete = computed(() => {
+  return taskStore.canMarkTaskComplete(localDeadline.value);
+});
+
 const hasApprovalWorkflow = computed(() => {
   return localDeadline.value.requires_approval;
 });
@@ -129,6 +139,32 @@ const onApprovalInitiated = async () => {
 
 const openAddUpdate = () => {
   deadlineUpdate.open(props.category, localDeadline.value);
+};
+
+// Task completion methods
+const openCompletionModal = () => {
+  showCompletionModal.value = true;
+};
+
+const handleTaskCompletion = async (completionData) => {
+  isCompletingTask.value = true;
+  try {
+    // Use userDeadlines store if available, otherwise use tasks store
+    const userDeadlinesStore = useUserDeadlinesStore();
+    if (userDeadlinesStore && userDeadlinesStore.markTaskCompleted) {
+      await userDeadlinesStore.markTaskCompleted(localDeadline.value.id, completionData);
+    } else {
+      await taskStore.markCompleted(localDeadline.value.id, completionData);
+    }
+    
+    showCompletionModal.value = false;
+    // Emit event to notify parent to refresh this specific task
+    emit("task-updated", localDeadline.value.id);
+  } catch (error) {
+    console.error("Error completing task:", error);
+  } finally {
+    isCompletingTask.value = false;
+  }
 };
 
 // Fetch status history when component is mounted
@@ -288,9 +324,18 @@ watch(
 
         <!-- Action Buttons Row -->
         <div
-          v-if="canShowAddUpdateButton || canInitiateApproval"
-          class="flex gap-2 justify-center"
+          v-if="canShowAddUpdateButton || canInitiateApproval || canMarkComplete"
+          class="flex gap-2 justify-center flex-wrap"
         >
+          <UButton
+            v-if="canMarkComplete"
+            @click="openCompletionModal"
+            label="Mark Complete"
+            icon="i-heroicons-check-circle"
+            variant="soft"
+            color="success"
+            size="sm"
+          />
           <UButton
             v-if="canShowAddUpdateButton"
             @click="openAddUpdate"
@@ -441,6 +486,14 @@ watch(
       v-model="showApprovalModal"
       :task="localDeadline"
       @approved="onApprovalInitiated"
+    />
+
+    <!-- Task Completion Modal -->
+    <TaskCompletionModal
+      v-model="showCompletionModal"
+      :task="localDeadline"
+      :is-submitting="isCompletingTask"
+      @complete="handleTaskCompletion"
     />
   </UCard>
 </template>
