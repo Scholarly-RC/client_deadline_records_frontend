@@ -230,7 +230,7 @@ DELETE /api/tasks/{id}/                     # Delete task
 GET    /api/tasks/overdue/                  # Get overdue tasks
 GET    /api/tasks/due_soon/                 # Get tasks due within 7 days
 GET    /api/tasks/by_category/?category={cat} # Filter tasks by category
-GET    /api/tasks/by_user/?user_id={id}     # Filter tasks by assigned user
+GET    /api/users/{id}/deadlines-tasks/     # Get user-specific tasks (paginated)
 GET    /api/tasks/statistics/               # Get task statistics
 POST   /api/tasks/{id}/mark_completed/      # Mark task as completed
 POST   /api/tasks/{id}/update-deadline/     # Update task status
