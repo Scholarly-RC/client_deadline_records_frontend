@@ -1,7 +1,6 @@
 <script setup>
 // Components
 import PageHeader from "../ui/PageHeader.vue";
-import AddClientModal from "./AddClientModal.vue";
 import ClientTable from "./ClientTable.vue";
 import EditClientModal from "./EditClientModal.vue";
 

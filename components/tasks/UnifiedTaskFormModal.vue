@@ -183,7 +183,7 @@ const modalTitle = computed(() => {
     return "Edit Task";
   }
   return selectedCategory.value
-    ? `Create ${getCategoryLabel(selectedCategory.value)} Task - Step 2 of 2`
+    ? `Create ${getCategoryLabel(selectedCategory.value)} Task`
     : "Create Task";
 });
 
@@ -350,6 +350,7 @@ onMounted(() => {
     :title="modalTitle"
     :description="modalDescription"
     class="max-w-[90vw]"
+    :close="false"
   >
     <template #body>
       <UForm
