@@ -5,6 +5,23 @@ export const useUserDeadlinesStore = defineStore("userDeadlinesStore", {
   state: () => ({
     // New unified structure
     tasks: [],
+    // Pagination state
+    pagination: {
+      count: 0,
+      next: null,
+      previous: null,
+      page_size: 10,
+      total_pages: 1,
+      current_page: 1,
+      item_range: "0-0"
+    },
+    currentPage: 1,
+    searchQuery: "",
+    filters: {
+      category: "",
+      status: "",
+      priority: ""
+    },
     // Legacy structure for backward compatibility
     deadlines: {
       compliance: [],
@@ -27,6 +44,14 @@ export const useUserDeadlinesStore = defineStore("userDeadlinesStore", {
     },
     
     /**
+     * Pagination getters
+     */
+    hasNextPage: (state) => state.pagination.next !== null,
+    hasPreviousPage: (state) => state.pagination.previous !== null,
+    totalPages: (state) => state.pagination.total_pages,
+    totalItems: (state) => state.pagination.count,
+    
+    /**
      * Legacy getters for backward compatibility
      */
     complianceTasks: (state) => state.tasksByCategory(TASK_CATEGORIES.COMPLIANCE),
@@ -39,22 +64,72 @@ export const useUserDeadlinesStore = defineStore("userDeadlinesStore", {
   },
   
   actions: {
-    async fetchUserDeadlines(userId) {
+    async fetchUserDeadlines(userId, options = {}) {
       this.isLoading = true;
       try {
-        const taskService = useTaskService();
-        const response = await taskService.getUserDeadlines(userId);
+        const {
+          page = this.currentPage,
+          page_size = this.pagination.page_size,
+          search = this.searchQuery,
+          category = this.filters.category,
+          status = this.filters.status,
+          priority = this.filters.priority,
+          append = false  // Whether to append results to existing tasks (for infinite scroll)
+        } = options;
         
-        // Handle new API response structure
-        if (response.tasks && Array.isArray(response.tasks)) {
-          this.tasks = response.tasks;
+        const taskService = useTaskService();
+        const filters = {
+          page,
+          page_size,
+          search,
+          category,
+          status,
+          priority
+        };
+        
+        const response = await taskService.getUserDeadlines(userId, filters);
+        
+        // Handle paginated API response structure
+        if (response.results && Array.isArray(response.results)) {
+          // Extract pagination metadata
+          const { results, ...paginationData } = response;
+          this.pagination = {
+            count: paginationData.count || 0,
+            next: paginationData.next || null,
+            previous: paginationData.previous || null,
+            page_size: paginationData.page_size || 10,
+            total_pages: paginationData.total_pages || 1,
+            current_page: paginationData.current_page || 1,
+            item_range: paginationData.item_range || "0-0"
+          };
+          
+          // Update current page
+          this.currentPage = this.pagination.current_page;
+          
+          // Handle tasks - append or replace
+          if (append) {
+            this.tasks = [...this.tasks, ...results];
+          } else {
+            this.tasks = results;
+          }
           
           // Update legacy structure for backward compatibility
-          this.updateLegacyDeadlines(response.tasks);
+          this.updateLegacyDeadlines(this.tasks);
         } else {
-          // Fallback for old structure if still returned
+          // Fallback for old structure if still returned (should not happen with new API)
+          console.warn('Received non-paginated response from user deadlines API');
           this.tasks = this.convertLegacyToTasks(response);
           this.deadlines = response;
+          // Reset pagination for legacy response
+          this.pagination = {
+            count: this.tasks.length,
+            next: null,
+            previous: null,
+            page_size: this.tasks.length,
+            total_pages: 1,
+            current_page: 1,
+            item_range: `1-${this.tasks.length}`
+          };
         }
       } catch (error) {
         console.error("Error fetching user deadlines:", error);
@@ -237,6 +312,58 @@ export const useUserDeadlinesStore = defineStore("userDeadlinesStore", {
         icon: "mdi:close-box-multiple",
         duration: 5000,
       });
+    },
+    
+    /**
+     * Pagination methods
+     */
+    async loadNextPage(userId) {
+      if (this.hasNextPage && !this.isLoading) {
+        await this.fetchUserDeadlines(userId, {
+          page: this.currentPage + 1,
+          append: true
+        });
+      }
+    },
+    
+    async loadPreviousPage(userId) {
+      if (this.hasPreviousPage && !this.isLoading && this.currentPage > 1) {
+        await this.fetchUserDeadlines(userId, {
+          page: this.currentPage - 1
+        });
+      }
+    },
+    
+    async goToPage(userId, page) {
+      if (page >= 1 && page <= this.totalPages && !this.isLoading) {
+        await this.fetchUserDeadlines(userId, { page });
+      }
+    },
+    
+    /**
+     * Filter and search methods
+     */
+    async setSearch(userId, searchQuery) {
+      this.searchQuery = searchQuery;
+      this.currentPage = 1; // Reset to first page when searching
+      await this.fetchUserDeadlines(userId);
+    },
+    
+    async setFilters(userId, filters = {}) {
+      this.filters = { ...this.filters, ...filters };
+      this.currentPage = 1; // Reset to first page when filtering
+      await this.fetchUserDeadlines(userId);
+    },
+    
+    async clearFilters(userId) {
+      this.filters = {
+        category: "",
+        status: "",
+        priority: ""
+      };
+      this.searchQuery = "";
+      this.currentPage = 1;
+      await this.fetchUserDeadlines(userId);
     },
   },
 });

@@ -262,11 +262,31 @@ export const useTaskService = () => {
 
   /**
    * Legacy compatibility method for user deadlines
+   * Now supports pagination - returns paginated response
    * @param {number} userId - User ID
-   * @returns {Promise} User deadlines in new format
+   * @param {Object} filters - Optional pagination and filter parameters
+   * @param {number} filters.page - Page number for pagination
+   * @param {number} filters.page_size - Items per page
+   * @param {string} filters.search - Search query
+   * @param {string} filters.category - Filter by category
+   * @param {string} filters.status - Filter by status
+   * @param {string} filters.priority - Filter by priority
+   * @returns {Promise} Paginated user deadlines response with results array
    */
-  const getUserDeadlines = async (userId) => {
-    return await $apiFetch(`/api/users/${userId}/deadlines-tasks/`, {
+  const getUserDeadlines = async (userId, filters = {}) => {
+    const params = new URLSearchParams();
+
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        params.append(key, value);
+      }
+    });
+
+    const url = `/api/users/${userId}/deadlines-tasks/${
+      params.toString() ? "?" + params.toString() : ""
+    }`;
+    
+    return await $apiFetch(url, {
       method: "GET",
     });
   };
