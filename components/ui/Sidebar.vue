@@ -68,8 +68,9 @@ const items = computed(() => {
     return allItems;
   }
   return [
-    allItems[0].filter((item) => 
-      ["Dashboard", "My Tasks"].includes(item.label) && !item.adminOnly
+    allItems[0].filter(
+      (item) =>
+        ["Dashboard", "My Tasks"].includes(item.label) && !item.adminOnly
     ),
   ];
 });
@@ -322,7 +323,7 @@ onUnmounted(() => {
       class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
       <div
-        class="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700"
+        class="flex items-center justify-center text-center h-16 px-4 border-b border-gray-200 dark:border-gray-700"
       >
         <h1
           ref="appTitle"
