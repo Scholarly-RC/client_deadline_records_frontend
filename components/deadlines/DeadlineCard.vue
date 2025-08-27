@@ -2,7 +2,6 @@
 import { getDaysRemaining } from "~/utils/getDaysRemaining";
 import PriorityBadge from "../ui/PriorityBadge.vue";
 import StatusBadge from "../ui/StatusBadge.vue";
-import ApprovalActionsPanel from "../tasks/ApprovalActionsPanel.vue";
 import ApprovalHistoryComponent from "../tasks/ApprovalHistoryComponent.vue";
 import ApprovalWorkflowModal from "../tasks/ApprovalWorkflowModal.vue";
 
@@ -259,15 +258,6 @@ watch(
         <p class="text-sm max-w-xs break-words">{{ localDeadline.remarks }}</p>
       </div>
     </div>
-
-    <!-- Approval Actions Panel for Current Approver -->
-    <ApprovalActionsPanel
-      v-if="canApprove"
-      :task="localDeadline"
-      @approved="onApprovalAction"
-      @rejected="onApprovalAction"
-      @forwarded="onApprovalAction"
-    />
 
     <template #footer>
       <div class="flex flex-col gap-2">

@@ -4,12 +4,12 @@ const props = defineProps({
     type: String,
     required: true,
   },
-})
+});
 
 const normalizeStatus = (val) => {
-  if (!val) return ""
-  return val.toLowerCase().replace(/\s+/g, "_")
-}
+  if (!val) return "";
+  return val.toLowerCase().replace(/\s+/g, "_");
+};
 </script>
 
 <template>
@@ -24,7 +24,7 @@ const normalizeStatus = (val) => {
         : normalizeStatus(status) === 'on_going'
         ? 'primary'
         : normalizeStatus(status) === 'pending'
-        ? 'secondary'
+        ? 'neutral'
         : normalizeStatus(status) === 'cancelled'
         ? 'error'
         : 'neutral'
