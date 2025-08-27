@@ -73,6 +73,7 @@ watch(
     title="Mark Task as Complete"
     :ui="{ footer: 'justify-end' }"
     :prevent-close="isSubmitting"
+    :close="false"
   >
     <template #body>
       <!-- Task Info -->
@@ -113,6 +114,7 @@ watch(
             :disabled="isSubmitting"
             :rows="4"
             required
+            class="w-full"
           />
         </UFormField>
 
