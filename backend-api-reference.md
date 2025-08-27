@@ -363,8 +363,7 @@ await fetch('/api/tasks/1/process-approval/', {
   },
   body: JSON.stringify({
     action: "approved", // or "rejected"
-    comments: "Approved with minor comments",
-    next_approver: 6 // Optional: forward to different user
+    comments: "Approved with minor comments"
   })
 });
 
