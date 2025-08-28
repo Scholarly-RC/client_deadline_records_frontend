@@ -1,5 +1,5 @@
 <template>
-  <UCard class="chart-container">
+  <UCard>
     <template #header>
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
@@ -26,7 +26,7 @@
       </div>
     </template>
     
-    <div class="chart-wrapper">
+    <div>
       <VChart 
         ref="chartRef"
         :option="chartOption" 
@@ -160,16 +160,7 @@ const chartOption = computed<ECOption>(() => {
     tooltip: {
       trigger: 'axis',
       axisPointer: {
-        type: 'cross',
-        label: {
-          backgroundColor: '#6a7985'
-        }
-      },
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderColor: '#e5e7eb',
-      borderWidth: 1,
-      textStyle: {
-        color: '#374151'
+        type: 'cross'
       },
       formatter: createEnhancedTooltipFormatter(props.chartType, {
         showClickHint: props.enableInteractivity
@@ -177,10 +168,7 @@ const chartOption = computed<ECOption>(() => {
     },
     legend: {
       data: props.data.datasets.map(dataset => dataset.name),
-      bottom: 0,
-      textStyle: {
-        color: '#6b7280'
-      }
+      bottom: 0
     },
     grid: {
       left: '3%',
@@ -192,34 +180,10 @@ const chartOption = computed<ECOption>(() => {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: props.data.xAxis,
-      axisLine: {
-        lineStyle: {
-          color: '#e5e7eb'
-        }
-      },
-      axisLabel: {
-        color: '#6b7280',
-        fontSize: 12
-      }
+      data: props.data.xAxis
     },
     yAxis: {
-      type: 'value',
-      axisLine: {
-        lineStyle: {
-          color: '#e5e7eb'
-        }
-      },
-      axisLabel: {
-        color: '#6b7280',
-        fontSize: 12
-      },
-      splitLine: {
-        lineStyle: {
-          color: '#f3f4f6',
-          type: 'dashed'
-        }
-      }
+      type: 'value'
     },
     series: props.data.datasets.map((dataset, index) => ({
       name: dataset.name,
@@ -227,7 +191,7 @@ const chartOption = computed<ECOption>(() => {
       data: dataset.data,
       smooth: props.smooth,
       itemStyle: { 
-        color: props.colors[index % props.colors.length] 
+        color: props.colors[index % props.colors.length]
       },
       lineStyle: {
         color: props.colors[index % props.colors.length],
@@ -243,11 +207,11 @@ const chartOption = computed<ECOption>(() => {
           colorStops: [
             {
               offset: 0,
-              color: props.colors[index % props.colors.length] + '40' // 25% opacity
+              color: props.colors[index % props.colors.length] + '40'
             },
             {
               offset: 1,
-              color: props.colors[index % props.colors.length] + '10' // 6% opacity
+              color: props.colors[index % props.colors.length] + '10'
             }
           ]
         }
@@ -457,20 +421,3 @@ onMounted(async () => {
   await initializeChart()
 })
 </script>
-
-<style scoped>
-@reference "tailwindcss";
-
-.chart-container {
-  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
-}
-
-.chart-wrapper {
-  @apply relative;
-}
-
-/* Loading state styling */
-.chart-wrapper[data-loading="true"] {
-  @apply opacity-50;
-}
-</style>

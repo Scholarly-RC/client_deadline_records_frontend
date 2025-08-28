@@ -3,6 +3,7 @@
 import PageHeader from "../ui/PageHeader.vue"
 import DashboardLayoutSwitcher from "./DashboardLayoutSwitcher.vue"
 import RealTimeControls from "./RealTimeControls.vue"
+import EChartsThemeProvider from "./EChartsThemeProvider.vue"
 import ExecutiveDashboardLayout from "./layouts/ExecutiveDashboardLayout.vue"
 import OperationsDashboardLayout from "./layouts/OperationsDashboardLayout.vue"
 import AnalyticsDashboardLayout from "./layouts/AnalyticsDashboardLayout.vue"
@@ -232,24 +233,26 @@ onUnmounted((): void => {
 
       <!-- Enhanced Layout Content -->
       <div v-else-if="!showLegacyFallback" class="layout-container overflow-y-auto">
-        <Suspense>
-          <template #default>
-            <component 
-              :is="currentLayoutComponent"
-              @navigate="handleNavigation"
-              @chart-click="handleChartClick"
-              @alert-action="handleAlertAction"
-              @open-modal="handleOpenModal"
-              @action="handleAction"
-            />
-          </template>
-          <template #fallback>
-            <div class="fallback-loading">
-              <div class="loading-spinner"></div>
-              <p>Loading dashboard layout...</p>
-            </div>
-          </template>
-        </Suspense>
+        <EChartsThemeProvider>
+          <Suspense>
+            <template #default>
+              <component 
+                :is="currentLayoutComponent"
+                @navigate="handleNavigation"
+                @chart-click="handleChartClick"
+                @alert-action="handleAlertAction"
+                @open-modal="handleOpenModal"
+                @action="handleAction"
+              />
+            </template>
+            <template #fallback>
+              <div class="fallback-loading">
+                <div class="loading-spinner"></div>
+                <p>Loading dashboard layout...</p>
+              </div>
+            </template>
+          </Suspense>
+        </EChartsThemeProvider>
       </div>
 
       <!-- Legacy Fallback Content -->

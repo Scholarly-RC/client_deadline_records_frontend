@@ -1,5 +1,5 @@
 <template>
-  <UCard class="gauge-chart-container">
+  <UCard>
     <template #header>
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
@@ -26,7 +26,7 @@
       </div>
     </template>
     
-    <div class="gauge-wrapper">
+    <div>
       <VChart 
         ref="chartRef"
         :option="chartOption" 
@@ -38,16 +38,16 @@
       />
       
       <!-- Additional Info -->
-      <div v-if="showDetails" class="gauge-details mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="detail-item text-center">
+      <div v-if="showDetails" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="text-center">
           <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ formattedValue }}</div>
           <div class="text-sm text-gray-500 dark:text-gray-400">Current Value</div>
         </div>
-        <div class="detail-item text-center">
+        <div class="text-center">
           <div class="text-lg font-medium text-green-600 dark:text-green-400">{{ max }}</div>
           <div class="text-sm text-gray-500 dark:text-gray-400">Target</div>
         </div>
-        <div class="detail-item text-center">
+        <div class="text-center">
           <div :class="performanceClass" class="text-lg font-medium">{{ performanceLabel }}</div>
           <div class="text-sm text-gray-500 dark:text-gray-400">Performance</div>
         </div>
@@ -142,7 +142,7 @@ const performanceClass = computed<string>(() => {
     case 'excellent':
       return 'text-green-600 dark:text-green-400'
     case 'good':
-      return 'text-green-500 dark:text-green-300'
+      return 'text-green-500 dark:text-green-400'
     case 'fair':
       return 'text-yellow-500 dark:text-yellow-400'
     case 'poor':
@@ -228,7 +228,6 @@ const chartOption = computed<ECOption>(() => {
           }
         },
         axisLabel: {
-          color: '#6b7280',
           fontSize: 11,
           distance: -40,
           formatter: function (value) {
@@ -238,7 +237,6 @@ const chartOption = computed<ECOption>(() => {
         title: {
           fontSize: 14,
           fontWeight: 'bold',
-          color: '#374151',
           offsetCenter: [0, '40%']
         },
         detail: {
@@ -406,28 +404,3 @@ onMounted(async () => {
   await initializeChart()
 })
 </script>
-
-<style scoped>
-@reference "tailwindcss";
-
-.gauge-chart-container {
-  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
-}
-
-.gauge-wrapper {
-  @apply relative;
-}
-
-.gauge-details {
-  @apply border-t border-gray-200 dark:border-gray-600 pt-4;
-}
-
-.detail-item {
-  @apply p-3 rounded-lg bg-gray-50 dark:bg-gray-700;
-}
-
-/* Loading state styling */
-.gauge-wrapper[data-loading="true"] {
-  @apply opacity-50;
-}
-</style>

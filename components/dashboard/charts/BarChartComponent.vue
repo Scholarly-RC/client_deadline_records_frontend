@@ -1,5 +1,5 @@
 <template>
-  <UCard class="bar-chart-container">
+  <UCard>
     <template #header>
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
@@ -34,7 +34,7 @@
       </div>
     </template>
     
-    <div class="chart-wrapper">
+    <div>
       <VChart 
         ref="chartRef"
         :option="chartOption" 
@@ -203,20 +203,11 @@ const chartOption = computed<ECOption>(() => {
       },
       formatter: createEnhancedTooltipFormatter(props.chartType, {
         showClickHint: props.enableInteractivity
-      }),
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderColor: '#e5e7eb',
-      borderWidth: 1,
-      textStyle: {
-        color: '#374151'
-      }
+      })
     },
     legend: {
       data: series.map(s => s.name),
-      bottom: 0,
-      textStyle: {
-        color: '#6b7280'
-      }
+      bottom: 0
     },
     grid: {
       left: isHorizontal ? '15%' : '3%',
@@ -228,42 +219,14 @@ const chartOption = computed<ECOption>(() => {
     xAxis: {
       type: isHorizontal ? 'value' : 'category',
       data: isHorizontal ? undefined : categories,
-      axisLine: {
-        lineStyle: {
-          color: '#e5e7eb'
-        }
-      },
       axisLabel: {
-        color: '#6b7280',
-        fontSize: 12,
         interval: 0,
         rotate: isHorizontal ? 0 : (categories.length > 6 ? 45 : 0)
-      },
-      splitLine: isHorizontal ? {
-        lineStyle: {
-          color: '#f3f4f6',
-          type: 'dashed'
-        }
-      } : undefined
+      }
     },
     yAxis: {
       type: isHorizontal ? 'category' : 'value',
-      data: isHorizontal ? categories : undefined,
-      axisLine: {
-        lineStyle: {
-          color: '#e5e7eb'
-        }
-      },
-      axisLabel: {
-        color: '#6b7280',
-        fontSize: 12
-      },
-      splitLine: !isHorizontal ? {
-        lineStyle: {
-          color: '#f3f4f6',
-          type: 'dashed'
-        }
-      } : undefined
+      data: isHorizontal ? categories : undefined
     },
     series: series.map((s, index) => ({
       name: s.name,
@@ -276,8 +239,7 @@ const chartOption = computed<ECOption>(() => {
       label: {
         show: props.showDataLabels,
         position: isHorizontal ? 'right' : 'top',
-        fontSize: 11,
-        color: '#6b7280'
+        fontSize: 11
       },
       emphasis: {
         focus: 'series',
@@ -491,20 +453,3 @@ onMounted(async () => {
   await initializeChart()
 })
 </script>
-
-<style scoped>
-@reference "tailwindcss";
-
-.bar-chart-container {
-  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
-}
-
-.chart-wrapper {
-  @apply relative;
-}
-
-/* Loading state styling */
-.chart-wrapper[data-loading="true"] {
-  @apply opacity-50;
-}
-</style>

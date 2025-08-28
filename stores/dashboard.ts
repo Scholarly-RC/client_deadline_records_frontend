@@ -328,9 +328,12 @@ export const useDashboardStore = defineStore("dashboardStore", {
       try {
         this.isLoadingTaskStats = true;
         const taskService = useTaskService();
-        // Removed reference to non-existent taskStatistics property
-        // This method might need to be reimplemented or removed
-        console.warn('getTaskStatistics method called but not implemented');
+        const response = await taskService.getTaskStatistics();
+        
+        // Store in enhancedStats for compatibility
+        this.enhancedStats = response;
+        
+        return response;
       } catch (error: any) {
         toast.add({
           title: "Task Statistics Unavailable",
@@ -340,6 +343,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
           duration: 5000,
         });
         console.error(error);
+        throw error;
       } finally {
         this.isLoadingTaskStats = false;
       }
@@ -354,10 +358,9 @@ export const useDashboardStore = defineStore("dashboardStore", {
         this.isLoadingEnhanced = true;
         this.setChartLoading('all', true);
         
-        const { $apiFetch } = useNuxtApp();
-        const response: any = await $apiFetch('/api/tasks/statistics/', {
-          method: 'GET',
-        });
+        // Use the actual statistics endpoint
+        const taskService = useTaskService();
+        const response = await taskService.getTaskStatistics();
         
         // Store the complete enhanced statistics
         this.enhancedStats = response;
@@ -386,13 +389,12 @@ export const useDashboardStore = defineStore("dashboardStore", {
           duration: 5000,
         });
         console.error('Failed to fetch enhanced dashboard data:', error);
-        throw error;
       } finally {
-        this.isLoadingEnhanced = false;
         this.setChartLoading('all', false);
+        this.isLoadingEnhanced = false;
       }
     },
-    
+
     /**
      * Get overdue tasks
      */

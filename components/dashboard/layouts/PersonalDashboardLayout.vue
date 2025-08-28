@@ -318,16 +318,19 @@ const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 
-// Mock personal statistics - in real implementation, this would come from the API
-const personalStats = computed((): PersonalStats => ({
-  completionRate: 87.5,
-  assignedTasks: 12,
-  dueToday: 3,
-  overdue: 1,
-  completedThisWeek: 8,
-  qualityScore: 92,
-  avgTaskTime: 2.4
-}))
+// Use actual data from dashboard store instead of mock data
+const personalStats = computed((): PersonalStats => {
+  const stats = dashboardStore.enhancedStats?.summary || {};
+  return {
+    completionRate: dashboardStore.overallCompletionRate || 0,
+    assignedTasks: stats.total || 0,
+    dueToday: stats.due_today || 0,
+    overdue: stats.overdue || 0,
+    completedThisWeek: stats.completed || 0,
+    qualityScore: dashboardStore.performanceMetrics?.on_time_completion_rate || 0,
+    avgTaskTime: dashboardStore.performanceMetrics?.average_completion_days || 0,
+  };
+})
 
 const personalGoals = computed((): PersonalGoal[] => [
   { id: 1, title: 'Complete 20 tasks', progress: 15, target: 20 },
@@ -363,37 +366,47 @@ const getOverdueVariant = (): VariantType => {
 }
 
 const getPersonalTaskDistribution = (): TaskDistributionItem[] => {
-  // Mock personal task distribution
+  // Use actual data from dashboard store
+  const statusBreakdown = dashboardStore.statusBreakdown || {};
   return [
-    { name: 'In Progress', value: 5, display_name: 'In Progress' },
-    { name: 'Pending Review', value: 3, display_name: 'Pending Review' },
-    { name: 'Completed', value: 8, display_name: 'Completed' },
-    { name: 'Overdue', value: 1, display_name: 'Overdue' }
-  ]
+    { name: 'In Progress', value: statusBreakdown.in_progress || 0, display_name: 'In Progress' },
+    { name: 'Pending Review', value: statusBreakdown.for_checking || 0, display_name: 'Pending Review' },
+    { name: 'Completed', value: statusBreakdown.completed || 0, display_name: 'Completed' },
+    { name: 'Overdue', value: statusBreakdown.overdue || 0, display_name: 'Overdue' }
+  ];
 }
 
 const getDailyActivityData = (): DailyActivityData => {
-  // Mock daily activity for the last 7 days
+  // Use actual weekly trends data from dashboard store
+  const weeklyTrends = dashboardStore.weeklyTrends || [];
+  const last7Days = weeklyTrends.slice(-7);
+  
   return {
     xAxis: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [
       {
         name: 'Tasks Completed',
-        data: [2, 3, 1, 4, 2, 0, 1],
+        data: last7Days.map(trend => trend.completed || 0).concat(Array(7 - last7Days.length).fill(0)).slice(0, 7),
         showArea: true
       },
       {
-        name: 'Hours Worked',
-        data: [6, 8, 4, 9, 7, 0, 3],
+        name: 'Tasks Created',
+        data: last7Days.map(trend => trend.created || 0).concat(Array(7 - last7Days.length).fill(0)).slice(0, 7),
         showArea: false
       }
     ]
-  }
+  };
 }
 
 const getWeeklyPerformanceData = (): number[] => {
-  // Mock weekly performance data
-  return [78, 82, 85, 89, 87, 90, 88]
+  // Use actual performance data from dashboard store
+  const weeklyTrends = dashboardStore.weeklyTrends || [];
+  const last7Weeks = weeklyTrends.slice(-7);
+  
+  return last7Weeks.map(trend => {
+    const total = (trend.completed || 0) + (trend.created || 0);
+    return total > 0 ? Math.round(((trend.completed || 0) / total) * 100) : 0;
+  }).concat(Array(7 - last7Weeks.length).fill(0)).slice(0, 7);
 }
 
 const getGoalProgressPercentage = (goal: PersonalGoal): number => {

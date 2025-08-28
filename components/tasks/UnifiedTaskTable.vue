@@ -465,7 +465,7 @@ defineExpose({
     </UCard>
 
     <!-- Task Table -->
-    <div class="bg-white rounded-lg border border-gray-200">
+    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
       <UTable
         :data="filteredTasks"
         :columns="columns"
@@ -548,7 +548,7 @@ defineExpose({
       </UTable>
 
       <!-- Pagination -->
-      <div v-if="(typedPagination?.count || 0) > 0" class="p-4 border-t border-gray-200">
+      <div v-if="(typedPagination?.count || 0) > 0" class="p-4 border-t border-gray-200 dark:border-gray-700">
         <div class="flex items-center justify-end">
           <UPagination
             v-if="(typedPagination?.total_pages || 0) > 1"

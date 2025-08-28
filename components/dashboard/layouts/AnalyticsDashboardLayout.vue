@@ -242,14 +242,19 @@ const { performanceMetrics } = storeToRefs(dashboardStore)
 
 const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-// Mock workload intensity data for heatmap (28 days = 4 weeks)
+// Use actual workload intensity data from dashboard store
 const workloadIntensity = computed(() => {
-  // Generate mock data for the last 4 weeks
-  const data = []
+  // Use team analytics workload distribution if available
+  const workloadData = dashboardStore.teamAnalytics?.workload_distribution || [];
+  
+  // Generate data for the last 28 days (4 weeks) based on actual data
+  const data = [];
   for (let i = 0; i < 28; i++) {
-    data.push(Math.floor(Math.random() * 10) + 1) // 1-10 tasks per day
+    // Use actual workload data if available, otherwise default to 0
+    const dayData = workloadData[i % workloadData.length];
+    data.push(dayData?.tasks || 0);
   }
-  return data
+  return data;
 })
 
 const calculateProductivityIndex = () => {
@@ -320,24 +325,41 @@ const getCategoryPerformanceData = () => {
 }
 
 const getTimeDistributionData = () => {
-  // Mock time distribution data
-  return [
-    { name: 'Planning', value: 20, display_name: 'Planning & Research' },
-    { name: 'Execution', value: 50, display_name: 'Task Execution' },
-    { name: 'Review', value: 20, display_name: 'Review & QA' },
-    { name: 'Communication', value: 10, display_name: 'Client Communication' }
-  ]
+  // Use actual category distribution data from dashboard store
+  const categoryData = dashboardStore.categoryDistribution || {};
+  
+  return Object.entries(categoryData).map(([key, value]: [string, any]) => ({
+    name: key,
+    value: value.count || 0,
+    display_name: value.display_name || key
+  }));
 }
 
 const getPredictedWorkload = () => {
-  // Mock prediction based on trends
-  const currentTasks = dashboardStore.totalTasks || 0
-  return Math.floor(currentTasks * 1.18) // 18% increase prediction
+  // Use actual task data for prediction
+  const currentTasks = dashboardStore.totalTasks || 0;
+  const weeklyTrends = dashboardStore.weeklyTrends || [];
+  
+  if (weeklyTrends.length > 1) {
+    const recent = weeklyTrends.slice(-2);
+    const growthRate = recent.length > 1 ? 
+      (recent[1].created - recent[0].created) / Math.max(recent[0].created, 1) : 0.18;
+    return Math.floor(currentTasks * (1 + Math.max(0, growthRate)));
+  }
+  
+  return Math.floor(currentTasks * 1.18); // Default 18% increase
 }
 
 const getForecastTrendData = () => {
-  // Mock forecast data for next 7 days
-  return [12, 15, 14, 18, 16, 20, 17]
+  // Use actual weekly trends for forecasting
+  const weeklyTrends = dashboardStore.weeklyTrends || [];
+  
+  if (weeklyTrends.length > 0) {
+    const last7Weeks = weeklyTrends.slice(-7);
+    return last7Weeks.map(trend => trend.created || 0);
+  }
+  
+  return Array(7).fill(0);
 }
 
 const getTeamUtilization = () => {
