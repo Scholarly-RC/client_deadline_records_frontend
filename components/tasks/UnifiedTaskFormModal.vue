@@ -4,8 +4,8 @@ import type { PropType } from "vue";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { storeToRefs } from "pinia";
-import type { Task, Client } from '~/types/entities'
-import type { TaskCategory } from '~/constants/choices'
+import type { Task, Client, TaskList } from "~/types/entities";
+import type { TaskCategory } from "~/constants/choices";
 import {
   TASK_CATEGORIES,
   categoryChoices,
@@ -28,8 +28,8 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  editTask: {
-    type: Object as PropType<Task>,
+  editTaskId: {
+    type: Number,
     default: null,
   },
   selectedClient: {
@@ -55,8 +55,10 @@ const { users } = storeToRefs(userStore);
 const { activeClients } = storeToRefs(clientStore);
 
 // Reactive state
+const editTask = ref<Task | null>(null);
+const isLoadingTask = ref(false);
 const selectedCategory = ref(
-  props.selectedCategory || props.editTask?.category || null
+  props.selectedCategory || null
 );
 const validationSchema = ref<any>(null);
 
@@ -71,13 +73,10 @@ const modalOpen = computed({
 });
 
 const initialValues = computed(() => {
-  if (props.editTask) {
-    const clientId = props.editTask.client || props.selectedClient;
-    const normalizedClientId = clientId ? Number(clientId) : null;
-
+  if (editTask.value) {
     return {
-      ...props.editTask,
-      client: normalizedClientId,
+      ...editTask.value,
+      client: editTask.value.client,
     };
   }
 
@@ -96,8 +95,6 @@ const initialValues = computed(() => {
     priority: "medium",
     deadline: "",
     remarks: "",
-    date_complied: null,
-    completion_date: null,
   };
 });
 
@@ -115,18 +112,12 @@ const clientItems = computed(() => {
   }));
 
   // Add inactive client if editing and client not in active list
-  if (props.editTask?.client) {
-    const taskClientId = Number(props.editTask.client);
+  if (editTask.value?.client) {
+    const taskClientId = editTask.value.client;
     const clientExists = items.some((item) => item.value === taskClientId);
 
-    if (!clientExists) {
-      let clientName = `Client ${taskClientId}`;
-      if (props.editTask.client_detail?.name) {
-        clientName = props.editTask.client_detail.name;
-      } else if (props.editTask.client_detail?.name) {
-        clientName = props.editTask.client_detail.name;
-      }
-
+    if (!clientExists && editTask.value.client_detail) {
+      const clientName = editTask.value.client_detail.name;
       items.unshift({
         label: `${clientName} (Inactive)`,
         value: taskClientId,
@@ -143,7 +134,7 @@ const selectedClientName = computed(() => {
   return clientObj?.name || "";
 });
 
-const isEditMode = computed(() => !!props.editTask);
+const isEditMode = computed(() => !!props.editTaskId && !!editTask.value);
 const isClientFieldDisabled = computed(() => isEditMode.value);
 const isCategoryFieldDisabled = computed(() => isEditMode.value);
 
@@ -192,8 +183,6 @@ const [assigned_to] = defineField("assigned_to");
 const [priority] = defineField("priority");
 const [deadline] = defineField("deadline");
 const [remarks] = defineField("remarks");
-const [date_complied] = defineField("date_complied");
-const [completion_date] = defineField("completion_date");
 
 // Category-specific fields
 const [steps] = defineField("steps");
@@ -210,10 +199,11 @@ const [area] = defineField("area");
 const [period_covered] = defineField("period_covered");
 const [engagement_date] = defineField("engagement_date");
 
-// Helper functions
 const updateFormValidation = (categoryValue: string) => {
   if (categoryValue) {
-    validationSchema.value = toTypedSchema(getSchemaForCategory(categoryValue as TaskCategory));
+    validationSchema.value = toTypedSchema(
+      getSchemaForCategory(categoryValue as TaskCategory)
+    );
   }
 };
 
@@ -239,6 +229,37 @@ const ensureClientData = async () => {
   }
 };
 
+const fetchTaskData = async () => {
+  if (!props.editTaskId) return;
+  
+  isLoadingTask.value = true;
+  try {
+    const task = await taskStore.fetchTask(props.editTaskId);
+    editTask.value = task;
+    selectedCategory.value = task.category;
+    updateFormValidation(task.category);
+    
+    // Set form values after fetching task data
+    const formValues = {
+      ...task,
+      client: task.client,
+    };
+    setValues(formValues);
+  } catch (error) {
+    console.error('Error fetching task:', error);
+    const toast = useToast();
+    toast.add({
+      title: 'Error',
+      description: 'Failed to load task data.',
+      color: 'error',
+      icon: 'i-lucide-alert-circle',
+      duration: 5000,
+    });
+  } finally {
+    isLoadingTask.value = false;
+  }
+};
+
 const setClientValue = (clientId: number) => {
   const normalizedClientId = clientId ? Number(clientId) : null;
   if (normalizedClientId) {
@@ -250,29 +271,6 @@ const setClientValue = (clientId: number) => {
   }
 };
 
-const initializeFormForEdit = async (editTask: Task) => {
-  if (!editTask) return;
-
-  await ensureClientData();
-
-  selectedCategory.value = editTask.category;
-  updateFormValidation(editTask.category);
-
-  const clientId =
-    editTask.client || props.selectedClient;
-  const normalizedClientId = clientId ? Number(clientId) : null;
-
-  const editValues = {
-    ...editTask,
-    client: normalizedClientId,
-  };
-
-  setValues(editValues);
-  if (normalizedClientId) {
-    setClientValue(normalizedClientId);
-  }
-};
-
 // Event handlers
 const handleCategoryChange = (newCategory: string) => {
   selectedCategory.value = newCategory;
@@ -280,7 +278,9 @@ const handleCategoryChange = (newCategory: string) => {
 
   updateFormValidation(newCategory);
 
-  const defaultValues = getDefaultValuesForCategory(newCategory as TaskCategory);
+  const defaultValues = getDefaultValuesForCategory(
+    newCategory as TaskCategory
+  );
   setValues({
     ...values,
     ...defaultValues,
@@ -291,10 +291,10 @@ const handleCategoryChange = (newCategory: string) => {
 
 const onSubmit = async () => {
   const toast = useToast();
-  
+
   // Check if form is valid
   if (!formMeta.value.valid) {
-    return
+    return;
   }
 
   if (!client.value) {
@@ -322,8 +322,6 @@ const onSubmit = async () => {
         "priority",
         "deadline",
         "remarks",
-        "date_complied",
-        "completion_date",
       ];
 
       Object.keys(cleanedValues).forEach((key) => {
@@ -333,8 +331,8 @@ const onSubmit = async () => {
       });
     }
 
-    if (isEditMode.value) {
-      await taskStore.updateTask(props.editTask.id, cleanedValues);
+    if (isEditMode.value && editTask.value) {
+      await taskStore.updateTask(editTask.value.id, cleanedValues);
       toast.add({
         title: "Success",
         description: "Task updated successfully.",
@@ -385,29 +383,24 @@ watch(selectedCategory, (newCategory) => {
 });
 
 watch(
-  () => props.editTask,
-  (newTask) => {
-    if (newTask) {
-      initializeFormForEdit(newTask as Task);
+  () => props.editTaskId,
+  async (newTaskId) => {
+    if (newTaskId && props.isOpen) {
+      await ensureClientData();
+      await fetchTaskData();
     }
   },
-  { deep: true }
-);
-
-watch(
-  [() => props.isOpen, () => props.editTask],
-  async ([isOpen, newEditTask]) => {
-    if (isOpen && newEditTask) {
-      await initializeFormForEdit(newEditTask as Task);
-    }
-  }
+  { immediate: true }
 );
 
 watch(
   () => props.isOpen,
   async (isOpen) => {
-    if (isOpen && activeClients.value.length === 0) {
-      await clientStore.getAllClients();
+    if (isOpen) {
+      await ensureClientData();
+      if (props.editTaskId) {
+        await fetchTaskData();
+      }
     }
   }
 );
@@ -416,14 +409,16 @@ watch(
 onMounted(async () => {
   await ensureClientData();
 
-  if (props.editTask) {
-    await initializeFormForEdit(props.editTask as Task);
+  if (props.editTaskId && props.isOpen) {
+    await fetchTaskData();
   } else if (props.selectedCategory) {
     selectedCategory.value = props.selectedCategory;
     category.value = props.selectedCategory;
     updateFormValidation(props.selectedCategory);
 
-    const defaultValues = getDefaultValuesForCategory(props.selectedCategory as TaskCategory);
+    const defaultValues = getDefaultValuesForCategory(
+      props.selectedCategory as TaskCategory
+    );
     setValues({
       ...defaultValues,
       client: props.selectedClient,
@@ -446,7 +441,17 @@ onMounted(async () => {
     :close="false"
   >
     <template #body>
+      <!-- Loading state while fetching task data -->
+      <div v-if="isLoadingTask" class="flex items-center justify-center py-8">
+        <div class="text-center">
+          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
+          <p class="text-sm text-gray-600 dark:text-gray-400">Loading task data...</p>
+        </div>
+      </div>
+
+      <!-- Form content -->
       <UForm
+        v-else
         id="unified-task-form"
         :state="values"
         @submit="onSubmit"
@@ -826,35 +831,7 @@ onMounted(async () => {
             </UFormField>
 
             <!-- Completion Fields (for edit mode) -->
-            <template v-if="isEditMode">
-              <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <UFormField
-                  label="Date Complied"
-                  name="date_complied"
-                  :error="errors.date_complied"
-                >
-                  <UInput
-                    v-model="date_complied"
-                    type="date"
-                    class="w-full"
-                    :disabled="isSubmitting"
-                  />
-                </UFormField>
-
-                <UFormField
-                  label="Completion Date"
-                  name="completion_date"
-                  :error="errors.completion_date"
-                >
-                  <UInput
-                    v-model="completion_date"
-                    type="date"
-                    class="w-full"
-                    :disabled="isSubmitting"
-                  />
-                </UFormField>
-              </div>
-            </template>
+            <!-- Note: Date Complied and Completion Date are auto-generated by backend -->
           </div>
         </div>
       </UForm>
@@ -866,7 +843,7 @@ onMounted(async () => {
           color="neutral"
           variant="ghost"
           @click="handleClose"
-          :disabled="isSubmitting"
+          :disabled="isSubmitting || isLoadingTask"
         >
           Cancel
         </UButton>
@@ -874,7 +851,7 @@ onMounted(async () => {
           type="submit"
           form="unified-task-form"
           :loading="isSubmitting"
-          :disabled="disableSubmit"
+          :disabled="disableSubmit || isLoadingTask"
         >
           {{ isEditMode ? "Update" : "Create" }} Task
         </UButton>

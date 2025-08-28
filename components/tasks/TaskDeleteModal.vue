@@ -39,19 +39,19 @@ const getCategoryLabel = (categoryValue: string): string => {
 const handleDelete = async (): Promise<void> => {
   try {
     isDeleting.value = true;
-    
+
     // Send notification to assigned user before deletion
     await sendDeleteNotification();
-    
+
     // Delete the task
     await taskStore.deleteTask(props.task.id);
-    
+
     // Emit success event to parent
     emit("success", props.task);
-    
+
     // Close modal
     isOpen.value = false;
-    
+
     // Show success toast
     const toast = useToast();
     toast.add({
@@ -60,10 +60,9 @@ const handleDelete = async (): Promise<void> => {
       color: "success",
       icon: "i-heroicons-check-circle",
     });
-    
   } catch (error) {
     console.error("Error deleting task:", error);
-    
+
     // Show error toast
     const toast = useToast();
     toast.add({
@@ -86,9 +85,12 @@ const handleCancel = (): void => {
 const sendDeleteNotification = async (): Promise<void> => {
   try {
     const authStore = useAuthStore();
-    
+
     // Only send notification if task is assigned to someone other than the current user
-    if (props.task.assigned_to && props.task.assigned_to !== authStore.user?.id) {
+    if (
+      props.task.assigned_to &&
+      props.task.assigned_to !== authStore.user?.id
+    ) {
       const notificationData = {
         type: "task_deleted",
         title: "Task Deleted",
@@ -106,7 +108,7 @@ const sendDeleteNotification = async (): Promise<void> => {
           action: "deleted",
         },
       };
-      
+
       await notificationStore.createNotification(notificationData);
     }
   } catch (error) {
@@ -118,7 +120,7 @@ const sendDeleteNotification = async (): Promise<void> => {
 // Format deadline for display
 const formatDate = (dateString: string): string => {
   if (!dateString) return "Not specified";
-  
+
   try {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -132,17 +134,19 @@ const formatDate = (dateString: string): string => {
 </script>
 
 <template>
-  <UModal 
-    v-model:open="isOpen" 
+  <UModal
+    v-model:open="isOpen"
     title="Delete Task"
     description="This action cannot be undone"
     :ui="{ content: 'w-full max-w-lg' }"
+    :close="false"
   >
-
     <template #body>
       <div class="space-y-4">
         <!-- Warning Message -->
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4 dark:bg-red-900/20 dark:border-red-800">
+        <div
+          class="bg-red-50 border border-red-200 rounded-lg p-4 dark:bg-red-900/20 dark:border-red-800"
+        >
           <div class="flex">
             <div class="flex-shrink-0">
               <UIcon
@@ -156,10 +160,12 @@ const formatDate = (dateString: string): string => {
               </h3>
               <div class="mt-2 text-sm text-red-700 dark:text-red-300">
                 <p>
-                  You are about to permanently delete this task. This action cannot be undone.
+                  You are about to permanently delete this task. This action
+                  cannot be undone.
                 </p>
                 <p v-if="task.assigned_to_name" class="mt-1">
-                  <strong>{{ task.assigned_to_name }}</strong> will be notified of this deletion.
+                  <strong>{{ task.assigned_to_name }}</strong> will be notified
+                  of this deletion.
                 </p>
               </div>
             </div>
@@ -174,7 +180,9 @@ const formatDate = (dateString: string): string => {
           <div class="space-y-2 text-sm">
             <div class="flex justify-between">
               <span class="text-gray-600 dark:text-gray-400">ID:</span>
-              <span class="font-medium text-gray-900 dark:text-white">{{ task.id }}</span>
+              <span class="font-medium text-gray-900 dark:text-white">{{
+                task.id
+              }}</span>
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600 dark:text-gray-400">Client:</span>
@@ -190,7 +198,9 @@ const formatDate = (dateString: string): string => {
             </div>
             <div class="flex justify-between">
               <span class="text-gray-600 dark:text-gray-400">Description:</span>
-              <span class="font-medium text-gray-900 dark:text-white text-right max-w-xs truncate">
+              <span
+                class="font-medium text-gray-900 dark:text-white text-right max-w-xs truncate"
+              >
                 {{ task.description }}
               </span>
             </div>
@@ -216,18 +226,11 @@ const formatDate = (dateString: string): string => {
             </div>
           </div>
         </div>
-
-        <!-- Confirmation Text -->
-        <div class="text-center">
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            Type <strong>DELETE</strong> to confirm this action:
-          </p>
-        </div>
       </div>
     </template>
 
     <template #footer>
-      <div class="flex justify-end gap-3">
+      <div class="w-full flex justify-end gap-3">
         <UButton
           variant="ghost"
           color="neutral"

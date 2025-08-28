@@ -575,7 +575,7 @@ defineExpose({
   <TaskViewModal
     v-if="selectedTask && showViewModal"
     v-model="showViewModal"
-    :task="selectedTask"
+    :task-id="selectedTask.id"
   />
 
   <!-- Task Edit Modal -->

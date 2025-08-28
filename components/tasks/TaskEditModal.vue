@@ -111,7 +111,7 @@ const sendEditNotification = async (updatedTask: TaskList): Promise<void> => {
 <template>
   <UnifiedTaskFormModal
     :is-open="isOpen"
-    :edit-task="task as any"
+    :edit-task-id="task.id"
     @close="handleModalClose"
     @success="handleFormSuccess"
   />
