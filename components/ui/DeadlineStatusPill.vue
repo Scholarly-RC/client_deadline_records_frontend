@@ -1,11 +1,10 @@
-<script setup>
+<script setup lang="ts">
 // Component Props
-const props = defineProps({
-  status: {
-    type: String,
-    required: true,
-  },
-});
+interface Props {
+  status: string;
+}
+
+const props = defineProps<Props>();
 </script>
 
 <template>

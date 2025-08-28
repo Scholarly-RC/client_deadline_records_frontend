@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Components
 import Tasks from "~/components/tasks/Tasks.vue";
 import { useAuthStore } from "~/stores/auth";

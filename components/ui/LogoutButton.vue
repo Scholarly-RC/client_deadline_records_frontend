@@ -1,9 +1,9 @@
-<script setup>
+<script setup lang="ts">
 // Stores
 const authStore = useAuthStore();
 
 // Methods
-const handleLogout = async () => {
+const handleLogout = async (): Promise<void> => {
   await authStore.logout();
 };
 </script>

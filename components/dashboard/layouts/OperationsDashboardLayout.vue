@@ -62,7 +62,7 @@
           title="Due Soon"
           :value="dashboardStore.tasksDueSoonCount"
           icon="mdi:calendar-clock"
-          icon-color="orange"
+          icon-color="yellow"
           :is-loading="dashboardStore.isAnyLoading"
           :variant="getDueSoonVariant()"
         />
@@ -126,7 +126,7 @@
             { label: 'Completion Rate', value: getTodayCompletionRate() }
           ]"
           :actions="[
-            { label: 'View Tasks', variant: 'outline', icon: 'mdi:eye' }
+            { label: 'View Tasks', variant: 'outline', icon: 'mdi:eye', action: 'view_tasks' }
           ]"
           @action="navigateToDueToday"
         />
@@ -142,7 +142,7 @@
             { label: 'At Risk', value: getAtRiskThisWeek() }
           ]"
           :actions="[
-            { label: 'Plan Week', variant: 'outline', icon: 'mdi:calendar' }
+            { label: 'Plan Week', variant: 'outline', icon: 'mdi:calendar', action: 'plan_week' }
           ]"
           @action="navigateToWeeklyPlan"
         />
@@ -241,7 +241,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import MetricCard from '../kpi/MetricCard.vue'
 import TrendCard from '../kpi/TrendCard.vue'
@@ -249,61 +249,73 @@ import PieChartComponent from '../charts/PieChartComponent.vue'
 import TeamPerformancePanel from '../panels/TeamPerformancePanel.vue'
 import ApprovalWorkflowPanel from '../panels/ApprovalWorkflowPanel.vue'
 
+// Define interfaces for type safety
+interface RecentActivity {
+  id: number;
+  type: 'task_completed' | 'task_assigned' | 'approval_pending' | 'task_overdue';
+  description: string;
+  timestamp: Date;
+}
+
+type ActivityType = 'task_completed' | 'task_assigned' | 'approval_pending' | 'task_overdue';
+type VariantType = 'default' | 'warning' | 'error' | 'success';
+type PriorityType = 'high_priority' | 'medium_priority' | 'low_priority';
+
 const emit = defineEmits(['navigate', 'chartClick', 'openModal', 'action'])
 
 const dashboardStore = useDashboardStore()
 const { enhancedStats } = storeToRefs(dashboardStore)
 
 // Mock recent activities data
-const recentActivities = computed(() => [
+const recentActivities = computed((): RecentActivity[] => [
   {
     id: 1,
-    type: 'task_completed',
+    type: 'task_completed' as const,
     description: 'Tax compliance review completed for Christine Vang',
     timestamp: new Date(Date.now() - 30 * 60 * 1000) // 30 minutes ago
   },
   {
     id: 2,
-    type: 'task_assigned',
+    type: 'task_assigned' as const,
     description: 'New audit task assigned to team member',
     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
   },
   {
     id: 3,
-    type: 'approval_pending',
+    type: 'approval_pending' as const,
     description: 'Financial statement requires approval',
     timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 hours ago
   },
   {
     id: 4,
-    type: 'task_overdue',
+    type: 'task_overdue' as const,
     description: 'Budget analysis task is now overdue',
     timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000) // 6 hours ago
   }
 ])
 
-const getForCheckingVariant = () => {
+const getForCheckingVariant = (): VariantType => {
   const count = enhancedStats.value?.summary?.for_checking || 0
   if (count === 0) return 'default'
   if (count <= 2) return 'warning'
   return 'error'
 }
 
-const getOverdueVariant = () => {
+const getOverdueVariant = (): VariantType => {
   const count = dashboardStore.overdueTasksCount
   if (count === 0) return 'success'
   if (count <= 2) return 'warning'
   return 'error'
 }
 
-const getDueSoonVariant = () => {
+const getDueSoonVariant = (): VariantType => {
   const count = dashboardStore.tasksDueSoonCount
   if (count === 0) return 'default'
   if (count <= 3) return 'warning'
   return 'error'
 }
 
-const getPriorityColorClasses = (priority) => {
+const getPriorityColorClasses = (priority: PriorityType | string): string => {
   switch (priority) {
     case 'high_priority':
       return 'bg-red-500'
@@ -316,32 +328,32 @@ const getPriorityColorClasses = (priority) => {
   }
 }
 
-const getHighPriorityDueToday = () => {
+const getHighPriorityDueToday = (): string => {
   // This would be calculated from actual data
   return '2'
 }
 
-const getTodayCompletionRate = () => {
+const getTodayCompletionRate = (): string => {
   // This would be calculated from actual data
   return '75%'
 }
 
-const getOnTrackThisWeek = () => {
+const getOnTrackThisWeek = (): string => {
   // This would be calculated from actual data
   return '8'
 }
 
-const getAtRiskThisWeek = () => {
+const getAtRiskThisWeek = (): string => {
   // This would be calculated from actual data
   return '3'
 }
 
-const getCompletionTrendData = () => {
+const getCompletionTrendData = (): number[] => {
   // Mock trend data for the last 7 days
   return [85, 87, 82, 90, 88, 92, 89]
 }
 
-const getActivityIconClasses = (type) => {
+const getActivityIconClasses = (type: ActivityType): string => {
   const baseClasses = 'w-8 h-8 rounded-full flex items-center justify-center'
   
   switch (type) {
@@ -358,7 +370,7 @@ const getActivityIconClasses = (type) => {
   }
 }
 
-const getActivityIcon = (type) => {
+const getActivityIcon = (type: ActivityType): string => {
   switch (type) {
     case 'task_completed':
       return 'mdi:check-circle'
@@ -373,9 +385,9 @@ const getActivityIcon = (type) => {
   }
 }
 
-const formatActivityTime = (timestamp) => {
+const formatActivityTime = (timestamp: Date): string => {
   const now = new Date()
-  const diff = Math.floor((now - timestamp) / (1000 * 60)) // difference in minutes
+  const diff = Math.floor((now.getTime() - timestamp.getTime()) / (1000 * 60)) // difference in minutes
   
   if (diff < 60) {
     return `${diff}m ago`
@@ -387,24 +399,24 @@ const formatActivityTime = (timestamp) => {
 }
 
 // Navigation methods
-const navigateToTasks = () => emit('navigate', '/tasks')
-const navigateToOverdue = () => emit('navigate', '/tasks?filter=overdue')
-const navigateToTeam = () => emit('navigate', '/users')
-const navigateToApprovals = () => emit('navigate', '/approvals')
-const navigateToPendingApprovals = () => emit('navigate', '/approvals?filter=pending')
-const navigateToDueToday = () => emit('navigate', '/tasks?filter=due_today')
-const navigateToWeeklyPlan = () => emit('navigate', '/tasks?view=weekly')
-const navigateToCalendar = () => emit('navigate', '/calendar')
+const navigateToTasks = (): void => emit('navigate', '/tasks')
+const navigateToOverdue = (): void => emit('navigate', '/tasks?filter=overdue')
+const navigateToTeam = (): void => emit('navigate', '/users')
+const navigateToApprovals = (): void => emit('navigate', '/approvals')
+const navigateToPendingApprovals = (): void => emit('navigate', '/approvals?filter=pending')
+const navigateToDueToday = (): void => emit('navigate', '/tasks?filter=due_today')
+const navigateToWeeklyPlan = (): void => emit('navigate', '/tasks?view=weekly')
+const navigateToCalendar = (): void => emit('navigate', '/calendar')
 
 // Action methods
-const openAddTaskModal = () => emit('openModal', 'addTask')
-const generateTeamReport = () => emit('action', 'generateTeamReport')
-const exportDashboardData = () => emit('action', 'exportDashboard')
+const openAddTaskModal = (): void => emit('openModal', 'addTask')
+const generateTeamReport = (): void => emit('action', 'generateTeamReport')
+const exportDashboardData = (): void => emit('action', 'exportDashboard')
 
 // Event handlers
-const handleChartClick = (data) => emit('chartClick', data)
-const handleStatusChartClick = (params) => emit('chartClick', { type: 'status', params })
-const viewPerformerDetails = (performer) => emit('navigate', `/users/${performer.id}`)
+const handleChartClick = (data: any): void => emit('chartClick', data)
+const handleStatusChartClick = (params: any): void => emit('chartClick', { type: 'status', params })
+const viewPerformerDetails = (performer: any): void => emit('navigate', `/users/${performer.id}`)
 </script>
 
 <style scoped>

@@ -34,7 +34,7 @@
           title="Due Today"
           :value="personalStats.dueToday"
           icon="mdi:calendar-today"
-          icon-color="orange"
+          icon-color="yellow"
           :is-loading="dashboardStore.isAnyLoading"
           :variant="getDueTodayVariant()"
           subtitle="Requires attention"
@@ -257,12 +257,60 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import MetricCard from '../kpi/MetricCard.vue'
 import TrendCard from '../kpi/TrendCard.vue'
 import LineChartComponent from '../charts/LineChartComponent.vue'
 import PieChartComponent from '../charts/PieChartComponent.vue'
+
+// Define interfaces for type safety
+interface PersonalStats {
+  completionRate: number;
+  assignedTasks: number;
+  dueToday: number;
+  overdue: number;
+  completedThisWeek: number;
+  qualityScore: number;
+  avgTaskTime: number;
+}
+
+interface PersonalGoal {
+  id: number;
+  title: string;
+  progress: number;
+  target: number;
+}
+
+interface TimeDistribution {
+  name: string;
+  percentage: number;
+  color: string;
+}
+
+interface RecentBadge {
+  name: string;
+  color: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral';
+}
+
+interface TaskDistributionItem {
+  name: string;
+  value: number;
+  display_name: string;
+}
+
+interface DailyActivityDataset {
+  name: string;
+  data: number[];
+  showArea: boolean;
+}
+
+interface DailyActivityData {
+  xAxis: string[];
+  datasets: DailyActivityDataset[];
+}
+
+type VariantType = 'success' | 'warning' | 'error';
 
 const emit = defineEmits(['navigate', 'chartClick', 'openModal'])
 
@@ -271,7 +319,7 @@ const authStore = useAuthStore()
 const { user } = storeToRefs(authStore)
 
 // Mock personal statistics - in real implementation, this would come from the API
-const personalStats = computed(() => ({
+const personalStats = computed((): PersonalStats => ({
   completionRate: 87.5,
   assignedTasks: 12,
   dueToday: 3,
@@ -281,13 +329,13 @@ const personalStats = computed(() => ({
   avgTaskTime: 2.4
 }))
 
-const personalGoals = computed(() => [
+const personalGoals = computed((): PersonalGoal[] => [
   { id: 1, title: 'Complete 20 tasks', progress: 15, target: 20 },
   { id: 2, title: 'Maintain 90% quality', progress: 92, target: 90 },
   { id: 3, title: 'Zero overdue tasks', progress: 90, target: 100 }
 ])
 
-const timeDistribution = computed(() => [
+const timeDistribution = computed((): TimeDistribution[] => [
   { name: 'Task Execution', percentage: 45, color: '#10B981' },
   { name: 'Research', percentage: 25, color: '#3B82F6' },
   { name: 'Communication', percentage: 15, color: '#F59E0B' },
@@ -295,26 +343,26 @@ const timeDistribution = computed(() => [
   { name: 'Admin', percentage: 5, color: '#6B7280' }
 ])
 
-const recentBadges = computed(() => [
-  { name: 'Early Bird', color: 'green' },
-  { name: 'Quality Master', color: 'blue' },
-  { name: 'Team Player', color: 'purple' }
+const recentBadges = computed((): RecentBadge[] => [
+  { name: 'Early Bird', color: 'success' },
+  { name: 'Quality Master', color: 'primary' },
+  { name: 'Team Player', color: 'secondary' }
 ])
 
-const getDueTodayVariant = () => {
+const getDueTodayVariant = (): VariantType => {
   const count = personalStats.value.dueToday
   if (count === 0) return 'success'
   if (count <= 2) return 'warning'
   return 'error'
 }
 
-const getOverdueVariant = () => {
+const getOverdueVariant = (): VariantType => {
   const count = personalStats.value.overdue
   if (count === 0) return 'success'
   return 'error'
 }
 
-const getPersonalTaskDistribution = () => {
+const getPersonalTaskDistribution = (): TaskDistributionItem[] => {
   // Mock personal task distribution
   return [
     { name: 'In Progress', value: 5, display_name: 'In Progress' },
@@ -324,7 +372,7 @@ const getPersonalTaskDistribution = () => {
   ]
 }
 
-const getDailyActivityData = () => {
+const getDailyActivityData = (): DailyActivityData => {
   // Mock daily activity for the last 7 days
   return {
     xAxis: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -343,16 +391,16 @@ const getDailyActivityData = () => {
   }
 }
 
-const getWeeklyPerformanceData = () => {
+const getWeeklyPerformanceData = (): number[] => {
   // Mock weekly performance data
   return [78, 82, 85, 89, 87, 90, 88]
 }
 
-const getGoalProgressPercentage = (goal) => {
+const getGoalProgressPercentage = (goal: PersonalGoal): number => {
   return Math.min(Math.round((goal.progress / goal.target) * 100), 100)
 }
 
-const getGoalProgressColor = (goal) => {
+const getGoalProgressColor = (goal: PersonalGoal): string => {
   const percentage = getGoalProgressPercentage(goal)
   if (percentage >= 90) return 'bg-green-500'
   if (percentage >= 70) return 'bg-blue-500'
@@ -360,7 +408,7 @@ const getGoalProgressColor = (goal) => {
   return 'bg-red-500'
 }
 
-const getTaskTimeComparison = () => {
+const getTaskTimeComparison = (): string => {
   const avgTime = personalStats.value.avgTaskTime
   const teamAvg = 3.2 // Mock team average
   
@@ -371,7 +419,7 @@ const getTaskTimeComparison = () => {
   }
 }
 
-const getPerformanceSummary = () => {
+const getPerformanceSummary = (): string => {
   const rate = personalStats.value.completionRate
   
   if (rate >= 90) {
@@ -385,8 +433,8 @@ const getPerformanceSummary = () => {
   }
 }
 
-const getPersonalizedTips = () => {
-  const tips = []
+const getPersonalizedTips = (): string[] => {
+  const tips: string[] = []
   
   if (personalStats.value.overdue > 0) {
     tips.push("Prioritize overdue tasks first thing in the morning")
@@ -406,23 +454,23 @@ const getPersonalizedTips = () => {
 }
 
 // Event handlers
-const handleTaskDistributionClick = (params) => {
+const handleTaskDistributionClick = (params: any): void => {
   emit('chartClick', { type: 'personal_tasks', params })
 }
 
-const handleActivityClick = (params) => {
+const handleActivityClick = (params: any): void => {
   emit('chartClick', { type: 'daily_activity', params })
 }
 
 // Navigation methods
-const navigateToMyTasks = () => emit('navigate', '/my-tasks')
-const navigateToDueToday = () => emit('navigate', '/my-tasks?filter=due_today')
-const navigateToOverdue = () => emit('navigate', '/my-tasks?filter=overdue')
+const navigateToMyTasks = (): void => emit('navigate', '/my-tasks')
+const navigateToDueToday = (): void => emit('navigate', '/my-tasks?filter=due_today')
+const navigateToOverdue = (): void => emit('navigate', '/my-tasks?filter=overdue')
 
 // Modal opening methods
-const openProgressUpdate = () => emit('openModal', 'progressUpdate')
-const openExtensionRequest = () => emit('openModal', 'extensionRequest')
-const openGoalSetting = () => emit('openModal', 'goalSetting')
+const openProgressUpdate = (): void => emit('openModal', 'progressUpdate')
+const openExtensionRequest = (): void => emit('openModal', 'extensionRequest')
+const openGoalSetting = (): void => emit('openModal', 'goalSetting')
 </script>
 
 <style scoped>

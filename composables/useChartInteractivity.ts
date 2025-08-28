@@ -1,12 +1,33 @@
-/**
- * Chart Interactivity Composable
- * Provides reactive chart interactivity features for dashboard components
- */
+import { ref, onMounted, onUnmounted, readonly, computed } from 'vue'
+import { useWindowSize } from '@vueuse/core'
+import { createChartInteractivity } from '../utils/dashboard/chartInteractivity'
 
-import { ref, onMounted, onUnmounted } from 'vue'
-import { createChartInteractivity } from '~/utils/dashboard/chartInteractivity.js'
+// Explicitly import auto-imported functions
+import { useRouter } from '#app/composables/router'
+import { useToast } from '../node_modules/@nuxt/ui/dist/runtime/composables/useToast'
+import { useDashboardStore } from '../stores/dashboard'
 
-export const useChartInteractivity = (options = {}) => {
+interface ChartInteractivityOptions {
+  customDrillHandlers?: Record<string, Function>;
+}
+
+interface ChartOptions {
+  enableZoomPan?: boolean;
+  enableAnimations?: boolean;
+  animationType?: string;
+  drillContext?: Record<string, any>;
+  [key: string]: any;
+}
+
+interface ChartClickContext {
+  [key: string]: any;
+}
+
+interface AnimationOptions {
+  [key: string]: any;
+}
+
+export const useChartInteractivity = (options: ChartInteractivityOptions = {}) => {
   const router = useRouter()
   const dashboardStore = useDashboardStore()
   
@@ -17,7 +38,7 @@ export const useChartInteractivity = (options = {}) => {
   const isPanning = ref(false)
   
   // Chart interactivity manager
-  let interactivityManager = null
+  let interactivityManager: any = null
   
   onMounted(() => {
     interactivityManager = createChartInteractivity(router, dashboardStore)
@@ -25,7 +46,9 @@ export const useChartInteractivity = (options = {}) => {
     // Register custom drill handlers if provided
     if (options.customDrillHandlers) {
       Object.entries(options.customDrillHandlers).forEach(([chartType, handler]) => {
-        interactivityManager.driller.registerDrillHandler(chartType, handler)
+        if (interactivityManager) {
+          interactivityManager.driller.registerDrillHandler(chartType, handler as any)
+        }
       })
     }
   })
@@ -37,7 +60,7 @@ export const useChartInteractivity = (options = {}) => {
   /**
    * Initialize interactivity for a chart instance
    */
-  const initializeChartInteractivity = (chartInstance, chartType, chartOptions = {}) => {
+  const initializeChartInteractivity = (chartInstance: any, chartType: string, chartOptions: ChartOptions = {}) => {
     if (!interactivityManager || !chartInstance) return null
     
     const defaultOptions = {
@@ -55,7 +78,7 @@ export const useChartInteractivity = (options = {}) => {
   /**
    * Handle chart click events with data drilling
    */
-  const handleChartClick = async (chartType, params, context = {}) => {
+  const handleChartClick = async (chartType: string, params: any, context: ChartClickContext = {}) => {
     if (!interactivityManager) return
     
     try {
@@ -75,7 +98,7 @@ export const useChartInteractivity = (options = {}) => {
   /**
    * Export chart with progress tracking
    */
-  const exportChart = async (chartInstance, format, filename, chartData = null) => {
+  const exportChart = async (chartInstance: any, format: string, filename: string, chartData: any = null) => {
     if (!interactivityManager || isExporting.value) return
     
     try {
@@ -121,7 +144,7 @@ export const useChartInteractivity = (options = {}) => {
   /**
    * Reset chart zoom to original level
    */
-  const resetChartZoom = (chartInstance) => {
+  const resetChartZoom = (chartInstance: any) => {
     if (!interactivityManager || !chartInstance) return
     
     interactivityManager.zoomPan.resetZoom(chartInstance)
@@ -131,7 +154,7 @@ export const useChartInteractivity = (options = {}) => {
   /**
    * Animate chart data update
    */
-  const animateChartUpdate = (chartInstance, newOption, animationOptions = {}) => {
+  const animateChartUpdate = (chartInstance: any, newOption: any, animationOptions: AnimationOptions = {}) => {
     if (!interactivityManager || !chartInstance) return
     
     interactivityManager.animator.animateDataUpdate(chartInstance, newOption, animationOptions)
@@ -140,7 +163,7 @@ export const useChartInteractivity = (options = {}) => {
   /**
    * Enable real-time chart updates with animations
    */
-  const enableRealTimeUpdates = (chartInstance, updateInterval = 30000) => {
+  const enableRealTimeUpdates = (chartInstance: any, updateInterval: number = 30000) => {
     if (!chartInstance) return null
     
     const interval = setInterval(async () => {
@@ -168,8 +191,8 @@ export const useChartInteractivity = (options = {}) => {
   /**
    * Create chart tooltip formatter with enhanced information
    */
-  const createEnhancedTooltipFormatter = (chartType, additionalData = {}) => {
-    return (params) => {
+  const createEnhancedTooltipFormatter = (chartType: string, additionalData: Record<string, any> = {}) => {
+    return (params: any) => {
       let tooltipContent = ''
       
       if (Array.isArray(params)) {
@@ -206,12 +229,12 @@ export const useChartInteractivity = (options = {}) => {
   /**
    * Create contextual chart options based on screen size
    */
-  const createResponsiveChartOptions = (baseOptions = {}) => {
-    const { width, height } = useWindowSize()
+  const createResponsiveChartOptions = (baseOptions: Record<string, any> = {}) => {
+    const { width } = useWindowSize()
     
     const isMobile = computed(() => width.value < 768)
     const isTablet = computed(() => width.value >= 768 && width.value < 1024)
-    const isDesktop = computed(() => width.value >= 1024)
+    // const isDesktop = computed(() => width.value >= 1024)
     
     return computed(() => {
       let responsiveOptions = { ...baseOptions }
@@ -280,7 +303,7 @@ export const useDashboardChartInteractivity = () => {
   /**
    * Initialize standard dashboard chart
    */
-  const initializeDashboardChart = (chartInstance, chartType, options = {}) => {
+  const initializeDashboardChart = (chartInstance: any, chartType: string, options: Record<string, any> = {}) => {
     const defaultOptions = {
       enableDrilling: true,
       enableZoomPan: ['line', 'bar'].includes(chartType),
@@ -295,7 +318,7 @@ export const useDashboardChartInteractivity = () => {
   /**
    * Create standard dashboard tooltip
    */
-  const createDashboardTooltip = (chartType) => {
+  const createDashboardTooltip = (chartType: string) => {
     return baseInteractivity.createEnhancedTooltipFormatter(chartType, {
       showClickHint: true
     })

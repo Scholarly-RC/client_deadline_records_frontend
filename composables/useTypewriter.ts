@@ -1,10 +1,17 @@
-export const useTypewriter = (text, elementRef) => {
+import { type Ref } from 'vue';
+
+interface TypewriterReturn {
+  startTyping: () => void;
+  stopTyping: () => void;
+}
+
+export const useTypewriter = (text: string, elementRef: Ref<HTMLElement | null>): TypewriterReturn => {
   let i = 0;
   let isDeleting = false;
-  let timeoutId = null;
+  let timeoutId: NodeJS.Timeout | null = null;
   let randomStop = 0; // Move this outside and initialize
 
-  const type = () => {
+  const type = (): void => {
     if (!elementRef.value) return;
 
     if (!isDeleting && i < text.length) {
@@ -34,7 +41,7 @@ export const useTypewriter = (text, elementRef) => {
     }
   };
 
-  const stop = () => {
+  const stop = (): void => {
     if (timeoutId) {
       clearTimeout(timeoutId);
       timeoutId = null;

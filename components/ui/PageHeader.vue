@@ -1,10 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import NotificationModal from "../notifications/NotificationModal.vue";
 
 // Props
-const props = defineProps({
-  page: String,
-});
+interface Props {
+  page?: string;
+}
+
+const props = defineProps<Props>();
 
 // Stores
 const sidebarStore = useSidebarStore();

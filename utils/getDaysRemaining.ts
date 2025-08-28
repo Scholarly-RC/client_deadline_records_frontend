@@ -1,4 +1,4 @@
-export function getDaysRemaining(days) {
+export function getDaysRemaining(days: number): string {
   switch (days) {
     case 0:
       return "today";

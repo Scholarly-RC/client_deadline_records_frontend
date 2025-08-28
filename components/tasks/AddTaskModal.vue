@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
@@ -16,8 +16,8 @@ const userStore = useUserStore();
 // State
 const showAddTaskModal = ref(false);
 const showUnifiedTaskFormModal = ref(false);
-const selectedClient = ref(null);
-const selectedCategory = ref(null);
+const selectedClient = ref<number | null>(null);
+const selectedCategory = ref<string | null>(null);
 
 // Fetch initial data
 onMounted(async () => {
@@ -46,7 +46,7 @@ const {
 } = useForm({
   validationSchema,
   initialValues: {
-    client: null,
+    client: undefined as number | undefined,
     category: "",
   },
 });
@@ -106,7 +106,7 @@ const handleUnifiedModalSuccess = () => {
           <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold">Add Task - Step 1 of 2</h2>
             <UButton
-              color="gray"
+              color="neutral"
               variant="ghost"
               icon="i-heroicons-x-mark-20-solid"
               @click="showAddTaskModal = false"
@@ -163,8 +163,8 @@ const handleUnifiedModalSuccess = () => {
 
     <UnifiedTaskFormModal
       :is-open="showUnifiedTaskFormModal"
-      :selected-client="selectedClient"
-      :selected-category="selectedCategory"
+      :selected-client="selectedClient || undefined"
+      :selected-category="selectedCategory || undefined"
       @close="handleUnifiedModalClose"
       @success="handleUnifiedModalSuccess"
     />

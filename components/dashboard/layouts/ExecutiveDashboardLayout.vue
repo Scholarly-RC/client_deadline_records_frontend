@@ -143,17 +143,18 @@
               :key="alert.title"
               :title="alert.title"
               :message="alert.message"
-              :type="alert.type"
+              :type="alert.type as AlertType"
               severity="high"
               :actions="[
                 {
                   label: alert.action,
                   variant: 'solid',
-                  color: 'red',
-                  icon: 'mdi:arrow-right'
+                  color: 'error',
+                  icon: 'mdi:arrow-right',
+                  action: alert.action
                 }
               ]"
-              @action="handleAlertAction(alert)"
+              @action="handleAlertAction(alert as CriticalAlert)"
             />
           </template>
           <template v-else>
@@ -208,7 +209,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import MetricCard from '../kpi/MetricCard.vue'
 import GaugeChartComponent from '../charts/GaugeChartComponent.vue'
@@ -216,12 +217,36 @@ import LineChartComponent from '../charts/LineChartComponent.vue'
 import PieChartComponent from '../charts/PieChartComponent.vue'
 import AlertCard from '../kpi/AlertCard.vue'
 
+// Define interfaces for type safety
+type AlertType = 'info' | 'success' | 'warning' | 'error' | 'critical';
+type AlertColor = 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral';
+type VariantType = 'success' | 'default' | 'warning' | 'error';
+type SystemLoad = 'low' | 'medium' | 'high';
+
+interface CriticalAlert {
+  title: string;
+  message: string;
+  type: AlertType;
+  action: string;
+}
+
+interface ChartDataset {
+  name: string;
+  data: number[];
+  showArea: boolean;
+}
+
+interface PerformanceTrendsData {
+  xAxis: string[];
+  datasets: ChartDataset[];
+}
+
 const emit = defineEmits(['navigate', 'chartClick', 'alertAction'])
 
 const dashboardStore = useDashboardStore()
 const { enhancedStats, businessIntelligence } = storeToRefs(dashboardStore)
 
-const getSystemHealthVariant = () => {
+const getSystemHealthVariant = (): VariantType => {
   const score = dashboardStore.workloadBalanceScore
   if (score >= 80) return 'success'
   if (score >= 60) return 'default'
@@ -229,65 +254,56 @@ const getSystemHealthVariant = () => {
   return 'error'
 }
 
-const getCriticalTasksVariant = () => {
+const getCriticalTasksVariant = (): VariantType => {
   const critical = enhancedStats.value?.summary?.high_priority || 0
   if (critical === 0) return 'success'
   if (critical <= 2) return 'warning'
   return 'error'
 }
 
-const getSystemLoadClasses = () => {
-  const load = businessIntelligence.value?.system_health?.system_load_indicator
+const getSystemLoadClasses = (): string => {
+  const load = businessIntelligence.value?.system_health?.system_load_indicator as SystemLoad
   const baseClasses = 'transition-all duration-200'
   
-  switch (load) {
-    case 'low':
-      return `${baseClasses} bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200`
-    case 'medium':
-      return `${baseClasses} bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-200`
-    case 'high':
-      return `${baseClasses} bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200`
-    default:
-      return `${baseClasses} bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300`
+  const loadClasses: Record<SystemLoad, string> = {
+    low: 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200',
+    medium: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-200',
+    high: 'bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200'
   }
-}
-
-const getSystemLoadIcon = () => {
-  const load = businessIntelligence.value?.system_health?.system_load_indicator
   
-  switch (load) {
-    case 'low':
-      return 'mdi:speedometer-slow'
-    case 'medium':
-      return 'mdi:speedometer-medium'
-    case 'high':
-      return 'mdi:speedometer'
-    default:
-      return 'mdi:help-circle-outline'
-  }
+  return `${baseClasses} ${loadClasses[load] || 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`
 }
 
-const getSystemLoadTextColor = () => {
-  const load = businessIntelligence.value?.system_health?.system_load_indicator
+const getSystemLoadIcon = (): string => {
+  const load = businessIntelligence.value?.system_health?.system_load_indicator as SystemLoad
   
-  switch (load) {
-    case 'low':
-      return 'text-green-600 dark:text-green-400'
-    case 'medium':
-      return 'text-yellow-600 dark:text-yellow-400'
-    case 'high':
-      return 'text-red-600 dark:text-red-400'
-    default:
-      return 'text-gray-600 dark:text-gray-400'
+  const loadIcons: Record<SystemLoad, string> = {
+    low: 'mdi:speedometer-slow',
+    medium: 'mdi:speedometer-medium',
+    high: 'mdi:speedometer'
   }
+  
+  return loadIcons[load] || 'mdi:help-circle-outline'
 }
 
-const formatSystemLoad = () => {
-  const load = businessIntelligence.value?.system_health?.system_load_indicator
+const getSystemLoadTextColor = (): string => {
+  const load = businessIntelligence.value?.system_health?.system_load_indicator as SystemLoad
+  
+  const loadColors: Record<SystemLoad, string> = {
+    low: 'text-green-600 dark:text-green-400',
+    medium: 'text-yellow-600 dark:text-yellow-400',
+    high: 'text-red-600 dark:text-red-400'
+  }
+  
+  return loadColors[load] || 'text-gray-600 dark:text-gray-400'
+}
+
+const formatSystemLoad = (): string => {
+  const load = businessIntelligence.value?.system_health?.system_load_indicator as SystemLoad
   return load ? load.charAt(0).toUpperCase() + load.slice(1) : 'Unknown'
 }
 
-const getPerformanceTrendsData = () => {
+const getPerformanceTrendsData = (): PerformanceTrendsData => {
   const trendsData = dashboardStore.weeklyTrendsChartData
   
   if (!trendsData.xAxis?.length) {
@@ -314,23 +330,23 @@ const getPerformanceTrendsData = () => {
   }
 }
 
-const navigateToClients = () => {
+const navigateToClients = (): void => {
   emit('navigate', '/clients')
 }
 
-const navigateToTasks = () => {
+const navigateToTasks = (): void => {
   emit('navigate', '/tasks')
 }
 
-const handleTrendsClick = (params) => {
+const handleTrendsClick = (params: any): void => {
   emit('chartClick', { type: 'trends', params })
 }
 
-const handleCategoryClick = (params) => {
+const handleCategoryClick = (params: any): void => {
   emit('chartClick', { type: 'category', params })
 }
 
-const handleAlertAction = (alert) => {
+const handleAlertAction = (alert: CriticalAlert): void => {
   emit('alertAction', alert)
 }
 </script>

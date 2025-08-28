@@ -66,96 +66,65 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import TrendIndicator from './TrendIndicator.vue'
 
-const props = defineProps({
-  title: {
-    type: String,
-    required: true
-  },
-  value: {
-    type: [Number, String],
-    required: true
-  },
-  subtitle: {
-    type: String,
-    default: ''
-  },
-  icon: {
-    type: String,
-    required: true
-  },
-  iconColor: {
-    type: String,
-    default: 'blue'
-  },
-  trend: {
-    type: Object,
-    default: null,
-    validator: (value) => {
-      if (value === null) return true
-      return typeof value === 'object' && 
-             'direction' in value && 
-             'percentage' in value
-    }
-  },
-  showTrend: {
-    type: Boolean,
-    default: true
-  },
-  showProgress: {
-    type: Boolean,
-    default: false
-  },
-  progressValue: {
-    type: Number,
-    default: 0
-  },
-  progressMax: {
-    type: Number,
-    default: 100
-  },
-  format: {
-    type: String,
-    default: 'number', // number, currency, percentage
-  },
-  locale: {
-    type: String,
-    default: 'en-US'
-  },
-  currency: {
-    type: String,
-    default: 'USD'
-  },
-  isLoading: {
-    type: Boolean,
-    default: false
-  },
-  actionLabel: {
-    type: String,
-    default: ''
-  },
-  actionIcon: {
-    type: String,
-    default: ''
-  },
-  actionDisabled: {
-    type: Boolean,
-    default: false
-  },
-  variant: {
-    type: String,
-    default: 'default', // default, success, warning, error, info
-  }
+// Define interfaces for type safety
+interface TrendInfo {
+  direction: 'up' | 'down' | 'stable';
+  percentage: number;
+  value?: number;
+}
+
+type CardVariant = 'default' | 'success' | 'warning' | 'error' | 'info';
+type IconColor = 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'indigo' | 'gray';
+type FormatType = 'number' | 'currency' | 'percentage';
+
+interface Props {
+  title: string;
+  value: number | string;
+  subtitle?: string;
+  icon: string;
+  iconColor?: IconColor;
+  trend?: TrendInfo | null;
+  showTrend?: boolean;
+  showProgress?: boolean;
+  progressValue?: number;
+  progressMax?: number;
+  format?: FormatType;
+  locale?: string;
+  currency?: string;
+  isLoading?: boolean;
+  actionLabel?: string;
+  actionIcon?: string;
+  actionDisabled?: boolean;
+  variant?: CardVariant;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  subtitle: '',
+  iconColor: 'blue',
+  trend: null,
+  showTrend: true,
+  showProgress: false,
+  progressValue: 0,
+  progressMax: 100,
+  format: 'number',
+  locale: 'en-US',
+  currency: 'USD',
+  isLoading: false,
+  actionLabel: '',
+  actionIcon: '',
+  actionDisabled: false,
+  variant: 'default'
 })
 
 const emit = defineEmits(['action'])
 
 const cardClasses = computed(() => {
   const base = 'metric-card transition-all duration-200 hover:shadow-md'
-  const variants = {
+  const variants: Record<CardVariant, string> = {
     default: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
     success: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
     warning: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
@@ -167,7 +136,7 @@ const cardClasses = computed(() => {
 })
 
 const iconClasses = computed(() => {
-  const colors = {
+  const colors: Record<IconColor, string> = {
     blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200',
     green: 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200',
     yellow: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-200',

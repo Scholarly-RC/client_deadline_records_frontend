@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import {
   categoryChoices,
   statusChoices,
@@ -12,6 +12,8 @@ import {
 } from "~/constants/choices";
 import StatusBadge from "../ui/StatusBadge.vue";
 import PriorityBadge from "../ui/PriorityBadge.vue";
+import type { Task, TaskList, StatusHistoryEntry, ApprovalHistoryEntry } from '~/types/entities'
+import type { PropType } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -19,7 +21,7 @@ const props = defineProps({
     default: false,
   },
   task: {
-    type: Object,
+    type: Object as PropType<TaskList | Task>,
     required: true,
   },
 });
@@ -27,13 +29,13 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue"]);
 
 // Reactive state
-const taskData = ref(null);
-const taskApprovals = ref([]);
-const statusHistory = ref([]);
-const isLoading = ref(false);
-const isLoadingApprovals = ref(false);
-const isLoadingHistory = ref(false);
-const error = ref(null);
+const taskData = ref<Task | null>(null);
+const taskApprovals = ref<ApprovalHistoryEntry[]>([]);
+const statusHistory = ref<StatusHistoryEntry[]>([]);
+const isLoading = ref<boolean>(false);
+const isLoadingApprovals = ref<boolean>(false);
+const isLoadingHistory = ref<boolean>(false);
+const error = ref<string | null>(null);
 
 // Computed for modal state
 const isOpen = computed({
@@ -47,7 +49,7 @@ const currentTask = computed(() => {
 });
 
 // Fetch detailed task data from API
-const fetchTaskData = async (taskId) => {
+const fetchTaskData = async (taskId: number) => {
   if (!taskId) return;
 
   try {
@@ -58,7 +60,7 @@ const fetchTaskData = async (taskId) => {
 
     // Fetch main task data
     const response = await $apiFetch(`/api/tasks/${taskId}/`);
-    taskData.value = response;
+    taskData.value = response as Task;
 
     // Fetch additional data in parallel if applicable
     await Promise.allSettled([
@@ -83,12 +85,12 @@ const fetchTaskData = async (taskId) => {
 };
 
 // Fetch task approvals
-const fetchTaskApprovals = async (taskId) => {
+const fetchTaskApprovals = async (taskId: number) => {
   try {
     isLoadingApprovals.value = true;
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch(`/api/tasks/${taskId}/task-approvals/`);
-    taskApprovals.value = response;
+    taskApprovals.value = response as ApprovalHistoryEntry[];
   } catch (err) {
     console.error("Error fetching task approvals:", err);
     taskApprovals.value = [];
@@ -98,12 +100,12 @@ const fetchTaskApprovals = async (taskId) => {
 };
 
 // Fetch status history
-const fetchStatusHistory = async (taskId) => {
+const fetchStatusHistory = async (taskId: number) => {
   try {
     isLoadingHistory.value = true;
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch(`/api/tasks/${taskId}/status-history/`);
-    statusHistory.value = response;
+    statusHistory.value = response as StatusHistoryEntry[];
   } catch (err) {
     console.error("Error fetching status history:", err);
     statusHistory.value = [];
@@ -116,7 +118,7 @@ const fetchStatusHistory = async (taskId) => {
 watch(
   () => [props.modelValue, props.task?.id],
   ([isModalOpen, taskId]) => {
-    if (isModalOpen && taskId) {
+    if (isModalOpen && taskId && typeof taskId === 'number') {
       fetchTaskData(taskId);
     }
   },
@@ -135,7 +137,7 @@ watch(
 );
 
 // Helper function for approval status colors
-const getApprovalStatusColor = (action) => {
+const getApprovalStatusColor = (action: string) => {
   switch (action) {
     case "approved":
       return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200";
@@ -151,7 +153,7 @@ const getApprovalStatusColor = (action) => {
 };
 
 // Helper function for status change title
-const getStatusChangeTitle = (history) => {
+const getStatusChangeTitle = (history: StatusHistoryEntry) => {
   const oldStatus =
     history.old_status_display || getStatusLabel(history.old_status);
   const newStatus =
@@ -160,7 +162,7 @@ const getStatusChangeTitle = (history) => {
 };
 
 // Helper function for history colors
-const getHistoryColor = (status) => {
+const getHistoryColor = (status: string) => {
   switch (status) {
     case "completed":
       return "green";
@@ -179,7 +181,7 @@ const getHistoryColor = (status) => {
 };
 
 // Helper function for approval content
-const getApprovalContent = (approval) => {
+const getApprovalContent = (approval: ApprovalHistoryEntry) => {
   const parts = [];
 
   if (approval.approver?.fullname) {
@@ -190,51 +192,43 @@ const getApprovalContent = (approval) => {
     parts.push(`Status: ${approval.action_display}`);
   }
 
-  if (approval.step_number) {
-    parts.push(`Step: ${approval.step_number}`);
+  if (approval.approval_step) {
+    parts.push(`Step: ${approval.approval_step}`);
   }
 
   if (approval.created_at) {
     parts.push(`Created: ${approval.created_at}`);
   }
 
-  if (approval.updated_at && approval.updated_at !== approval.created_at) {
-    parts.push(`Updated: ${approval.updated_at}`);
-  }
-
-  if (approval.comments) {
-    parts.push(`Comments: ${approval.comments}`);
+  if (approval.remarks) {
+    parts.push(`Comments: ${approval.remarks}`);
   } else {
     parts.push("Comments: No comments provided");
-  }
-
-  if (approval.next_approver) {
-    parts.push(`Next Approver: ${approval.next_approver}`);
   }
 
   return parts.join("\n");
 };
 
 // Helper function for approval icons
-const getApprovalIcon = (action) => {
+const getApprovalIcon = (action: string) => {
   switch (action) {
-    case "approved":
-      return "i-lucide-check-circle";
-    case "rejected":
-      return "i-lucide-x-circle";
-    case "pending":
-      return "i-lucide-clock";
-    case "in_review":
-      return "i-lucide-eye";
+    case 'approve':
+    case 'approved':
+      return 'i-heroicons-check-circle';
+    case 'reject':
+    case 'rejected':
+      return 'i-heroicons-x-circle';
+    case 'pending':
+      return 'i-heroicons-clock';
     default:
-      return "i-lucide-clock";
+      return 'i-heroicons-question-mark-circle';
   }
 };
 
 // Helper function for status history description
-const getHistoryDescription = (history) => {
-  const parts = [];
-
+const getHistoryDescription = (history: StatusHistoryEntry) => {
+  const parts: string[] = [];
+  
   if (history.changed_by?.fullname) {
     parts.push(`Changed by ${history.changed_by.fullname}`);
   }
@@ -251,7 +245,7 @@ const getHistoryDescription = (history) => {
 };
 
 // Helper function for status history icons
-const getHistoryIcon = (status) => {
+const getHistoryIcon = (status: string) => {
   switch (status) {
     case "completed":
       return "i-lucide-check-circle";
@@ -270,7 +264,7 @@ const getHistoryIcon = (status) => {
 };
 
 // Helper functions for field formatting
-const formatDate = (dateString) => {
+const formatDate = (dateString: string | null | undefined) => {
   if (!dateString) return "Not specified";
 
   // If already formatted, return as is
@@ -289,21 +283,23 @@ const formatDate = (dateString) => {
   }
 };
 
-const formatCurrency = (amount) => {
+const formatCurrency = (amount: number | string | null | undefined) => {
   if (!amount) return "Not specified";
+  const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  if (isNaN(numericAmount)) return "Not specified";
   return new Intl.NumberFormat("en-PH", {
     style: "currency",
     currency: "PHP",
-  }).format(amount);
+  }).format(numericAmount);
 };
 
-const getDaysRemaining = (deadline) => {
+const getDaysRemaining = (deadline: string | null | undefined) => {
   if (!deadline) return null;
 
   try {
     const today = new Date();
     const deadlineDate = new Date(deadline);
-    const diffTime = deadlineDate - today;
+    const diffTime = deadlineDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   } catch (error) {
@@ -311,7 +307,7 @@ const getDaysRemaining = (deadline) => {
   }
 };
 
-const getDeadlineStatus = (deadline) => {
+const getDeadlineStatus = (deadline: string | null | undefined) => {
   const days = getDaysRemaining(deadline);
   if (days === null) return "";
 
@@ -321,7 +317,7 @@ const getDeadlineStatus = (deadline) => {
   return `${days} days remaining`;
 };
 
-const getDeadlineColor = (deadline) => {
+const getDeadlineColor = (deadline: string | null | undefined) => {
   const days = getDaysRemaining(deadline);
   if (days === null) return "gray";
   if (days < 0) return "red";
@@ -331,39 +327,39 @@ const getDeadlineColor = (deadline) => {
 };
 
 // Helper functions to get choice labels
-const getCategoryLabel = (categoryValue) => {
+const getCategoryLabel = (categoryValue: string | null | undefined) => {
   const choice = categoryChoices.find((c) => c.value === categoryValue);
   return choice ? choice.label : categoryValue || "Not specified";
 };
 
-const getStatusLabel = (statusValue) => {
+const getStatusLabel = (statusValue: string | null | undefined) => {
   const choice = statusChoices.find((s) => s.value === statusValue);
   return choice ? choice.label : statusValue || "Not specified";
 };
 
-const getPriorityLabel = (priorityValue) => {
+const getPriorityLabel = (priorityValue: string | null | undefined) => {
   const choice = priorityChoices.find((p) => p.value === priorityValue);
   return choice ? choice.label : priorityValue || "Not specified";
 };
 
-const getTaxCategoryLabel = (taxCategoryValue) => {
+const getTaxCategoryLabel = (taxCategoryValue: string | null | undefined) => {
   const choice = taxCaseCategoryChoices.find(
     (t) => t.value === taxCategoryValue
   );
   return choice ? choice.label : taxCategoryValue || "Not specified";
 };
 
-const getTaxTypeLabel = (taxTypeValue) => {
+const getTaxTypeLabel = (taxTypeValue: string | null | undefined) => {
   const choice = typeOfTaxCaseChoices.find((t) => t.value === taxTypeValue);
   return choice ? choice.label : taxTypeValue || "Not specified";
 };
 
-const getBirFormLabel = (birFormValue) => {
+const getBirFormLabel = (birFormValue: string | null | undefined) => {
   const choice = birFormChoices.find((b) => b.value === birFormValue);
   return choice ? choice.label : birFormValue || "Not specified";
 };
 
-const getFsrTypeLabel = (fsrTypeValue) => {
+const getFsrTypeLabel = (fsrTypeValue: string | null | undefined) => {
   const choice = fsrTypeChoices.find((f) => f.value === fsrTypeValue);
   return choice ? choice.label : fsrTypeValue || "Not specified";
 };
@@ -376,8 +372,13 @@ const categorySpecificFields = computed(() => {
   return categoryConfig ? categoryConfig.fields : [];
 });
 
+// Helper function to safely get task field value
+const getTaskFieldValue = (task: any, fieldName: string) => {
+  return task ? task[fieldName] : undefined;
+};
+
 // Field display configuration
-const getFieldDisplayValue = (fieldName, value) => {
+const getFieldDisplayValue = (fieldName: string, value: any) => {
   if (!value && value !== 0) return "Not specified";
 
   switch (fieldName) {
@@ -408,7 +409,7 @@ const getFieldDisplayValue = (fieldName, value) => {
   }
 };
 
-const getFieldLabel = (fieldName) => {
+const getFieldLabel = (fieldName: string) => {
   const fieldLabels = {
     client_name: "Client",
     description: "Description",
@@ -436,11 +437,7 @@ const getFieldLabel = (fieldName) => {
     date_complied: "Date Complied",
     completion_date: "Completion Date",
   };
-
-  return (
-    fieldLabels[fieldName] ||
-    fieldName.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
-  );
+  return fieldLabels[fieldName as keyof typeof fieldLabels] || fieldName;
 };
 
 // Base fields that are common to all tasks (removed created_at, updated_at, requires_approval, approval_step)
@@ -525,38 +522,38 @@ const additionalFields = [
                 <div class="min-h-[2.25rem] flex items-center">
                   <StatusBadge
                     v-if="field === 'status'"
-                    :status="currentTask[field]"
+                    :status="getTaskFieldValue(currentTask, field)"
                   />
                   <PriorityBadge
                     v-else-if="field === 'priority'"
-                    :priority="currentTask[field]"
+                    :priority="getTaskFieldValue(currentTask, field)"
                   />
                   <div v-else-if="field === 'deadline'" class="space-y-1">
                     <div class="font-medium">
-                      {{ getFieldDisplayValue(field, currentTask[field]) }}
+                      {{ getFieldDisplayValue(field, getTaskFieldValue(currentTask, field)) }}
                     </div>
                     <div
-                      v-if="currentTask[field]"
+                      v-if="getTaskFieldValue(currentTask, field)"
                       :class="[
                         'text-xs px-2 py-1 rounded-full inline-block',
-                        getDeadlineColor(currentTask[field]) === 'red'
+                        getDeadlineColor(getTaskFieldValue(currentTask, field)) === 'red'
                           ? 'bg-red-100 text-red-800'
                           : '',
-                        getDeadlineColor(currentTask[field]) === 'yellow'
+                        getDeadlineColor(getTaskFieldValue(currentTask, field)) === 'yellow'
                           ? 'bg-yellow-100 text-yellow-800'
                           : '',
-                        getDeadlineColor(currentTask[field]) === 'blue'
+                        getDeadlineColor(getTaskFieldValue(currentTask, field)) === 'blue'
                           ? 'bg-blue-100 text-blue-800'
                           : '',
-                        getDeadlineColor(currentTask[field]) === 'green'
+                        getDeadlineColor(getTaskFieldValue(currentTask, field)) === 'green'
                           ? 'bg-green-100 text-green-800'
                           : '',
-                        getDeadlineColor(currentTask[field]) === 'gray'
+                        getDeadlineColor(getTaskFieldValue(currentTask, field)) === 'gray'
                           ? 'bg-gray-100 text-gray-800'
                           : '',
                       ]"
                     >
-                      {{ getDeadlineStatus(currentTask[field]) }}
+                      {{ getDeadlineStatus(getTaskFieldValue(currentTask, field)) }}
                     </div>
                   </div>
                   <div
@@ -565,7 +562,7 @@ const additionalFields = [
                   >
                     {{
                       currentTask.client_detail?.name ||
-                      getFieldDisplayValue(field, currentTask[field])
+                      getFieldDisplayValue(field, getTaskFieldValue(currentTask, field))
                     }}
                   </div>
                   <div
@@ -573,12 +570,12 @@ const additionalFields = [
                     class="text-gray-900 dark:text-gray-100"
                   >
                     {{
-                      currentTask.assigned_to_detail?.fullname ||
-                      getFieldDisplayValue(field, currentTask[field])
+                      getTaskFieldValue(currentTask, 'assigned_to_name') ||
+                      getFieldDisplayValue(field, getTaskFieldValue(currentTask, field))
                     }}
                   </div>
                   <div v-else class="text-gray-900 dark:text-gray-100">
-                    {{ getFieldDisplayValue(field, currentTask[field]) }}
+                    {{ getFieldDisplayValue(field, getTaskFieldValue(currentTask, field)) }}
                   </div>
                 </div>
               </div>
@@ -635,7 +632,7 @@ const additionalFields = [
                   <div
                     class="text-gray-900 dark:text-gray-100 whitespace-pre-wrap"
                   >
-                    {{ getFieldDisplayValue(field, currentTask[field]) }}
+                    {{ getFieldDisplayValue(field, getTaskFieldValue(currentTask, field)) }}
                   </div>
                 </div>
               </div>
@@ -660,7 +657,7 @@ const additionalFields = [
                   <div
                     class="text-gray-900 dark:text-gray-100 whitespace-pre-wrap"
                   >
-                    {{ getFieldDisplayValue(field, currentTask[field]) }}
+                    {{ getFieldDisplayValue(field, getTaskFieldValue(currentTask, field)) }}
                   </div>
                 </div>
               </div>
@@ -797,10 +794,7 @@ const additionalFields = [
                     </div>
 
                     <div
-                      v-if="
-                        approval.updated_at &&
-                        approval.updated_at !== approval.created_at
-                      "
+                      v-if="approval.created_at"
                       class="space-y-2"
                     >
                       <div
@@ -810,7 +804,7 @@ const additionalFields = [
                         Last Updated
                       </div>
                       <p class="text-sm text-gray-900 dark:text-white">
-                        {{ approval.updated_at }}
+                        {{ approval.created_at }}
                       </p>
                     </div>
 
@@ -829,25 +823,12 @@ const additionalFields = [
                       </p>
                     </div>
 
-                    <div v-if="approval.next_approver" class="space-y-2">
-                      <div
-                        class="flex items-center text-xs text-gray-500 dark:text-gray-400"
-                      >
-                        <UIcon
-                          name="i-heroicons-arrow-right"
-                          class="w-4 h-4 mr-1"
-                        />
-                        Next Approver
-                      </div>
-                      <p class="text-sm text-gray-900 dark:text-white">
-                        {{ approval.next_approver }}
-                      </p>
-                    </div>
+                    <!-- Skip the next_approver section as it doesn't exist -->
                   </div>
 
                   <!-- Comments Section -->
                   <div
-                    v-if="approval.comments || approval.action === 'pending'"
+                    v-if="approval.remarks"
                     class="space-y-2"
                   >
                     <div
@@ -1037,23 +1018,7 @@ const additionalFields = [
                     </div>
                   </div>
 
-                  <!-- Related Approval -->
-                  <div v-if="history.related_approval" class="mt-3">
-                    <div class="flex items-center space-x-2 text-sm">
-                      <UIcon
-                        name="i-heroicons-shield-check"
-                        class="w-4 h-4 text-blue-500 flex-shrink-0"
-                      />
-                      <span class="text-gray-600 dark:text-gray-400"
-                        >Related to approval:</span
-                      >
-                      <span
-                        class="font-medium text-blue-600 dark:text-blue-400"
-                      >
-                        #{{ history.related_approval }}
-                      </span>
-                    </div>
-                  </div>
+                  <!-- Skip related approval section as it doesn't exist -->
                 </div>
               </template>
             </UTimeline>

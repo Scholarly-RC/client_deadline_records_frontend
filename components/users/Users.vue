@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Components
 import PageHeader from "../ui/PageHeader.vue";
 import AddUserModal from "./AddUserModal.vue";

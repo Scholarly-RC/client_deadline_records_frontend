@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Stores
 const confirmationStore = useConfirmationStore();
 </script>

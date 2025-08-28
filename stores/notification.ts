@@ -1,7 +1,26 @@
 import { defineStore } from "pinia";
+import { useToast } from '../node_modules/@nuxt/ui/dist/runtime/composables/useToast'
+import { useNuxtApp } from '#app/nuxt'
+import { storeToRefs } from 'pinia'
+import { useAuthStore } from './auth'
+import { getErrorMessage } from '~/utils/errorHandler'
+import type { Notification } from '~/types';
+
+interface NotificationState {
+  showNotification: boolean;
+  notifications: Notification[];
+  pagination: Record<string, any>;
+  isLoading: boolean;
+}
+
+interface UnreadNotificationState {
+  unreadNotificationCount: number;
+  pollingInterval: any;
+  isLoading: boolean;
+}
 
 export const useNotificationStore = defineStore("notificationStore", {
-  state: () => ({
+  state: (): NotificationState => ({
     showNotification: false,
     notifications: [],
     pagination: {},
@@ -16,28 +35,29 @@ export const useNotificationStore = defineStore("notificationStore", {
     },
   },
   actions: {
-    open() {
+    open(): void {
       this.showNotification = true;
     },
-    close() {
+    close(): void {
       this.showNotification = false;
     },
-    toggle() {
+    toggle(): void {
       this.showNotification = !this.showNotification;
     },
     // Method to clear notifications
-    clear() {
+    clear(): void {
       this.notifications = [];
       this.pagination = {};
     },
     // Method to refresh notifications (clear and fetch new ones)
-    async refreshNotifications() {
+    async refreshNotifications(): Promise<void> {
       this.clear();
       await this.getNotifications();
     },
-    async getNotifications() {
+    async getNotifications(): Promise<void> {
       const authStore = useAuthStore();
       const { userProfile } = storeToRefs(authStore);
+      const toast = useToast();
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
@@ -45,8 +65,10 @@ export const useNotificationStore = defineStore("notificationStore", {
         let url = `/api/notifications/?`;
 
         const params = new URLSearchParams();
-        params.append("recipient", userProfile.value.id);
-        params.append("page_size", 5);
+        if (userProfile.value) {
+          params.append("recipient", userProfile.value.id.toString());
+        }
+        params.append("page_size", "5");
         // Add ordering by created_at descending to get latest notifications first
         params.append("ordering", "-created_at");
 
@@ -55,12 +77,12 @@ export const useNotificationStore = defineStore("notificationStore", {
         const isLoadMore = this.pagination && this.pagination["next"];
         
         if (isLoadMore) {
-          params.append("page", this.pagination["current_page"] + 1);
+          params.append("page", (this.pagination["current_page"] + 1).toString());
         }
 
         url += params.toString();
 
-        const response = await $apiFetch(url, {
+        const response: any = await $apiFetch(url, {
           method: "GET",
         });
 
@@ -88,7 +110,7 @@ export const useNotificationStore = defineStore("notificationStore", {
         }
 
         this.pagination = pagination;
-      } catch (error) {
+      } catch (error: any) {
         toast.add({
           title: "Notifications Unavailable",
           description: getErrorMessage(error),
@@ -101,24 +123,24 @@ export const useNotificationStore = defineStore("notificationStore", {
         this.isLoading = false;
       }
     },
-    async markNotificationAsRead(id) {
+    async markNotificationAsRead(id: number): Promise<void> {
       const toast = useToast();
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch(
+        const response: any = await $apiFetch(
           `/api/notifications/${id}/mark-as-read/`,
           {
             method: "POST",
           }
         );
 
-        this.notifications = this.notifications.map((notification) =>
+        this.notifications = this.notifications.map((notification: Notification) =>
           notification.id === id
             ? { ...notification, is_read: true }
             : notification
         );
-      } catch (error) {
+      } catch (error: any) {
         toast.add({
           title: "Update Failed",
           description: getErrorMessage(error),
@@ -132,10 +154,10 @@ export const useNotificationStore = defineStore("notificationStore", {
       }
     },
     
-    async createNotification(notificationData) {
+    async createNotification(notificationData: any): Promise<any> {
       try {
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch(
+        const response: any = await $apiFetch(
           `/api/notifications/`,
           {
             method: "POST",
@@ -150,7 +172,7 @@ export const useNotificationStore = defineStore("notificationStore", {
         }
         
         return response;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error creating notification:', error);
         throw error;
       }
@@ -161,27 +183,29 @@ export const useNotificationStore = defineStore("notificationStore", {
 export const useUnreadNotificationStore = defineStore(
   "unreadNotificationStore",
   {
-    state: () => ({
+    state: (): UnreadNotificationState => ({
       unreadNotificationCount: 0,
       pollingInterval: null,
       isLoading: false,
     }),
     actions: {
-      async getUnreadNotificationCount() {
+      async getUnreadNotificationCount(): Promise<void> {
         const toast = useToast();
         const authStore = useAuthStore();
         const { userProfile } = storeToRefs(authStore);
         try {
           this.isLoading = true;
           const { $apiFetch } = useNuxtApp();
-          const response = await $apiFetch(
-            `/api/notifications/?recipient=${userProfile.value.id}&is_read=False`,
-            {
-              method: "GET",
-            }
-          );
-          this.unreadNotificationCount = response["count"] || 0;
-        } catch (error) {
+          if (userProfile.value) {
+            const response: any = await $apiFetch(
+              `/api/notifications/?recipient=${userProfile.value.id}&is_read=False`,
+              {
+                method: "GET",
+              }
+            );
+            this.unreadNotificationCount = response["count"] || 0;
+          }
+        } catch (error: any) {
           toast.add({
             title: "Notifications Count Unavailable",
             description: getErrorMessage(error),
@@ -194,7 +218,7 @@ export const useUnreadNotificationStore = defineStore(
           this.isLoading = false;
         }
       },
-      async startPolling(interval = 120000) {
+      async startPolling(interval: number = 120000): Promise<void> {
         // 2 minutes by default
         this.stopPolling();
         this.pollingInterval = setInterval(async () => {
@@ -205,7 +229,7 @@ export const useUnreadNotificationStore = defineStore(
         await this.getUnreadNotificationCount();
       },
 
-      stopPolling() {
+      stopPolling(): void {
         if (this.pollingInterval) {
           clearInterval(this.pollingInterval);
           this.pollingInterval = null;

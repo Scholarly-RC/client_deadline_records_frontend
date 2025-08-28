@@ -1,39 +1,40 @@
-<script setup>
+<script setup lang="ts">
 import { UCard } from "#components";
+import type { TaskStatistics } from '~/types/entities'
 
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const dashboardStore = useDashboardStore();
 const taskStore = useTaskStore();
-const { stats, taskStatistics, overdueTasks, tasksDueSoon, isAnyLoading } =
+const { stats, enhancedStats, overdueTasks, tasksDueSoon, isAnyLoading } =
   storeToRefs(dashboardStore);
 
 // Computed values for unified statistics
-const totalTasks = computed(() => taskStatistics.value?.total_tasks || 0);
+const totalTasks = computed((): number => enhancedStats.value?.summary?.total_tasks || 0);
 const completedTasks = computed(
-  () => taskStatistics.value?.completed_tasks || 0
+  (): number => enhancedStats.value?.summary?.completed_tasks || 0
 );
-const pendingTasks = computed(() => taskStatistics.value?.pending_tasks || 0);
-const overdueTasksCount = computed(() => overdueTasks.value?.length || 0);
-const tasksDueSoonCount = computed(() => tasksDueSoon.value?.length || 0);
+const pendingTasks = computed((): number => enhancedStats.value?.summary?.pending_tasks || 0);
+const overdueTasksCount = computed((): number => overdueTasks.value?.length || 0);
+const tasksDueSoonCount = computed((): number => tasksDueSoon.value?.length || 0);
 const onGoingTasks = computed(
-  () => taskStatistics.value?.by_status?.ON_GOING || 0
+  (): number => enhancedStats.value?.by_status?.ON_GOING || 0
 );
 
 // Approval-related statistics
-const pendingApprovalsCount = computed(() => taskStore.pendingApprovalsCount);
+const pendingApprovalsCount = computed((): number => taskStore.pendingApprovalsCount);
 
 // Legacy stats for backward compatibility
-const totalClients = computed(() => stats.value?.total_clients || 0);
+const totalClients = computed((): number => (stats.value as any)?.total_clients || 0);
 const completedThisMonth = computed(
-  () => stats.value?.completed_deadlines || 0
+  (): number => (stats.value as any)?.completed_deadlines || 0
 );
 
 // Task statistics by category
-const tasksByCategory = computed(() => taskStatistics.value?.by_category || {});
+const tasksByCategory = computed(() => enhancedStats.value?.by_category || {});
 
 // Load all dashboard data on mount
-onMounted(async () => {
+onMounted(async (): Promise<void> => {
   await dashboardStore.loadAllDashboardData();
   if (isAdmin.value) {
     await taskStore.fetchPendingApprovals();
@@ -335,7 +336,7 @@ onMounted(async () => {
             class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg"
           >
             <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
-              {{ category.replace(/_/g, " ") }}
+              {{ String(category).replace(/_/g, " ") }}
             </p>
             <p class="text-xl font-semibold text-gray-900 dark:text-white">
               {{ count }}

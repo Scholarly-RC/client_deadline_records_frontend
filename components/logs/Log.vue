@@ -1,8 +1,12 @@
-<script setup>
+<script setup lang="ts">
+import type { AppLog } from '~/types/entities'
+
 // Props
-const props = defineProps({
-  log: Object,
-});
+interface Props {
+  log: AppLog;
+}
+
+const props = defineProps<Props>();
 </script>
 
 <template>

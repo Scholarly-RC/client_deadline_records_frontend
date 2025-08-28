@@ -1,7 +1,12 @@
-// ~/constants/choices.js
+// ~/constants/choices.ts
 
 // New unified task model status choices
-export const statusChoices = [
+export interface StatusChoice {
+  label: string;
+  value: string;
+}
+
+export const statusChoices: StatusChoice[] = [
   { label: "Completed", value: "completed" },
   { label: "For Revision", value: "for_revision" },
   { label: "For Checking", value: "for_checking" },
@@ -20,10 +25,17 @@ export const TASK_CATEGORIES = {
   HR_IMPLEMENTATION: "hr_implementation",
   MISCELLANEOUS: "miscellaneous",
   TAX_CASE: "tax_case",
-};
+} as const;
+
+export type TaskCategory = typeof TASK_CATEGORIES[keyof typeof TASK_CATEGORIES];
 
 // New task category choices for UI
-export const categoryChoices = [
+export interface CategoryChoice {
+  label: string;
+  value: TaskCategory;
+}
+
+export const categoryChoices: CategoryChoice[] = [
   { label: "Accounting / Auditing", value: TASK_CATEGORIES.ACCOUNTING_AUDIT },
   { label: "Compliance", value: TASK_CATEGORIES.COMPLIANCE },
   {
@@ -43,7 +55,7 @@ export const categoryChoices = [
 ];
 
 // Legacy to new category mapping for migration
-export const LEGACY_CATEGORY_MAPPING = {
+export const LEGACY_CATEGORY_MAPPING: Record<string, TaskCategory> = {
   compliance: TASK_CATEGORIES.COMPLIANCE,
   accounting_audits: TASK_CATEGORIES.ACCOUNTING_AUDIT,
   financial_statement_preparations: TASK_CATEGORIES.FINANCIAL_STATEMENT,
@@ -54,7 +66,7 @@ export const LEGACY_CATEGORY_MAPPING = {
 };
 
 // Reverse mapping for UI display
-export const CATEGORY_DISPLAY_MAPPING = {
+export const CATEGORY_DISPLAY_MAPPING: Record<TaskCategory, string> = {
   [TASK_CATEGORIES.COMPLIANCE]: "compliance",
   [TASK_CATEGORIES.ACCOUNTING_AUDIT]: "accounting_audits",
   [TASK_CATEGORIES.FINANCIAL_STATEMENT]: "financial_statement_preparations",
@@ -65,31 +77,36 @@ export const CATEGORY_DISPLAY_MAPPING = {
 };
 
 // Example for priorities
-export const priorityChoices = [
+export interface PriorityChoice {
+  label: string;
+  value: string;
+}
+
+export const priorityChoices: PriorityChoice[] = [
   { label: "High", value: "high" },
   { label: "Medium", value: "medium" },
   { label: "Low", value: "low" },
 ];
 
-export const fsrTypeChoices = [
+export const fsrTypeChoices: PriorityChoice[] = [
   { label: "Quarterly", value: "quarterly" },
   { label: "Annual", value: "annual" },
 ];
 
 // Tax case specific choices
-export const taxCaseCategoryChoices = [
+export const taxCaseCategoryChoices: PriorityChoice[] = [
   { label: "One-Time Engagement", value: "OTE" },
   { label: "Regular Process", value: "RP" },
 ];
 
-export const typeOfTaxCaseChoices = [
+export const typeOfTaxCaseChoices: PriorityChoice[] = [
   { label: "Percentage Tax", value: "PT" },
   { label: "Income Tax", value: "IT" },
   { label: "Withholding Tax - Expanded", value: "WE" },
 ];
 
 // Category-specific field configurations
-export const CATEGORY_FIELDS = {
+export const CATEGORY_FIELDS: Record<TaskCategory, { fields: string[]; required: string[] }> = {
   [TASK_CATEGORIES.COMPLIANCE]: {
     fields: ["steps", "requirements", "period_covered", "engagement_date"],
     required: ["steps", "requirements", "period_covered", "engagement_date"],
@@ -137,7 +154,12 @@ export const CATEGORY_FIELDS = {
   },
 };
 
-export const birFormChoices = [
+export interface BirFormChoice {
+  label: string;
+  value: string;
+}
+
+export const birFormChoices: BirFormChoice[] = [
   { label: "BIR Form 2551Q - Quarterly Percentage Tax Return", value: "2551Q" },
   {
     label:

@@ -1,34 +1,49 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref, watch, onMounted } from "vue";
 import { useTaskStore } from "~/stores/tasks";
 import { useUserStore } from "~/stores/users";
 import { useAuthStore } from "~/stores/auth";
+import type { User } from "~/types/entities";
+import type { ApprovalRequest } from "~/types/requests";
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  task: {
-    type: Object,
-    default: null,
-  },
-});
+interface TaskMinimal {
+  id: number;
+  description: string;
+  client_name: string;
+}
 
-const emit = defineEmits(["update:modelValue", "approved"]);
+interface UserWithValue extends User {
+  label: string;
+  value: number;
+}
+
+interface Props {
+  modelValue: boolean;
+  task: TaskMinimal | null;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: false,
+  task: null
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean];
+  approved: [];
+}>()
 
 const taskStore = useTaskStore();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 
-const selectedApprovers = ref([]);
+const selectedApprovers = ref<UserWithValue[]>([]);
 
 const isOpen = computed({
   get: () => props.modelValue,
   set: (value) => emit("update:modelValue", value),
 });
 
-const adminUsers = computed(() => {
+const adminUsers = computed((): UserWithValue[] => {
   return userStore.users
     .filter((user) => user.is_admin && user.id !== authStore.user?.id)
     .map((user) => ({
@@ -38,14 +53,17 @@ const adminUsers = computed(() => {
     }));
 });
 
-const closeModal = () => {
+const closeModal = (): void => {
   selectedApprovers.value = [];
   emit("update:modelValue", false);
 };
 
-const initiateWorkflow = async () => {
+const initiateWorkflow = async (): Promise<void> => {
   try {
-    await taskStore.initiateApproval(props.task.id, selectedApprovers.value);
+    const approvalRequest: ApprovalRequest = {
+      approvers: selectedApprovers.value.map(approver => approver.id)
+    };
+    await taskStore.initiateApproval(props.task?.id!, approvalRequest);
     emit("approved");
     closeModal();
   } catch (error) {
@@ -103,14 +121,6 @@ onMounted(async () => {
                 placeholder="Choose approvers in sequence..."
                 class="w-full"
               >
-                <template #option="{ option }">
-                  <div class="flex items-center space-x-2">
-                    <div class="flex-1">
-                      <div class="font-medium">{{ option.fullname }}</div>
-                      <div class="text-sm text-gray-500">{{ option.role }}</div>
-                    </div>
-                  </div>
-                </template>
               </USelectMenu>
             </div>
 

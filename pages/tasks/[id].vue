@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Page Configuration
 definePageMeta({
   layout: "menu",

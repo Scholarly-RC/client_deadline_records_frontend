@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Notification from "./Notification.vue";
 
 const notificationStore = useNotificationStore();
@@ -19,7 +19,7 @@ const handleShowMoreNotification = async () => {
 };
 
 // Function to handle popover open/close
-const handlePopoverUpdate = async (isOpen) => {
+const handlePopoverUpdate = async (isOpen: boolean): Promise<void> => {
   if (isOpen) {
     // Fetch notifications when popover opens
     try {

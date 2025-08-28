@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import {
   categoryChoices,
   statusChoices,
@@ -10,26 +10,22 @@ import TaskCompletionModal from "./TaskCompletionModal.vue";
 import TaskViewModal from "./TaskViewModal.vue";
 import TaskEditModal from "./TaskEditModal.vue";
 import TaskDeleteModal from "./TaskDeleteModal.vue";
+import type { Task, TaskList, PaginationInfo } from '~/types/entities'
+import type { TaskCategory } from '~/constants/choices'
 
-const props = defineProps({
-  category: {
-    type: String,
-    default: null, // If null, show all categories
-  },
-  showCategoryColumn: {
-    type: Boolean,
-    default: true,
-  },
-  title: {
-    type: String,
-    default: "Tasks",
-  },
-  showUserTasksOnly: {
-    type: Boolean,
-    default: false,
-    description: "If true, only shows tasks assigned to the current user",
-  },
-});
+interface Props {
+  category?: string | null;
+  showCategoryColumn?: boolean;
+  title?: string;
+  showUserTasksOnly?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  category: null,
+  showCategoryColumn: true,
+  title: 'Tasks',
+  showUserTasksOnly: false
+})
 
 // No longer emitting to parent since we handle actions internally
 
@@ -45,6 +41,9 @@ const { getTaskPermissions } = useTaskPermissions();
 const { tasks, isLoading, pagination } = storeToRefs(taskStore);
 const { users } = storeToRefs(userStore);
 
+// Type assertion for pagination to access all properties
+const typedPagination = computed(() => pagination.value as PaginationInfo | null)
+
 // Computed assignee options
 const assigneeOptions = computed(() => {
   return [
@@ -57,21 +56,21 @@ const assigneeOptions = computed(() => {
 });
 
 // Local state
-const searchQuery = ref("");
-const statusFilter = ref(null);
-const priorityFilter = ref(null);
-const assigneeFilter = ref(null);
+const searchQuery = ref<string>("");
+const statusFilter = ref<string | null>(null);
+const priorityFilter = ref<string | null>(null);
+const assigneeFilter = ref<number | null>(null);
 
 // Completion modal state
-const showCompletionModal = ref(false);
-const selectedTaskForCompletion = ref(null);
-const isCompletingTask = ref(false);
+const showCompletionModal = ref<boolean>(false);
+const selectedTaskForCompletion = ref<TaskList | null>(null);
+const isCompletingTask = ref<boolean>(false);
 
 // Action modal states
-const showViewModal = ref(false);
-const showEditModal = ref(false);
-const showDeleteModal = ref(false);
-const selectedTask = ref(null);
+const showViewModal = ref<boolean>(false);
+const showEditModal = ref<boolean>(false);
+const showDeleteModal = ref<boolean>(false);
+const selectedTask = ref<TaskList | null>(null);
 
 // Computed
 const filteredTasks = computed(() => {
@@ -165,17 +164,20 @@ const refreshData = async () => {
     if (props.showUserTasksOnly && authStore.user?.id) {
       // Fetch tasks for the current user only using the new paginated endpoint
       const taskService = useTaskService();
-      const response = await taskService.getUserDeadlines(authStore.user.id, {
-        category: props.category || undefined, // Only include category if specified
+      // Use getTasksByCategory instead of getUserDeadlines
+      const response = await taskService.getTasksByCategory('all', {
+        category: (props.category as TaskCategory) || undefined,
+        assigned_to: authStore.user.id,
       });
 
       // Handle paginated response structure
-      if (response.results) {
+      if (response && 'results' in response) {
         taskStore.tasks = response.results;
         const { results, ...paginationData } = response;
         taskStore.pagination = paginationData;
       } else {
-        taskStore.tasks = response;
+        // Handle direct array response
+        taskStore.tasks = Array.isArray(response) ? response : [];
       }
     } else if (props.category) {
       await taskStore.fetchTasksByCategory(props.category);
@@ -188,17 +190,17 @@ const refreshData = async () => {
 };
 
 // Modal handlers
-const handleView = (task) => {
+const handleView = (task: TaskList): void => {
   selectedTask.value = task;
   showViewModal.value = true;
 };
 
-const handleEdit = (task) => {
+const handleEdit = (task: TaskList): void => {
   selectedTask.value = task;
   showEditModal.value = true;
 };
 
-const handleDelete = (task) => {
+const handleDelete = (task: TaskList): void => {
   selectedTask.value = task;
   showDeleteModal.value = true;
 };
@@ -212,12 +214,12 @@ const handleEditSuccess = async () => {
 };
 
 // Task completion methods
-const openCompletionModal = (task) => {
+const openCompletionModal = (task: TaskList): void => {
   selectedTaskForCompletion.value = task;
   showCompletionModal.value = true;
 };
 
-const handleTaskCompletion = async (completionData) => {
+const handleTaskCompletion = async (completionData: any): Promise<void> => {
   if (!selectedTaskForCompletion.value) return;
 
   isCompletingTask.value = true;
@@ -236,7 +238,7 @@ const handleTaskCompletion = async (completionData) => {
   }
 };
 
-const handlePageChange = async (page) => {
+const handlePageChange = async (page: number): Promise<void> => {
   await taskStore.setPage(page);
 };
 
@@ -257,12 +259,12 @@ const hasActiveFilters = computed(() => {
   );
 });
 
-const getCategoryLabel = (categoryValue) => {
+const getCategoryLabel = (categoryValue: string): string => {
   const choice = categoryChoices.find((c) => c.value === categoryValue);
   return choice ? choice.label : categoryValue;
 };
 
-const formatDate = (dateString) => {
+const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) return "-";
 
   // If the date is already formatted (e.g., "Aug 26, 2025"), return as is
@@ -278,7 +280,7 @@ const formatDate = (dateString) => {
   }
 };
 
-const getDaysRemaining = (deadline, task = null) => {
+const getDaysRemaining = (deadline: string | null | undefined, task: TaskList | null = null): number | null => {
   // If the API provides deadline_days_remaining, use that
   if (task && typeof task.deadline_days_remaining === "number") {
     return task.deadline_days_remaining;
@@ -288,7 +290,7 @@ const getDaysRemaining = (deadline, task = null) => {
 
   try {
     const today = new Date();
-    let deadlineDate;
+    let deadlineDate: Date;
 
     // Handle different date formats
     if (typeof deadline === "string" && deadline.includes(",")) {
@@ -298,7 +300,7 @@ const getDaysRemaining = (deadline, task = null) => {
       deadlineDate = new Date(deadline);
     }
 
-    const diffTime = deadlineDate - today;
+    const diffTime = deadlineDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   } catch (error) {
@@ -306,7 +308,7 @@ const getDaysRemaining = (deadline, task = null) => {
   }
 };
 
-const getDeadlineColor = (deadline, task = null) => {
+const getDeadlineColor = (deadline: string | null | undefined, task: TaskList | null = null): string => {
   const daysRemaining = getDaysRemaining(deadline, task);
   if (daysRemaining === null) return "secondary";
   if (daysRemaining < 0) return "error"; // Overdue
@@ -546,13 +548,13 @@ defineExpose({
       </UTable>
 
       <!-- Pagination -->
-      <div v-if="pagination.count > 0" class="p-4 border-t border-gray-200">
+      <div v-if="(typedPagination?.count || 0) > 0" class="p-4 border-t border-gray-200">
         <div class="flex items-center justify-end">
           <UPagination
-            v-if="pagination.num_pages > 1"
-            :page-count="pagination.num_pages"
-            :total="pagination.count"
-            :model-value="pagination.current_page"
+            v-if="(typedPagination?.total_pages || 0) > 1"
+            :page-count="typedPagination?.total_pages || 1"
+            :total="typedPagination?.count || 0"
+            :model-value="typedPagination?.current_page || 1"
             @update:model-value="handlePageChange"
           />
         </div>

@@ -1,12 +1,11 @@
-<script setup>
-const props = defineProps({
-  status: {
-    type: String,
-    required: true,
-  },
-});
+<script setup lang="ts">
+interface Props {
+  status: string;
+}
 
-const normalizeStatus = (val) => {
+const props = defineProps<Props>();
+
+const normalizeStatus = (val: string | undefined): string => {
   if (!val) return "";
   return val.toLowerCase().replace(/\s+/g, "_");
 };

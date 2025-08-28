@@ -1,20 +1,45 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia';
+import type { User, PaginatedResponse } from '~/types';
 
-export const useUserStore = defineStore("userStore", {
-  state: () => ({
+interface UserState {
+  users: User[];
+  pagination: {
+    count?: number;
+    next?: string | null;
+    previous?: string | null;
+  };
+  page: number | null;
+  search: string | null;
+  isLoading: boolean;
+}
+
+interface AddUserState {
+  showModal: boolean;
+}
+
+interface EditUserState {
+  user: User | null;
+  showModal: boolean;
+  isLoading: boolean;
+}
+
+export const useUserStore = defineStore('userStore', {
+  state: (): UserState => ({
     users: [],
     pagination: {},
     page: null,
     search: null,
     isLoading: false,
   }),
+
   getters: {
-    usersWithLogs: (state) => {
+    usersWithLogs: (state): User[] => {
       return state.users.filter((user) => user.has_logs === true);
     },
   },
+
   actions: {
-    async getAllUsers() {
+    async getAllUsers(): Promise<void> {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
@@ -23,15 +48,15 @@ export const useUserStore = defineStore("userStore", {
 
         const params = new URLSearchParams();
         if (this.page) {
-          params.append("page", this.page);
+          params.append('page', this.page.toString());
         }
         if (this.search) {
-          params.append("search", this.search);
+          params.append('search', this.search);
         }
         url += params.toString();
 
-        const response = await $apiFetch(url, {
-          method: "GET",
+        const response = await $apiFetch<PaginatedResponse<User>>(url, {
+          method: 'GET',
         });
 
         const { results, ...pagination } = response;
@@ -43,12 +68,13 @@ export const useUserStore = defineStore("userStore", {
         this.isLoading = false;
       }
     },
-    async getUserChoices() {
+
+    async getUserChoices(): Promise<void> {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch("/api/users/user-choices", {
-          method: "GET",
+        const response = await $apiFetch<User[]>('/api/users/user-choices', {
+          method: 'GET',
         });
         this.users = response;
         this.pagination = {};
@@ -60,11 +86,13 @@ export const useUserStore = defineStore("userStore", {
         this.isLoading = false;
       }
     },
-    async setPage(page = null) {
+
+    async setPage(page: number | null = null): Promise<void> {
       this.page = page;
       await this.getAllUsers();
     },
-    async setSearch(search = null) {
+
+    async setSearch(search: string | null = null): Promise<void> {
       this.search = search;
       this.page = null;
       await this.getAllUsers();
@@ -72,41 +100,41 @@ export const useUserStore = defineStore("userStore", {
   },
 });
 
-export const useAddUserStore = defineStore("addUserStore", {
-  state: () => ({
+export const useAddUserStore = defineStore('addUserStore', {
+  state: (): AddUserState => ({
     showModal: false,
   }),
 
   actions: {
-    open() {
+    open(): void {
       this.showModal = true;
     },
-    close() {
+    close(): void {
       this.showModal = false;
     },
   },
 });
 
-export const useEditUserStore = defineStore("editUserStore", {
-  state: () => ({
+export const useEditUserStore = defineStore('editUserStore', {
+  state: (): EditUserState => ({
     user: null,
     showModal: false,
     isLoading: false,
   }),
 
   actions: {
-    open() {
+    open(): void {
       this.showModal = true;
     },
-    close() {
+    close(): void {
       this.showModal = false;
     },
-    async editUser(id) {
+    async editUser(id: number): Promise<void> {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch(`/api/users/${id}/`, {
-          method: "GET",
+        const response = await $apiFetch<User>(`/api/users/${id}/`, {
+          method: 'GET',
         });
         this.user = response;
       } catch (error) {

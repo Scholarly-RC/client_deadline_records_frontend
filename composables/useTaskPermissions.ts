@@ -1,14 +1,35 @@
-// ~/composables/useTaskPermissions.js
+// ~/composables/useTaskPermissions.ts
+import type { TaskList } from '~/types';
+
+interface TaskPermissions {
+  canView: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+interface RouteContext {
+  isMyTasksRoute: boolean;
+  isTasksRoute: boolean;
+  currentPath: string;
+}
+
+interface UserContext {
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  userId?: number;
+  userFullname?: string;
+}
+
 export const useTaskPermissions = () => {
-  const authStore = useAuthStore()
-  const route = useRoute()
+  const authStore = useAuthStore();
+  const route = useRoute();
   
   /**
    * Get comprehensive permissions for a task based on current context
-   * @param {Object} task - The task object
-   * @returns {Object} Permissions object with canView, canEdit, canDelete flags
+   * @param task - The task object
+   * @returns Permissions object with canView, canEdit, canDelete flags
    */
-  const getTaskPermissions = (task) => {
+  const getTaskPermissions = (task: TaskList | null): TaskPermissions => {
     if (!task || !authStore.user) {
       return {
         canView: false,
@@ -40,55 +61,55 @@ export const useTaskPermissions = () => {
   
   /**
    * Check if user can view task details
-   * @param {Object} task - The task object
-   * @returns {Boolean}
+   * @param task - The task object
+   * @returns Boolean
    */
-  const canViewTask = (task) => {
-    return getTaskPermissions(task).canView
-  }
+  const canViewTask = (task: TaskList | null): boolean => {
+    return getTaskPermissions(task).canView;
+  };
   
   /**
    * Check if user can edit task
-   * @param {Object} task - The task object
-   * @returns {Boolean}
+   * @param task - The task object
+   * @returns Boolean
    */
-  const canEditTask = (task) => {
-    return getTaskPermissions(task).canEdit
-  }
+  const canEditTask = (task: TaskList | null): boolean => {
+    return getTaskPermissions(task).canEdit;
+  };
   
   /**
    * Check if user can delete task
-   * @param {Object} task - The task object
-   * @returns {Boolean}
+   * @param task - The task object
+   * @returns Boolean
    */
-  const canDeleteTask = (task) => {
-    return getTaskPermissions(task).canDelete
-  }
+  const canDeleteTask = (task: TaskList | null): boolean => {
+    return getTaskPermissions(task).canDelete;
+  };
   
   /**
    * Get route context information
-   * @returns {Object} Route context details
+   * @returns Route context details
    */
-  const getRouteContext = () => {
+  const getRouteContext = (): RouteContext => {
     return {
       isMyTasksRoute: route.path === '/my-tasks',
       isTasksRoute: route.path === '/tasks',
       currentPath: route.path
-    }
-  }
+    };
+  };
   
   /**
    * Get user context information
-   * @returns {Object} User context details
+   * @returns User context details
    */
-  const getUserContext = () => {
+  const getUserContext = (): UserContext => {
     return {
       isAuthenticated: authStore.isAuthenticated,
       isAdmin: authStore.isAdmin,
       userId: authStore.user?.id,
       userFullname: authStore.user?.fullname
-    }
-  }
+    };
+  };
   
   return {
     getTaskPermissions,

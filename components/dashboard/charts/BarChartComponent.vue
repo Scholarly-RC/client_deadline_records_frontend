@@ -10,7 +10,7 @@
             v-model="orientation" 
             :options="orientationOptions"
             size="sm"
-            @change="handleOrientationChange"
+            @update:model-value="handleOrientationChange"
           />
           <!-- Sort Options -->
           <USelectMenu 
@@ -18,12 +18,12 @@
             v-model="sortBy" 
             :options="sortOptions"
             size="sm"
-            @change="handleSortChange"
+            @update:model-value="handleSortChange"
           />
           <!-- Export Button -->
           <UButton 
             v-if="showExport"
-            @click="exportChart" 
+            @click="() => exportChart()" 
             variant="ghost" 
             size="sm"
             icon="mdi:download"
@@ -48,76 +48,76 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import type { ComposeOption } from 'echarts/core'
+import type {
+  BarSeriesOption,
+} from 'echarts/charts'
+import type {
+  TitleComponentOption,
+  TooltipComponentOption,
+  GridComponentOption,
+  LegendComponentOption
+} from 'echarts/components'
+import type { ECElementEvent } from 'echarts'
 import { useChartInteractivity } from '~/composables/useChartInteractivity.js'
+import type { ChartData, DrillContext, ChartClickParams } from '~/types/entities'
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: 'Bar Chart'
-  },
-  data: {
-    type: Object,
-    required: true,
-    validator: (value) => {
-      return value && typeof value === 'object' && 
-             Array.isArray(value.categories) && 
-             Array.isArray(value.series)
-    }
-  },
-  isLoading: {
-    type: Boolean,
-    default: false
-  },
-  showOrientationToggle: {
-    type: Boolean,
-    default: true
-  },
-  showSortOptions: {
-    type: Boolean,
-    default: true
-  },
-  showExport: {
-    type: Boolean,
-    default: true
-  },
-  colors: {
-    type: Array,
-    default: () => ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
-  },
-  height: {
-    type: String,
-    default: '400px'
-  },
-  stack: {
-    type: Boolean,
-    default: false
-  },
-  showDataLabels: {
-    type: Boolean,
-    default: false
-  },
-  chartType: {
-    type: String,
-    default: 'team_performance' // For interactivity identification
-  },
-  enableInteractivity: {
-    type: Boolean,
-    default: true
-  },
-  drillContext: {
-    type: Object,
-    default: () => ({})
-  }
+// Define the proper ECharts option type
+type ECOption = ComposeOption<
+  | BarSeriesOption
+  | TitleComponentOption
+  | TooltipComponentOption
+  | GridComponentOption
+  | LegendComponentOption
+>
+
+interface Props {
+  title?: string
+  data: ChartData
+  isLoading?: boolean
+  showOrientationToggle?: boolean
+  showSortOptions?: boolean
+  showExport?: boolean
+  colors?: string[]
+  height?: string
+  stack?: boolean
+  showDataLabels?: boolean
+  chartType?: string
+  enableInteractivity?: boolean
+  drillContext?: DrillContext
+}
+
+interface Emits {
+  (e: 'click', data: ChartClickParams): void
+  (e: 'orientationChange', orientation: string): void
+  (e: 'sortChange', sortBy: string): void
+  (e: 'export', data: any): void
+  (e: 'drill', data: { params: ChartClickParams; context: DrillContext; chartType: string }): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  title: 'Bar Chart',
+  isLoading: false,
+  showOrientationToggle: true,
+  showSortOptions: true,
+  showExport: true,
+  colors: () => ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
+  height: '400px',
+  stack: false,
+  showDataLabels: false,
+  chartType: 'team_performance',
+  enableInteractivity: true,
+  drillContext: () => ({})
 })
 
-const emit = defineEmits(['click', 'orientationChange', 'sortChange', 'export', 'drill'])
+const emit = defineEmits<Emits>()
 
-const chartRef = ref(null)
-const orientation = ref('vertical')
-const sortBy = ref('none')
-const realTimeCleanup = ref(null)
+const chartRef = ref<any>(null)
+const orientation = ref<string>('vertical')
+const sortBy = ref<string>('none')
+const realTimeCleanup = ref<(() => void) | null>(null)
 
 // Enhanced interactivity with composable
 const {
@@ -130,7 +130,7 @@ const {
   exportProgress
 } = useChartInteractivity({
   customDrillHandlers: {
-    [props.chartType]: (params, context) => {
+    [props.chartType]: (params: any, context: any) => {
       emit('drill', { params, context, chartType: props.chartType })
     }
   }
@@ -183,7 +183,7 @@ const processedData = computed(() => {
   return { categories, series }
 })
 
-const chartOption = computed(() => {
+const chartOption = computed<ECOption>(() => {
   const { categories, series } = processedData.value
   
   if (!categories.length || !series.length) {
@@ -292,14 +292,28 @@ const chartOption = computed(() => {
   }
 })
 
-const handleChartClick = async (params) => {
+const handleChartClick = async (params: any): Promise<void> => {
+  // Convert ECElementEvent to ChartClickParams format
+  const chartParams: ChartClickParams = {
+    componentType: params.componentType,
+    seriesType: params.seriesType || 'bar',
+    seriesIndex: params.seriesIndex || 0,
+    seriesName: params.seriesName || '',
+    name: params.name || '',
+    dataIndex: params.dataIndex || 0,
+    data: params.data,
+    dataType: params.dataType,
+    value: params.value as number | number[],
+    color: params.color || ''
+  }
+  
   // Emit the basic click event
-  emit('click', params)
+  emit('click', chartParams)
   
   // Handle interactive drilling if enabled
   if (props.enableInteractivity) {
     try {
-      await handleInteractiveChartClick(props.chartType, params, {
+      await handleInteractiveChartClick(props.chartType, chartParams, {
         orientation: orientation.value,
         sortBy: sortBy.value,
         drillContext: props.drillContext,
@@ -311,17 +325,27 @@ const handleChartClick = async (params) => {
   }
 }
 
-const handleOrientationChange = (value) => {
-  orientation.value = value
-  emit('orientationChange', value)
+const handleOrientationChange = (value: any): void => {
+  if (typeof value === 'string') {
+    orientation.value = value
+    emit('orientationChange', value)
+  } else if (value && typeof value.value === 'string') {
+    orientation.value = value.value
+    emit('orientationChange', value.value)
+  }
 }
 
-const handleSortChange = (value) => {
-  sortBy.value = value
-  emit('sortChange', value)
+const handleSortChange = (value: any): void => {
+  if (typeof value === 'string') {
+    sortBy.value = value
+    emit('sortChange', value)
+  } else if (value && typeof value.value === 'string') {
+    sortBy.value = value.value
+    emit('sortChange', value.value)
+  }
 }
 
-const exportChart = async (format = 'png') => {
+const exportChart = async (format: string = 'png'): Promise<any> => {
   if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
     try {
       const chartInstance = chartRef.value.getEchartsInstance()

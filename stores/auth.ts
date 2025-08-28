@@ -1,7 +1,25 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia';
+import type { User } from '~/types/entities';
+import type { LoginRequest } from '~/types/requests';
 
-export const useAuthStore = defineStore("auth", {
-  state: () => ({
+interface AuthState {
+  accessToken: string | null;
+  refreshToken: string | null;
+  user: User | null;
+  isLoading: boolean;
+}
+
+interface LoginResponse {
+  access: string;
+  refresh: string;
+}
+
+interface RefreshResponse {
+  access: string;
+}
+
+export const useAuthStore = defineStore('auth', {
+  state: (): AuthState => ({
     accessToken: null,
     refreshToken: null,
     user: null,
@@ -9,44 +27,44 @@ export const useAuthStore = defineStore("auth", {
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.accessToken,
-    userProfile: (state) => state.user,
-    isAdmin: (state) => (state.user ? state.user.is_admin : false),
+    isAuthenticated: (state): boolean => !!state.accessToken,
+    userProfile: (state): User | null => state.user,
+    isAdmin: (state): boolean => (state.user ? state.user.is_admin : false),
   },
 
   actions: {
-    async login(credentials) {
+    async login(credentials: LoginRequest): Promise<void> {
       const toast = useToast();
 
       this.isLoading = true;
 
       try {
         const config = useRuntimeConfig();
-        const response = await $fetch(`${config.public.apiBase}/api/token/`, {
-          method: "POST",
+        const response = await $fetch<LoginResponse>(`${config.public.apiBase}/api/token/`, {
+          method: 'POST',
           body: credentials,
         });
 
         this.setTokens(response.access, response.refresh);
         await this.setUser();
         toast.add({
-          title: "Welcome Back",
+          title: 'Welcome Back',
           description:
-            "You have successfully logged in. Redirecting to your dashboard...",
-          color: "success",
-          icon: "mdi:checkbox-multiple-marked",
+            'You have successfully logged in. Redirecting to your dashboard...',
+          color: 'success',
+          icon: 'mdi:checkbox-multiple-marked',
           duration: 2000,
         });
 
         setTimeout(async () => {
-          await navigateTo({ path: "/" });
+          await navigateTo({ path: '/' });
         }, 2 * 1000);
-      } catch (error) {
+      } catch (error: any) {
         toast.add({
-          title: "Login Unsuccessful",
+          title: 'Login Unsuccessful',
           description: getErrorMessage(error),
-          color: "error",
-          icon: "mdi:close-box-multiple",
+          color: 'error',
+          icon: 'mdi:close-box-multiple',
           duration: 5000,
         });
         console.error(error);
@@ -55,42 +73,42 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    async logout() {
+    async logout(): Promise<void> {
       try {
         // Clear tokens and user data
         this.clearAuth();
 
         // Redirect to login page
-        await navigateTo({ path: "/login" });
+        await navigateTo({ path: '/login' });
       } catch (error) {
         console.error(error);
       }
     },
 
-    setTokens(accessToken, refreshToken) {
+    setTokens(accessToken: string, refreshToken: string): void {
       this.accessToken = accessToken;
       this.refreshToken = refreshToken;
 
-      const cookie = useCookie("refresh_token");
+      const cookie = useCookie<string>('refresh_token');
       cookie.value = refreshToken;
     },
 
-    async refreshAccessToken() {
+    async refreshAccessToken(): Promise<void> {
       try {
         // Get refresh token from cookie
         const config = useRuntimeConfig();
         const refreshToken = this.getRefreshTokenFromCookie();
 
         if (!refreshToken) {
-          throw new Error("No refresh token found");
+          throw new Error('No refresh token found');
         }
 
         // For token refresh, we use raw $fetch to avoid circular dependency
         // where the interceptor tries to refresh the token which calls the interceptor again
-        const response = await $fetch(
+        const response = await $fetch<RefreshResponse>(
           `${config.public.apiBase}/api/token/refresh/`,
           {
-            method: "POST",
+            method: 'POST',
             body: { refresh: refreshToken },
           }
         );
@@ -99,26 +117,26 @@ export const useAuthStore = defineStore("auth", {
         await this.setUser();
       } catch (error) {
         this.clearAuth();
-        navigateTo({ path: "/login" });
+        navigateTo({ path: '/login' });
         console.error(error);
         throw error;
       }
     },
 
-    getRefreshTokenFromCookie() {
-      const refreshToken = useCookie("refresh_token");
-      return refreshToken.value;
+    getRefreshTokenFromCookie(): string | null {
+      const refreshToken = useCookie<string>('refresh_token');
+      return refreshToken.value || null;
     },
 
-    async setUser() {
+    async setUser(): Promise<void> {
       try {
         const config = useRuntimeConfig();
-        const response = await $fetch(
+        const response = await $fetch<User>(
           `${config.public.apiBase}/api/users/get-current-user/`,
           {
-            method: "GET",
+            method: 'GET',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
               Authorization: `Bearer ${this.accessToken}`,
             },
           }
@@ -129,22 +147,22 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    clearAuth() {
+    clearAuth(): void {
       this.accessToken = null;
       this.refreshToken = null;
       this.user = null;
 
-      const refreshCookie = useCookie("refresh_token");
+      const refreshCookie = useCookie<string | null>('refresh_token');
       refreshCookie.value = null;
 
       // Stop notification polling
       if (import.meta.client) {
         // Use dynamic import to avoid circular dependencies
-        import("~/stores/notification").then(({ useUnreadNotificationStore }) => {
+        import('~/stores/notification').then(({ useUnreadNotificationStore }) => {
           const unreadNotificationStore = useUnreadNotificationStore();
           unreadNotificationStore.stopPolling();
         }).catch(error => {
-          console.error("Failed to stop notification polling:", error);
+          console.error('Failed to stop notification polling:', error);
         });
       }
 
@@ -153,7 +171,7 @@ export const useAuthStore = defineStore("auth", {
     },
 
     // Call this on app initialization
-    async initAuth() {
+    async initAuth(): Promise<void> {
       // Try to get refresh token from cookie
       const refreshToken = this.getRefreshTokenFromCookie();
 

@@ -1,8 +1,21 @@
-<script setup>
+<script setup lang="ts">
+import type { ClientBirthdaysData, GetDaysRemainingFunction } from '~/types/entities'
+
 const clientBirthdays = useClientBirthdays();
 const { isLoading, data } = storeToRefs(clientBirthdays);
 
-onMounted(async () => {
+// Utility function for formatting days remaining
+const getDaysRemaining: GetDaysRemainingFunction = (days: number): string => {
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  if (days > 0) return `in ${days} day${days > 1 ? 's' : ''}`;
+  return `${Math.abs(days)} day${Math.abs(days) > 1 ? 's' : ''} ago`;
+};
+
+// Make the function available in template
+const $getDaysRemaining = getDaysRemaining;
+
+onMounted(async (): Promise<void> => {
   await clientBirthdays.getClientBirthdays();
 });
 </script>
@@ -38,7 +51,7 @@ onMounted(async () => {
       <template v-else>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-2">
           <!-- Today's Birthdays -->
-          <div v-if="data?.today.length > 0" class="space-y-2">
+          <div v-if="(data?.today?.length || 0) > 0" class="space-y-2">
             <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">
               Today
             </h4>
@@ -72,7 +85,7 @@ onMounted(async () => {
                   <h4
                     class="font-medium text-gray-900 dark:text-white transition-colors duration-200 group-hover:text-blue-700 group-hover:dark:text-blue-300"
                   >
-                    {{ client.name }}
+                    {{ client.client_name || client.name }}
                   </h4>
                   <p
                     class="text-sm text-gray-500 dark:text-gray-400 transition-colors duration-200 group-hover:text-blue-600 group-hover:dark:text-blue-200"
@@ -85,7 +98,7 @@ onMounted(async () => {
           </div>
 
           <!-- Upcoming Birthdays -->
-          <div v-if="data?.upcoming.length > 0" class="space-y-2">
+          <div v-if="(data?.upcoming?.length || 0) > 0" class="space-y-2">
             <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">
               Upcoming
             </h4>
@@ -143,11 +156,11 @@ onMounted(async () => {
                 </div>
                 <div>
                   <h4 class="font-medium text-gray-900 dark:text-white">
-                    {{ client.name }}
+                    {{ client.client_name || client.name }}
                   </h4>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ client.date_of_birth }} ({{
-                      $getDaysRemaining(client.days_remaining)
+                    {{ client.birthday || client.date_of_birth }} ({{
+                      $getDaysRemaining(client.days_remaining ?? 0)
                     }})
                   </p>
                 </div>
@@ -156,7 +169,7 @@ onMounted(async () => {
           </div>
 
           <!-- Past Birthdays -->
-          <div v-if="data?.past.length > 0" class="space-y-2">
+          <div v-if="(data?.past?.length || 0) > 0" class="space-y-2">
             <h4 class="text-sm font-medium text-gray-500 dark:text-gray-400">
               Earlier this month
             </h4>
@@ -194,11 +207,11 @@ onMounted(async () => {
                 </div>
                 <div>
                   <h4 class="font-medium text-gray-900 dark:text-white">
-                    {{ client.name }}
+                    {{ client.client_name || client.name }}
                   </h4>
                   <p class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ client.date_of_birth }} ({{
-                      $getDaysRemaining(client.days_remaining)
+                    {{ client.birthday || client.date_of_birth }} ({{
+                      $getDaysRemaining(client.days_remaining ?? 0)
                     }})
                   </p>
                 </div>

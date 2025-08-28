@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Components
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
@@ -92,7 +92,7 @@ const onSubmit = handleSubmit(async (values) => {
   } catch (error) {
     toast.add({
       title: "User Creation Failed",
-      description: `Could not create user account. ${getErrorMessage(error)}`,
+      description: `Could not create user account. ${getErrorMessage(error as any)}`,
       color: "error",
       icon: "mdi:close-box-multiple",
       duration: 5000,

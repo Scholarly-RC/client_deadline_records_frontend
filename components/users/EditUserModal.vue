@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
+import type { User } from '~/types/entities'
 
 // Stores
 const editUserStore = useEditUserStore();
@@ -14,11 +15,11 @@ const { showModal, user } = storeToRefs(editUserStore);
 const { user: authUser } = storeToRefs(authStore);
 
 // State
-const isActive = ref(false);
+const isActive = ref<boolean>(false);
 
 // Computed
-const showStatusToggle = computed(() => {
-  return user.value.id !== authUser.value.id;
+const showStatusToggle = computed<boolean>(() => {
+  return user.value?.id !== authUser.value?.id;
 });
 
 const initialValues = computed(() => ({
@@ -89,6 +90,8 @@ const disableSubmit = computed(() => {
 
 // Methods
 const onSubmit = handleSubmit(async (values) => {
+  if (!user.value) return
+  
   const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
@@ -117,7 +120,7 @@ const onSubmit = handleSubmit(async (values) => {
   } catch (error) {
     toast.add({
       title: "Update Failed",
-      description: `Could not update user profile. ${getErrorMessage(error)}`,
+      description: `Could not update user profile. ${getErrorMessage(error as any)}`,
       color: "error",
       icon: "mdi:close-box-multiple",
       duration: 5000,
@@ -132,10 +135,14 @@ watch(initialValues, () => {
 });
 
 watch(user, () => {
-  isActive.value = user.value.is_active;
+  if (user.value) {
+    isActive.value = user.value.is_active;
+  }
 });
 
-watch(isActive, async (value, oldValue) => {
+watch(isActive, async (value: boolean, oldValue: boolean) => {
+  if (!user.value) return
+  
   const toast = useToast();
   if (value !== user.value.is_active) {
     const confirmed = await confirmationStore.confirm(
@@ -167,7 +174,7 @@ watch(isActive, async (value, oldValue) => {
           title: isActive.value ? "Activation Failed" : "Deactivation Failed",
           description: `Could not ${
             isActive.value ? "activate" : "deactivate"
-          } user account. ${getErrorMessage(error)}`,
+          } user account. ${getErrorMessage(error as any)}`,
           color: "error",
           icon: "mdi:close-box-multiple",
           duration: 5000,

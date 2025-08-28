@@ -1,30 +1,36 @@
-<script setup>
+<script setup lang="ts">
 import UnifiedTaskTable from "~/components/tasks/UnifiedTaskTable.vue";
 import { TASK_CATEGORIES } from "~/constants/choices.js";
+import type { RouteLocationNormalizedLoaded } from "vue-router";
+
+interface Props {
+  showUserTasksOnly?: boolean;
+}
 
 // Props
-const props = defineProps({
-  showUserTasksOnly: {
-    type: Boolean,
-    default: false,
-    description: "If true, only shows tasks assigned to the current user. Used for 'My Deadlines' view."
-  }
-});
+const props = defineProps<Props>();
 
-const route = useRoute();
+const route: RouteLocationNormalizedLoaded = useRoute();
 const router = useRouter();
 
 // Refs to UnifiedTaskTable components
-const complianceTableRef = ref(null);
-const financialStatementTableRef = ref(null);
-const financeImplementationTableRef = ref(null);
-const hrImplementationTableRef = ref(null);
-const auditingAccountingTableRef = ref(null);
-const miscellaneousTableRef = ref(null);
-const taxTableRef = ref(null);
+const complianceTableRef = ref<InstanceType<typeof UnifiedTaskTable> | null>(null);
+const financialStatementTableRef = ref<InstanceType<typeof UnifiedTaskTable> | null>(null);
+const financeImplementationTableRef = ref<InstanceType<typeof UnifiedTaskTable> | null>(null);
+const hrImplementationTableRef = ref<InstanceType<typeof UnifiedTaskTable> | null>(null);
+const auditingAccountingTableRef = ref<InstanceType<typeof UnifiedTaskTable> | null>(null);
+const miscellaneousTableRef = ref<InstanceType<typeof UnifiedTaskTable> | null>(null);
+const taxTableRef = ref<InstanceType<typeof UnifiedTaskTable> | null>(null);
+
+interface TabItem {
+  label: string;
+  value: string;
+  slot: string;
+  category: string;
+}
 
 // Method to refresh all tables
-const refreshAllTables = async () => {
+const refreshAllTables = async (): Promise<void> => {
   const tableRefs = [
     complianceTableRef.value,
     financialStatementTableRef.value,
@@ -38,7 +44,7 @@ const refreshAllTables = async () => {
   // Refresh all tables that are currently mounted
   await Promise.all(
     tableRefs
-      .filter((ref) => ref && ref.refreshData)
+      .filter((ref): ref is InstanceType<typeof UnifiedTaskTable> => ref !== null && typeof ref.refreshData === 'function')
       .map((ref) => ref.refreshData())
   );
 };
@@ -48,7 +54,7 @@ defineExpose({
   refreshAllTables,
 });
 
-const items = [
+const items: TabItem[] = [
   {
     label: "Compliance",
     value: "compliance",
@@ -93,11 +99,11 @@ const items = [
   },
 ];
 
-const active = computed({
+const active = computed<string>({
   get() {
-    return route.query.tab || "compliance";
+    return (route.query.tab as string) || "compliance";
   },
-  set(tab) {
+  set(tab: string) {
     // Hash is specified here to prevent the page from scrolling to the top
     router.push({
       path: route.path,

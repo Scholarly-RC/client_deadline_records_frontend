@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { TASK_CATEGORIES, CATEGORY_FIELDS } from "~/constants/choices.js";
+import { TASK_CATEGORIES, CATEGORY_FIELDS, type TaskCategory } from "../constants/choices";
 
 /**
  * Base schema for all task types - common fields
  */
 const baseTaskSchema = z.object({
   client: z.number().min(1, "Client is required"),
-  category: z.enum(Object.values(TASK_CATEGORIES), "Category is required"),
+  category: z.enum([TASK_CATEGORIES.COMPLIANCE, TASK_CATEGORIES.FINANCIAL_STATEMENT, TASK_CATEGORIES.ACCOUNTING_AUDIT, TASK_CATEGORIES.FINANCE_IMPLEMENTATION, TASK_CATEGORIES.HR_IMPLEMENTATION, TASK_CATEGORIES.MISCELLANEOUS, TASK_CATEGORIES.TAX_CASE] as const),
   description: z.string().min(1, "Description is required"),
   assigned_to: z.number().min(1, "Assigned to is required"),
   priority: z.string().min(1, "Priority is required"),
@@ -97,7 +97,7 @@ export const hrImplementationSchema = baseTaskSchema.merge(implementationFields)
  * @param {string} category - Task category
  * @returns {ZodSchema} Appropriate schema for the category
  */
-export const getSchemaForCategory = (category) => {
+export const getSchemaForCategory = (category: TaskCategory) => {
   switch (category) {
     case TASK_CATEGORIES.COMPLIANCE:
       return complianceSchema;
@@ -127,7 +127,7 @@ export const unifiedTaskSchema = completeTaskSchema.refine(
     if (!data.category) return false;
     
     // Get the appropriate schema for validation
-    const categorySchema = getSchemaForCategory(data.category);
+    const categorySchema = getSchemaForCategory(data.category as TaskCategory);
     
     try {
       categorySchema.parse(data);
@@ -151,13 +151,13 @@ export const unifiedTaskSchema = completeTaskSchema.refine(
  * @param {string} category - Task category
  * @returns {Object} Validation result with success flag and errors
  */
-export const validateTaskForCategory = (data, category) => {
+export const validateTaskForCategory = (data: any, category: TaskCategory) => {
   const schema = getSchemaForCategory(category);
   
   try {
     const validatedData = schema.parse(data);
     return { success: true, data: validatedData, errors: null };
-  } catch (error) {
+  } catch (error: any) {
     return { success: false, data: null, errors: error.errors };
   }
 };
@@ -167,7 +167,7 @@ export const validateTaskForCategory = (data, category) => {
  * @param {string} category - Task category
  * @returns {Array} Array of required field names
  */
-export const getRequiredFieldsForCategory = (category) => {
+export const getRequiredFieldsForCategory = (category: TaskCategory): string[] => {
   const categoryConfig = CATEGORY_FIELDS[category];
   return categoryConfig ? categoryConfig.required : [];
 };
@@ -177,7 +177,7 @@ export const getRequiredFieldsForCategory = (category) => {
  * @param {string} category - Task category
  * @returns {Array} Array of field names
  */
-export const getFieldsForCategory = (category) => {
+export const getFieldsForCategory = (category: TaskCategory): string[] => {
   const categoryConfig = CATEGORY_FIELDS[category];
   return categoryConfig ? categoryConfig.fields : [];
 };
@@ -188,7 +188,7 @@ export const getFieldsForCategory = (category) => {
  * @param {string} category - Task category
  * @returns {boolean} True if field is required
  */
-export const isFieldRequiredForCategory = (fieldName, category) => {
+export const isFieldRequiredForCategory = (fieldName: string, category: TaskCategory): boolean => {
   const requiredFields = getRequiredFieldsForCategory(category);
   return requiredFields.includes(fieldName);
 };
@@ -198,7 +198,7 @@ export const isFieldRequiredForCategory = (fieldName, category) => {
  * @param {string} category - Task category
  * @returns {Object} Default field values
  */
-export const getDefaultValuesForCategory = (category) => {
+export const getDefaultValuesForCategory = (category: TaskCategory) => {
   const baseDefaults = {
     client: null,
     category,
@@ -211,7 +211,7 @@ export const getDefaultValuesForCategory = (category) => {
     completion_date: null,
   };
 
-  const categoryDefaults = {
+  const categoryDefaults: Record<TaskCategory, any> = {
     [TASK_CATEGORIES.COMPLIANCE]: {
       steps: "",
       requirements: "",

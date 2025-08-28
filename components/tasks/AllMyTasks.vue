@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import TaskTabs from "./TaskTabs.vue";
 </script>
 

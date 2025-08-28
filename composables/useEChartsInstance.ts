@@ -3,19 +3,38 @@
  * Handles timing issues and provides error handling for VChart refs
  */
 
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, type Ref } from 'vue';
+import type { ECharts } from 'echarts';
+
+interface WithEChartsInstanceOptions {
+  maxRetries?: number;
+  retryDelay?: number;
+  onError?: (error: Error) => void;
+}
+
+interface InitializeChartOptions {
+  maxRetries?: number;
+  retryDelay?: number;
+}
+
+interface ExportOptions {
+  type?: 'png' | 'jpeg' | 'svg';
+  pixelRatio?: number;
+  backgroundColor?: string;
+  [key: string]: any;
+}
 
 export const useEChartsInstance = () => {
-  const isReady = ref(false)
+  const isReady = ref(false);
   
   /**
    * Safely get ECharts instance with retry logic
-   * @param {Ref} chartRef - Vue ref to VChart component
-   * @param {number} maxRetries - Maximum number of retry attempts
-   * @param {number} retryDelay - Delay between retries in milliseconds
-   * @returns {Promise<EChartsInstance|null>}
+   * @param chartRef - Vue ref to VChart component
+   * @param maxRetries - Maximum number of retry attempts
+   * @param retryDelay - Delay between retries in milliseconds
+   * @returns Promise<ECharts|null>
    */
-  const getEChartsInstance = async (chartRef, maxRetries = 3, retryDelay = 100) => {
+  const getEChartsInstance = async (chartRef: Ref<any>, maxRetries: number = 3, retryDelay: number = 100): Promise<ECharts | null> => {
     if (!chartRef?.value) {
       console.warn('Chart ref is not available')
       return null
@@ -54,18 +73,18 @@ export const useEChartsInstance = () => {
       }
     }
     
-    console.error(`Failed to get ECharts instance after ${maxRetries + 1} attempts`)
-    return null
-  }
+    console.error(`Failed to get ECharts instance after ${maxRetries + 1} attempts`);
+    return null;
+  };
   
   /**
    * Safely execute a function with ECharts instance
-   * @param {Ref} chartRef - Vue ref to VChart component
-   * @param {Function} callback - Function to execute with the instance
-   * @param {Object} options - Options for retry logic
-   * @returns {Promise<any>}
+   * @param chartRef - Vue ref to VChart component
+   * @param callback - Function to execute with the instance
+   * @param options - Options for retry logic
+   * @returns Promise<any>
    */
-  const withEChartsInstance = async (chartRef, callback, options = {}) => {
+  const withEChartsInstance = async <T>(chartRef: Ref<any>, callback: (instance: ECharts) => T, options: WithEChartsInstanceOptions = {}): Promise<T> => {
     const { maxRetries = 3, retryDelay = 100, onError } = options
     
     try {
@@ -77,60 +96,60 @@ export const useEChartsInstance = () => {
         throw error
       }
       
-      return await callback(instance)
+      return await callback(instance);
       
     } catch (error) {
-      console.error('Error executing with ECharts instance:', error)
-      if (onError) onError(error)
-      throw error
+      console.error('Error executing with ECharts instance:', error);
+      if (onError) onError(error as Error);
+      throw error;
     }
-  }
+  };
   
   /**
    * Safely update chart option
-   * @param {Ref} chartRef - Vue ref to VChart component
-   * @param {Object} option - ECharts option object
-   * @param {Object} updateOptions - ECharts setOption parameters
-   * @returns {Promise<boolean>}
+   * @param chartRef - Vue ref to VChart component
+   * @param option - ECharts option object
+   * @param updateOptions - ECharts setOption parameters
+   * @returns Promise<boolean>
    */
-  const safeSetOption = async (chartRef, option, updateOptions = {}) => {
+  const safeSetOption = async (chartRef: Ref<any>, option: any, updateOptions: any = {}): Promise<boolean> => {
     try {
       await nextTick()
       
       return await withEChartsInstance(chartRef, (instance) => {
         instance.setOption(option, updateOptions)
-        return true
-      })
+        return true;
+      });
     } catch (error) {
-      console.error('Failed to set chart option:', error)
-      return false
+      console.error('Failed to set chart option:', error);
+      return false;
     }
-  }
+  };
   
   /**
    * Safely resize chart
-   * @param {Ref} chartRef - Vue ref to VChart component
-   * @returns {Promise<boolean>}
+   * @param chartRef - Vue ref to VChart component
+   * @returns Promise<boolean>
    */
-  const safeResize = async (chartRef) => {
+  const safeResize = async (chartRef: Ref<any>): Promise<boolean> => {
     try {
       return await withEChartsInstance(chartRef, (instance) => {
-        instance.resize()
-        return true
-      })
+        instance.resize();
+        return true;
+      });
     } catch (error) {
-      console.error('Failed to resize chart:', error)
-      return false
+      console.error('Failed to resize chart:', error);
+      return false;
     }
-  }
+  };
   
   /**
    * Safely dispatch action to chart
-   * @param {Ref} chartRef - Vue ref to VChart component
-   * @param {Object} payload - Action payload
-   * @returns {Promise<boolean>}
+   * @param chartRef - Vue ref to VChart component
+   * @param payload - Action payload
+   * @returns Promise<boolean>
    */
-  const safeDispatchAction = async (chartRef, payload) => {
+  const safeDispatchAction = async (chartRef: Ref<any>, payload: any): Promise<boolean> => {
     try {
       return await withEChartsInstance(chartRef, (instance) => {
         instance.dispatchAction(payload)
@@ -148,7 +167,7 @@ export const useEChartsInstance = () => {
    * @param {Object} options - Export options
    * @returns {Promise<string|null>}
    */
-  const safeGetDataURL = async (chartRef, options = {}) => {
+  const safeGetDataURL = async (chartRef: Ref<any>, options: ExportOptions = {}): Promise<string | null> => {
     try {
       return await withEChartsInstance(chartRef, (instance) => {
         return instance.getDataURL({
@@ -171,7 +190,7 @@ export const useEChartsInstance = () => {
    * @param {Object} options - Options for initialization
    * @returns {Promise<boolean>}
    */
-  const initializeChart = async (chartRef, initCallback, options = {}) => {
+  const initializeChart = async (chartRef: Ref<any>, initCallback: (instance: ECharts) => void, options: InitializeChartOptions = {}): Promise<boolean> => {
     const { maxRetries = 3, retryDelay = 100 } = options
     
     await nextTick()

@@ -1,10 +1,9 @@
-<script setup>
-const props = defineProps({
-  priority: {
-    type: String,
-    required: true,
-  },
-});
+<script setup lang="ts">
+interface Props {
+  priority: string;
+}
+
+const props = defineProps<Props>();
 </script>
 
 <template>

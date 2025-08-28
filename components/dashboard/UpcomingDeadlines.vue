@@ -1,13 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import TaskPriorityPill from "../ui/TaskPriorityPill.vue";
 import TaskStatusPill from "../ui/TaskStatusPill.vue";
+import type { Task } from '~/types/entities'
 
-// const upcomingDeadlineStore = useUpcomingDeadlineStore();
-// const { deadlines, isLoading } = storeToRefs(upcomingDeadlineStore);
+const dashboardStore = useDashboardStore();
+const { tasksDueSoon, isLoadingDueSoon } = storeToRefs(dashboardStore);
 
-// onMounted(async () => {
-//   await upcomingDeadlineStore.getUpcomingDeadlines();
-// });
+// Computed properties for component usage
+const deadlines = computed(() => tasksDueSoon.value || []);
+const isLoading = computed(() => isLoadingDueSoon.value);
+
+onMounted(async (): Promise<void> => {
+  await dashboardStore.getTasksDueSoon();
+});
 </script>
 
 <template>
@@ -58,11 +63,11 @@ import TaskStatusPill from "../ui/TaskStatusPill.vue";
         >
           <div class="w-full flex flex-col items-start">
             <h4 class="font-medium text-gray-900 dark:text-white">
-              {{ deadline.client.name }} - {{ deadline.deadline_type.name }}
+              {{ deadline.client?.name || deadline.client?.client_name || 'Unknown Client' }} - {{ deadline.deadline_type?.name || deadline.description || 'Task' }}
             </h4>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              Due in {{ deadline.days_remaining }} days ({{
-                deadline.due_date
+              Due in {{ deadline.days_remaining || 0 }} days ({{
+                deadline.due_date || deadline.deadline || 'No date'
               }})
             </p>
           </div>

@@ -1,4 +1,4 @@
-<script setup></script>
+<script setup lang="ts"></script>
 
 <template>
   <div class="sm:mx-auto sm:w-full sm:max-w-md">

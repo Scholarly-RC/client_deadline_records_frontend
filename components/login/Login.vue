@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Components
 import LoginDarkModeToggle from "./LoginDarkModeToggle.vue";
 import LoginForm from "./LoginForm.vue";

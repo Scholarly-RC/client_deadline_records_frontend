@@ -1,9 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { watchDebounced } from "@vueuse/core";
 
 const clientStore = useClientStore();
 
-const categoryItems = ref([
+interface CategoryItem {
+  label: string;
+  description: string;
+  id: string;
+}
+
+interface StatusItem {
+  label: string;
+  value: string;
+  id: string;
+}
+
+const categoryItems = ref<CategoryItem[]>([
   { label: "TOE", description: "Tax (One Engagement)", id: "TOE" },
   { label: "TRP", description: "Tax (Regular Processing)", id: "TRP" },
   { label: "CMP", description: "Compliance", id: "CMP" },
@@ -11,17 +23,19 @@ const categoryItems = ref([
   { label: "AUD", description: "Auditing", id: "AUD" },
   { label: "OCC", description: "Other Consultancy Client", id: "OCC" },
 ]);
-const statusItems = ref([
+
+const statusItems = ref<StatusItem[]>([
   { label: "All", value: "", id: "all" },
   { label: "Active", value: "active", id: "active" },
   { label: "Inactive", value: "inactive", id: "inactive" },
 ]);
-const categoryValue = ref([]);
-const statusValue = ref("");
+
+const categoryValue = ref<string[]>([]);
+const statusValue = ref<string>("");
 
 watchDebounced(
   categoryValue,
-  async (value) => {
+  async (value: string[]) => {
     await clientStore.setCategory(value);
   },
   { debounce: 750, maxWait: 5000 }
@@ -29,7 +43,7 @@ watchDebounced(
 
 watchDebounced(
   statusValue,
-  async (value) => {
+  async (value: string) => {
     await clientStore.setStatus(value);
   },
   { debounce: 750, maxWait: 5000 }

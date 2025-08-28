@@ -1,10 +1,11 @@
-<script setup>
+<script setup lang="ts">
 // Components
 import { watchDebounced } from "@vueuse/core";
 import AddClientModal from "./AddClientModal.vue";
 import ClientFilterModal from "./ClientFilterModal.vue";
+import type { Client } from "~/types";
 
-const search = ref("");
+const search = ref<string>("");
 
 // Stores
 const clientStore = useClientStore();
@@ -12,7 +13,12 @@ const { clients, pagination, isLoading } = storeToRefs(clientStore);
 const confirmationStore = useConfirmationStore();
 const editClientStore = useEditClientStore();
 
-const columns = [
+interface Column {
+  accessorKey: string;
+  header: string;
+}
+
+const columns: Column[] = [
   {
     accessorKey: "name",
     header: "Name",
@@ -44,7 +50,7 @@ const columns = [
 ];
 
 // Methods
-const categoryMap = {
+const categoryMap: Record<string, string> = {
   TOE: "Tax (One Engagement)",
   TRP: "Tax (Regular Processing)",
   CMP: "Compliance",
@@ -53,18 +59,18 @@ const categoryMap = {
   OCC: "Other Consultancy Client",
 };
 
-const getFullCategory = (category) => categoryMap[category] || null;
+const getFullCategory = (category: string): string | null => categoryMap[category] || null;
 
-const handleSetPage = async (page) => {
+const handleSetPage = async (page: number): Promise<void> => {
   await clientStore.setPage(page);
 };
 
-const handleOpenEditModal = async (id) => {
+const handleOpenEditModal = async (id: number): Promise<void> => {
   await editClientStore.getClient(id);
   editClientStore.open();
 };
 
-const deleteConfirmation = async (id) => {
+const deleteConfirmation = async (id: number): Promise<void> => {
   const confirmed = await confirmationStore.confirm(
     "Are you sure you want to delete this client?"
   );
@@ -75,6 +81,7 @@ const deleteConfirmation = async (id) => {
       const { $apiFetch } = useNuxtApp();
       await $apiFetch(`/api/clients/${id}/`, {
         method: "DELETE",
+        responseType: "json",
       });
       await clientStore.getAllClients();
       toast.add({
@@ -84,7 +91,7 @@ const deleteConfirmation = async (id) => {
         icon: "mdi:checkbox-multiple-marked",
         duration: 2000,
       });
-    } catch (error) {
+    } catch (error: any) {
       toast.add({
         title: "Deleteion Failed",
         description: getErrorMessage(error),
@@ -100,7 +107,7 @@ const deleteConfirmation = async (id) => {
 // Watchers
 watchDebounced(
   search,
-  async (value) => {
+  async (value: string) => {
     await clientStore.setSearch(value);
   },
   { debounce: 750, maxWait: 5000 }
@@ -144,7 +151,7 @@ watchDebounced(
           />
         </template>
         <template #category-cell="{ row }">
-          {{ getFullCategory(row.original.category) }}
+          {{ getFullCategory(row.original.category || '') }}
         </template>
         <template #actions-cell="{ row }">
           <div class="flex gap-1">
@@ -178,7 +185,7 @@ watchDebounced(
       ></div>
       <div v-else class="text-sm text-gray-500 dark:text-gray-400">
         Showing
-        <span class="font-medium">{{ pagination?.item_range }}</span> of
+        <span class="font-medium">{{ (pagination as any)?.item_range }}</span> of
         <span class="font-medium">{{ pagination?.count }}</span> results
       </div>
 
@@ -196,11 +203,14 @@ watchDebounced(
       <div v-else class="flex space-x-2">
         <UPagination
           v-if="pagination"
-          v-model:page="pagination.current_page"
+          v-model:page="(pagination as any).current_page"
           :total="pagination.count"
-          :items-per-page="pagination.page_size"
-          variant="outline"
-          v-on:update:page="handleSetPage"
+          :page-count="10"
+          :sibling-count="1"
+          show-edges
+          :ui="{
+            root: 'flex items-center gap-1',
+          }"
         />
       </div>
     </div>

@@ -1,23 +1,27 @@
-<script setup>
+<script setup lang="ts">
 import { watchDebounced } from "@vueuse/core";
 import User from "./User.vue";
 import { storeToRefs } from "pinia";
+import type { PaginationInfo } from '~/types/entities'
 
 const addUserStore = useAddUserStore();
 const userStore = useUserStore();
 const { users, pagination, isLoading } = storeToRefs(userStore);
 
-const search = ref("");
+// Type assertion for pagination to access all properties
+const typedPagination = computed(() => pagination.value as PaginationInfo | null)
+
+const search = ref<string>("");
 
 // Methods
-const handleSetPage = async (page) => {
+const handleSetPage = async (page: number): Promise<void> => {
   await userStore.setPage(page);
 };
 
 // Search with debounce
 watchDebounced(
   search,
-  async (value) => {
+  async (value: string) => {
     await userStore.setSearch(value);
   },
   { debounce: 750, maxWait: 5000 }
@@ -159,8 +163,8 @@ watchDebounced(
         v-else-if="pagination"
         class="text-sm text-gray-500 dark:text-gray-400"
       >
-        Showing <span class="font-medium">{{ pagination.item_range }}</span> of
-        <span class="font-medium">{{ pagination.count }}</span> results
+        Showing <span class="font-medium">{{ typedPagination?.item_range || 'N/A' }}</span> of
+        <span class="font-medium">{{ typedPagination?.count || 0 }}</span> results
       </div>
 
       <div v-if="isLoading" class="flex space-x-2">
@@ -176,21 +180,21 @@ watchDebounced(
       </div>
       <div v-else-if="pagination" class="flex space-x-2">
         <button
-          v-if="pagination.previous"
-          @click="handleSetPage(pagination.current_page - 1)"
+          v-if="typedPagination?.previous"
+          @click="handleSetPage((typedPagination?.current_page || 1) - 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Previous
         </button>
         <button
-          v-if="pagination.total_pages > 1"
+          v-if="(typedPagination?.total_pages || 0) > 1"
           class="px-3 py-1 rounded-md border border-primary-500 bg-primary-50 dark:bg-primary-900 text-primary-600 dark:text-primary-300 font-medium"
         >
-          {{ pagination.current_page }}
+          {{ typedPagination?.current_page || 1 }}
         </button>
         <button
-          v-if="pagination.next"
-          @click="handleSetPage(pagination.current_page + 1)"
+          v-if="typedPagination?.next"
+          @click="handleSetPage((typedPagination?.current_page || 1) + 1)"
           class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
           Next

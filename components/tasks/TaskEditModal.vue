@@ -1,34 +1,34 @@
-<script setup>
+<script setup lang="ts">
 import UnifiedTaskFormModal from "./UnifiedTaskFormModal.vue";
+import type { TaskList } from "~/types";
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  task: {
-    type: Object,
-    required: true,
-  },
-});
+interface Props {
+  modelValue?: boolean;
+  task: TaskList;
+}
 
-const emit = defineEmits(["update:modelValue", "success"]);
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  (e: "update:modelValue", value: boolean): void;
+  (e: "success", task: TaskList): void;
+}>();
 
 // Stores
 const taskStore = useTaskStore();
 const notificationStore = useNotificationStore();
 
 // Computed for modal state
-const isOpen = computed({
-  get: () => props.modelValue,
-  set: (value) => emit("update:modelValue", value),
+const isOpen = computed<boolean>({
+  get: () => props.modelValue ?? false,
+  set: (value: boolean) => emit("update:modelValue", value),
 });
 
 // Reactive state
-const isSubmitting = ref(false);
+const isSubmitting = ref<boolean>(false);
 
 // Handle form submission
-const handleFormSuccess = async (updatedTask) => {
+const handleFormSuccess = async (updatedTask: TaskList): Promise<void> => {
   try {
     isSubmitting.value = true;
     
@@ -70,12 +70,12 @@ const handleFormSuccess = async (updatedTask) => {
 };
 
 // Handle modal close
-const handleModalClose = () => {
+const handleModalClose = (): void => {
   isOpen.value = false;
 };
 
 // Send notification to assigned user
-const sendEditNotification = async (updatedTask) => {
+const sendEditNotification = async (updatedTask: TaskList): Promise<void> => {
   try {
     const authStore = useAuthStore();
     
@@ -111,7 +111,7 @@ const sendEditNotification = async (updatedTask) => {
 <template>
   <UnifiedTaskFormModal
     :is-open="isOpen"
-    :edit-task="task"
+    :edit-task="task as any"
     @close="handleModalClose"
     @success="handleFormSuccess"
   />

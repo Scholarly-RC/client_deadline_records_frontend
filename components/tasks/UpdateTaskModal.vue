@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
+import { ref, computed, type Ref } from "vue";
 
 import { statusChoices } from "~/constants/choices";
 
@@ -14,8 +15,8 @@ const { showModal, task, category } = storeToRefs(taskUpdate);
 const userTaskStore = useUserTasksStore();
 
 const initialValues = computed(() => ({
-  status: task.value?.status,
-  remarks: null,
+  status: task.value?.status || '',
+  remarks: '',
 }));
 
 const validationSchema = toTypedSchema(
@@ -44,22 +45,31 @@ const {
   validationSchema,
 });
 
-const [status] = defineField("status");
-const [remarks] = defineField("remarks");
+const [status] = defineField("status") as [Ref<string>, any];
+const [remarks] = defineField("remarks") as [Ref<string>, any];
 
 const disableSubmit = computed(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
 
-const onSubmit = handleSubmit(async (values) => {
-  const data = {
-    status: values.status,
-    remarks: values.remarks,
-  };
-  userTaskStore.updateTask(category.value, task.value?.id, data);
-  resetForm();
-  taskUpdate.close();
-});
+const onSubmit = async () => {
+  // Check if form is valid
+  if (!formMeta.value.valid) {
+    return
+  }
+  
+  try {
+    const data = {
+      status: values.status,
+      remarks: values.remarks,
+    };
+    await userTaskStore.updateTask(category.value, task.value?.id, data);
+    resetForm();
+    taskUpdate.close();
+  } catch (error) {
+    console.error('Update failed:', error);
+  }
+};
 
 watch(initialValues, (val) => {
   resetForm({ values: initialValues.value });
@@ -73,7 +83,7 @@ watch(initialValues, (val) => {
     description="Update status of task"
   >
     <template #body>
-      <UForm :state="values" @submit.prevent="onSubmit">
+      <UForm :state="values" @submit="onSubmit">
         <div class="flex flex-col gap-2">
           <UFormField
             label="Status"

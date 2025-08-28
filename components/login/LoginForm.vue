@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
@@ -6,8 +6,6 @@ import { z } from "zod";
 // Stores
 const authStore = useAuthStore();
 const { isLoading } = storeToRefs(authStore);
-
-// States
 
 // Form Validation Schema
 const validationSchema = toTypedSchema(
@@ -35,12 +33,12 @@ const [username] = defineField("username");
 const [password] = defineField("password");
 
 // Computed
-const disableSubmit = computed(() => {
+const disableSubmit = computed((): boolean => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
 
 // Methods
-const onSubmit = handleSubmit(async (values) => {
+const onSubmit = handleSubmit(async (values): Promise<void> => {
   await authStore.login({
     username: values.username,
     password: values.password,

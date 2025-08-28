@@ -1,8 +1,36 @@
 import { defineStore } from "pinia";
-import { TASK_CATEGORIES, CATEGORY_DISPLAY_MAPPING } from "~/constants/choices.js";
+import { useToast } from '../node_modules/@nuxt/ui/dist/runtime/composables/useToast'
+import { useNuxtApp } from '#app/nuxt'
+import { useAuthStore } from './auth'
+import { useTaskService } from '~/composables/useTaskService'
+import { getErrorMessage } from '~/utils/errorHandler'
+import type { TaskList, TaskFilters, PaginatedResponse } from '~/types';
+import { TASK_CATEGORIES, CATEGORY_DISPLAY_MAPPING } from "~/constants/choices";
+
+interface UserTasksState {
+  tasks: TaskList[];
+  pagination: {
+    count: number;
+    next: string | null;
+    previous: string | null;
+    page_size: number;
+    total_pages: number;
+    current_page: number;
+    item_range: string;
+  };
+  currentPage: number;
+  searchQuery: string;
+  filters: {
+    category: string;
+    status: string;
+    priority: string;
+  };
+  tasks_by_category: Record<string, TaskList[]>;
+  isLoading: boolean;
+}
 
 export const useUserTasksStore = defineStore("userTasksStore", {
-  state: () => ({
+  state: (): UserTasksState => ({
     // New unified structure
     tasks: [],
     // Pagination state
@@ -39,8 +67,8 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Get tasks by category for backward compatibility
      */
-    tasksByCategory: (state) => (category) => {
-      return state.tasks.filter(task => task.category === category);
+    tasksByCategory: (state) => (category: string): TaskList[] => {
+      return state.tasks.filter((task: TaskList) => task.category === category);
     },
     
     /**
@@ -54,18 +82,53 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Legacy getters for backward compatibility
      */
-    complianceTasks: (state) => state.tasksByCategory(TASK_CATEGORIES.COMPLIANCE),
-    accountingAuditTasks: (state) => state.tasksByCategory(TASK_CATEGORIES.ACCOUNTING_AUDIT),
-    financialStatementTasks: (state) => state.tasksByCategory(TASK_CATEGORIES.FINANCIAL_STATEMENT),
-    financeImplementationTasks: (state) => state.tasksByCategory(TASK_CATEGORIES.FINANCE_IMPLEMENTATION),
-    hrImplementationTasks: (state) => state.tasksByCategory(TASK_CATEGORIES.HR_IMPLEMENTATION),
-    miscellaneousTasks: (state) => state.tasksByCategory(TASK_CATEGORIES.MISCELLANEOUS),
-    taxCaseTasks: (state) => state.tasksByCategory(TASK_CATEGORIES.TAX_CASE),
+    complianceTasks: (state) => {
+      const getter = (category: string): TaskList[] => {
+        return state.tasks.filter((task: TaskList) => task.category === category);
+      };
+      return getter(TASK_CATEGORIES.COMPLIANCE);
+    },
+    accountingAuditTasks: (state) => {
+      const getter = (category: string): TaskList[] => {
+        return state.tasks.filter((task: TaskList) => task.category === category);
+      };
+      return getter(TASK_CATEGORIES.ACCOUNTING_AUDIT);
+    },
+    financialStatementTasks: (state) => {
+      const getter = (category: string): TaskList[] => {
+        return state.tasks.filter((task: TaskList) => task.category === category);
+      };
+      return getter(TASK_CATEGORIES.FINANCIAL_STATEMENT);
+    },
+    financeImplementationTasks: (state) => {
+      const getter = (category: string): TaskList[] => {
+        return state.tasks.filter((task: TaskList) => task.category === category);
+      };
+      return getter(TASK_CATEGORIES.FINANCE_IMPLEMENTATION);
+    },
+    hrImplementationTasks: (state) => {
+      const getter = (category: string): TaskList[] => {
+        return state.tasks.filter((task: TaskList) => task.category === category);
+      };
+      return getter(TASK_CATEGORIES.HR_IMPLEMENTATION);
+    },
+    miscellaneousTasks: (state) => {
+      const getter = (category: string): TaskList[] => {
+        return state.tasks.filter((task: TaskList) => task.category === category);
+      };
+      return getter(TASK_CATEGORIES.MISCELLANEOUS);
+    },
+    taxCaseTasks: (state) => {
+      const getter = (category: string): TaskList[] => {
+        return state.tasks.filter((task: TaskList) => task.category === category);
+      };
+      return getter(TASK_CATEGORIES.TAX_CASE);
+    },
     
     /**
      * Check if admin user can mark their own task as complete
      */
-    canMarkTaskComplete: (state) => (task) => {
+    canMarkTaskComplete: (state) => (task: TaskList) => {
       const authStore = useAuthStore();
       return (
         authStore.user?.is_admin &&
@@ -77,7 +140,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
   },
   
   actions: {
-    async fetchUserTasks(userId, options = {}) {
+    async fetchUserTasks(userId: number, options: any = {}): Promise<void> {
       this.isLoading = true;
       try {
         const {
@@ -100,20 +163,29 @@ export const useUserTasksStore = defineStore("userTasksStore", {
           priority
         };
         
-        const response = await taskService.getUserDeadlines(userId, filters);
+        const response = await taskService.getTasks({
+          assigned_to: userId,
+          page,
+          page_size,
+          search,
+          category,
+          status,
+          priority
+        });
         
         // Handle paginated API response structure
         if (response.results && Array.isArray(response.results)) {
           // Extract pagination metadata
           const { results, ...paginationData } = response;
+          const paginationInfo = paginationData as any; // Type assertion for additional pagination fields
           this.pagination = {
-            count: paginationData.count || 0,
-            next: paginationData.next || null,
-            previous: paginationData.previous || null,
-            page_size: paginationData.page_size || 10,
-            total_pages: paginationData.total_pages || 1,
-            current_page: paginationData.current_page || 1,
-            item_range: paginationData.item_range || "0-0"
+            count: paginationInfo.count || 0,
+            next: paginationInfo.next || null,
+            previous: paginationInfo.previous || null,
+            page_size: paginationInfo.page_size || 10,
+            total_pages: paginationInfo.total_pages || 1,
+            current_page: paginationInfo.current_page || 1,
+            item_range: paginationInfo.item_range || "0-0"
           };
           
           // Update current page
@@ -131,8 +203,8 @@ export const useUserTasksStore = defineStore("userTasksStore", {
         } else {
           // Fallback for old structure if still returned (should not happen with new API)
           console.warn('Received non-paginated response from user tasks API');
-          this.tasks = this.convertLegacyToTasks(response);
-          this.tasks_by_category = response;
+          this.tasks = this.convertLegacyToTasks(response as any);
+          this.tasks_by_category = response as any;
           // Reset pagination for legacy response
           this.pagination = {
             count: this.tasks.length,
@@ -155,7 +227,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Update legacy tasks structure for backward compatibility
      */
-    updateLegacyTasks(tasks) {
+    updateLegacyTasks(tasks: TaskList[]): void {
       // Reset all categories
       Object.keys(this.tasks_by_category).forEach(key => {
         this.tasks_by_category[key] = [];
@@ -173,8 +245,8 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Convert legacy response structure to unified tasks array
      */
-    convertLegacyToTasks(legacyResponse) {
-      const tasks = [];
+    convertLegacyToTasks(legacyResponse: any): TaskList[] {
+      const tasks: TaskList[] = [];
       
       Object.entries(legacyResponse).forEach(([legacyKey, taskList]) => {
         if (Array.isArray(taskList)) {
@@ -194,7 +266,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
       return tasks;
     },
     
-    async updateTask(categoryOrTask, task, values) {
+    async updateTask(categoryOrTask: any, task: any, values: any): Promise<any> {
       const toast = useToast();
       
       try {
@@ -211,7 +283,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
         }
         
         const taskService = useTaskService();
-        const response = await taskService.updateTaskDeadline(taskId, values);
+        const response: any = await taskService.updateTaskDeadline(taskId, values);
         
         // Update the task in both structures
         this.updateTaskInState(taskId, response);
@@ -225,7 +297,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
         });
         
         return response;
-      } catch (error) {
+      } catch (error: any) {
         toast.add({
           title: "Update Failed",
           description: getErrorMessage(error),
@@ -241,16 +313,16 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Fetch and update a specific task by ID without refreshing all data
      */
-    async refreshSingleTask(taskId) {
+    async refreshSingleTask(taskId: number): Promise<any> {
       try {
         const taskService = useTaskService();
-        const updatedTask = await taskService.getTask(taskId);
+        const updatedTask: any = await taskService.getTask(taskId);
         
         // Update the task in both structures
         this.updateTaskInState(taskId, updatedTask);
         
         return updatedTask;
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Error refreshing task ${taskId}:`, error);
         // Silently fail for refresh operations to avoid disrupting UX
         throw error;
@@ -260,17 +332,17 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Update task in both new and legacy state structures
      */
-    updateTaskInState(taskId, updatedTask) {
+    updateTaskInState(taskId: number, updatedTask: any): void {
       // Update in new tasks array
-      const taskIndex = this.tasks.findIndex(task => task.id === taskId);
+      const taskIndex = this.tasks.findIndex((task: TaskList) => task.id === taskId);
       if (taskIndex !== -1) {
         this.tasks[taskIndex] = updatedTask;
       }
       
       // Update in legacy tasks structure
-      const legacyKey = CATEGORY_DISPLAY_MAPPING[updatedTask.category];
+      const legacyKey = CATEGORY_DISPLAY_MAPPING[updatedTask.category as keyof typeof CATEGORY_DISPLAY_MAPPING];
       if (legacyKey && this.tasks_by_category[legacyKey]) {
-        const legacyIndex = this.tasks_by_category[legacyKey].findIndex(item => item.id === taskId);
+        const legacyIndex = this.tasks_by_category[legacyKey].findIndex((item: TaskList) => item.id === taskId);
         if (legacyIndex !== -1) {
           this.tasks_by_category[legacyKey][legacyIndex] = updatedTask;
         }
@@ -280,12 +352,12 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Mark task as completed
      */
-    async markTaskCompleted(taskId, completionData) {
+    async markTaskCompleted(taskId: number, completionData: any): Promise<any> {
       const toast = useToast();
       
       try {
         const taskService = useTaskService();
-        const response = await taskService.markTaskCompleted(taskId, completionData);
+        const response: any = await taskService.markTaskCompleted(taskId, completionData);
         
         this.updateTaskInState(taskId, response);
         
@@ -298,7 +370,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
         });
         
         return response;
-      } catch (error) {
+      } catch (error: any) {
         toast.add({
           title: "Completion Failed",
           description: getErrorMessage(error),
@@ -314,7 +386,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Error handling
      */
-    handleError(error, defaultMessage) {
+    handleError(error: any, defaultMessage: string): void {
       const toast = useToast();
       const errorMessage = getErrorMessage ? getErrorMessage(error) : defaultMessage;
       
@@ -330,7 +402,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Pagination methods
      */
-    async loadNextPage(userId) {
+    async loadNextPage(userId: number): Promise<void> {
       if (this.hasNextPage && !this.isLoading) {
         await this.fetchUserTasks(userId, {
           page: this.currentPage + 1,
@@ -339,7 +411,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
       }
     },
     
-    async loadPreviousPage(userId) {
+    async loadPreviousPage(userId: number): Promise<void> {
       if (this.hasPreviousPage && !this.isLoading && this.currentPage > 1) {
         await this.fetchUserTasks(userId, {
           page: this.currentPage - 1
@@ -347,7 +419,7 @@ export const useUserTasksStore = defineStore("userTasksStore", {
       }
     },
     
-    async goToPage(userId, page) {
+    async goToPage(userId: number, page: number): Promise<void> {
       if (page >= 1 && page <= this.totalPages && !this.isLoading) {
         await this.fetchUserTasks(userId, { page });
       }
@@ -356,19 +428,19 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     /**
      * Filter and search methods
      */
-    async setSearch(userId, searchQuery) {
+    async setSearch(userId: number, searchQuery: string): Promise<void> {
       this.searchQuery = searchQuery;
       this.currentPage = 1; // Reset to first page when searching
       await this.fetchUserTasks(userId);
     },
     
-    async setFilters(userId, filters = {}) {
+    async setFilters(userId: number, filters: any = {}): Promise<void> {
       this.filters = { ...this.filters, ...filters };
       this.currentPage = 1; // Reset to first page when filtering
       await this.fetchUserTasks(userId);
     },
     
-    async clearFilters(userId) {
+    async clearFilters(userId: number): Promise<void> {
       this.filters = {
         category: "",
         status: "",

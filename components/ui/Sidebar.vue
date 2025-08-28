@@ -1,16 +1,17 @@
-<script setup>
+<script setup lang="ts">
 // Components
 import DarkModeToggle from "./DarkModeToggle.vue";
 import LogoutButton from "./LogoutButton.vue";
+import type { RouteLocationNormalizedLoaded } from "vue-router";
 
-const appTitle = ref(null);
+const appTitle = ref<HTMLElement | null>(null);
 const { startTyping, stopTyping } = useTypewriter(
   "Client Task Tracker",
   appTitle
 );
 
 // Route
-const route = useRoute();
+const route: RouteLocationNormalizedLoaded = useRoute();
 
 // Stores
 const authStore = useAuthStore();
@@ -18,8 +19,16 @@ const { isAdmin } = storeToRefs(authStore);
 const sidebarStore = useSidebarStore();
 const { showSidebar } = storeToRefs(sidebarStore);
 
+interface NavigationItem {
+  label: string;
+  icon: string;
+  to: string;
+  adminOnly?: boolean;
+  active?: boolean;
+}
+
 // Navigation items with proper UNavigationMenu structure
-const allItems = [
+const allItems: NavigationItem[][] = [
   [
     {
       label: "Dashboard",
@@ -65,7 +74,7 @@ const allItems = [
 ];
 
 // Filter items based on user role and add active state
-const items = computed(() => {
+const items = computed<NavigationItem[][]>(() => {
   const filteredItems = isAdmin.value
     ? allItems
     : [
@@ -85,7 +94,7 @@ const items = computed(() => {
 });
 
 // Method to close mobile sidebar when navigating
-const handleMobileNavigation = () => {
+const handleMobileNavigation = (): void => {
   if (showSidebar.value) {
     sidebarStore.close();
   }
@@ -107,11 +116,7 @@ onUnmounted(() => {
     title="Client Task Tracker"
     description="Navigate to different sections of the application"
     :ui="{
-      width: 'max-w-xs w-80',
-      height: 'h-full',
-      rounded: '',
-      shadow: 'shadow-xl',
-      container: 'items-start justify-start',
+      content: 'max-w-xs w-80 h-full',
     }"
     :overlay="true"
     :transition="true"
@@ -127,14 +132,7 @@ onUnmounted(() => {
           class="w-full"
           :ui="{
             link: 'py-3 px-4 text-base font-medium rounded-lg transition-colors duration-200',
-            linkActive:
-              'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-100',
-            linkInactive:
-              'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
             linkLeadingIcon: 'size-6 mr-3 flex-shrink-0',
-            linkLeadingIconActive: 'text-primary-600 dark:text-primary-300',
-            linkLeadingIconInactive:
-              'text-gray-400 group-hover:text-gray-500 dark:text-gray-400',
           }"
         />
       </div>
@@ -172,14 +170,7 @@ onUnmounted(() => {
           class="w-full"
           :ui="{
             link: 'py-3 px-4 text-base font-medium rounded-lg transition-colors duration-200',
-            linkActive:
-              'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-100',
-            linkInactive:
-              'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700',
             linkLeadingIcon: 'size-6 mr-3 flex-shrink-0',
-            linkLeadingIconActive: 'text-primary-600 dark:text-primary-300',
-            linkLeadingIconInactive:
-              'text-gray-400 group-hover:text-gray-500 dark:text-gray-400',
           }"
         />
       </div>

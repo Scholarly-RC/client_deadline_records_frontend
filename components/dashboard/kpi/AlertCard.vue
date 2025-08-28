@@ -64,7 +64,7 @@
             :key="action.label"
             :label="action.label"
             :variant="action.variant || 'outline'"
-            :color="action.color || 'gray'"
+            :color="action.color || 'neutral'"
             size="sm"
             @click="handleAction(action)"
             :disabled="action.disabled"
@@ -91,62 +91,57 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps({
-  title: {
-    type: String,
-    required: true
-  },
-  message: {
-    type: String,
-    required: true
-  },
-  type: {
-    type: String,
-    default: 'info', // info, success, warning, error, critical
-  },
-  severity: {
-    type: String,
-    default: 'medium', // low, medium, high, critical
-  },
-  details: {
-    type: Array,
-    default: () => []
-  },
-  actions: {
-    type: Array,
-    default: () => []
-  },
-  timestamp: {
-    type: [Date, String],
-    default: null
-  },
-  dismissible: {
-    type: Boolean,
-    default: false
-  },
-  showProgress: {
-    type: Boolean,
-    default: false
-  },
-  progressValue: {
-    type: Number,
-    default: 0
-  },
-  progressMax: {
-    type: Number,
-    default: 100
-  },
-  progressLabel: {
-    type: String,
-    default: 'Progress'
-  },
-  badgeVariant: {
-    type: String,
-    default: 'subtle'
-  }
+// Define types for better type safety
+interface AlertDetail {
+  label: string;
+  value: string | number;
+}
+
+interface AlertAction {
+  label: string;
+  variant?: 'solid' | 'outline' | 'soft' | 'subtle';
+  color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral';
+  disabled?: boolean;
+  loading?: boolean;
+  icon?: string;
+  action: string;
+}
+
+type AlertType = 'info' | 'success' | 'warning' | 'error' | 'critical';
+type SeverityLevel = 'low' | 'medium' | 'high' | 'critical';
+type BadgeVariant = 'solid' | 'outline' | 'soft' | 'subtle';
+
+interface Props {
+  title: string;
+  message: string;
+  type?: AlertType;
+  severity?: SeverityLevel;
+  details?: AlertDetail[];
+  actions?: AlertAction[];
+  timestamp?: Date | string | null;
+  dismissible?: boolean;
+  showProgress?: boolean;
+  progressValue?: number;
+  progressMax?: number;
+  progressLabel?: string;
+  badgeVariant?: BadgeVariant;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  type: 'info',
+  severity: 'medium',
+  details: () => [],
+  actions: () => [],
+  timestamp: null,
+  dismissible: false,
+  showProgress: false,
+  progressValue: 0,
+  progressMax: 100,
+  progressLabel: 'Progress',
+  badgeVariant: 'subtle'
 })
 
 const emit = defineEmits(['action', 'dismiss'])
@@ -154,7 +149,7 @@ const emit = defineEmits(['action', 'dismiss'])
 const cardClasses = computed(() => {
   const base = 'alert-card relative transition-all duration-200 hover:shadow-md'
   
-  const typeClasses = {
+  const typeClasses: Record<AlertType, string> = {
     info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',
     success: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
     warning: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
@@ -168,7 +163,7 @@ const cardClasses = computed(() => {
 const iconClasses = computed(() => {
   const base = 'flex-shrink-0 p-2 rounded-full'
   
-  const typeClasses = {
+  const typeClasses: Record<AlertType, string> = {
     info: 'bg-blue-100 text-blue-600 dark:bg-blue-800 dark:text-blue-200',
     success: 'bg-green-100 text-green-600 dark:bg-green-800 dark:text-green-200',
     warning: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-800 dark:text-yellow-200',
@@ -180,7 +175,7 @@ const iconClasses = computed(() => {
 })
 
 const alertIcon = computed(() => {
-  const icons = {
+  const icons: Record<AlertType, string> = {
     info: 'mdi:information-outline',
     success: 'mdi:check-circle-outline',
     warning: 'mdi:alert-outline',
@@ -191,12 +186,12 @@ const alertIcon = computed(() => {
   return icons[props.type] || icons.info
 })
 
-const severityColor = computed(() => {
-  const colors = {
-    low: 'green',
-    medium: 'yellow',
-    high: 'orange',
-    critical: 'red'
+const severityColor = computed((): 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral' => {
+  const colors: Record<SeverityLevel, 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'> = {
+    low: 'success',
+    medium: 'warning',
+    high: 'warning',
+    critical: 'error'
   }
   
   return colors[props.severity] || colors.medium
@@ -230,7 +225,7 @@ const formattedTimestamp = computed(() => {
   
   const date = new Date(props.timestamp)
   const now = new Date()
-  const diffInSeconds = Math.floor((now - date) / 1000)
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
   
   if (diffInSeconds < 60) {
     return 'Just now'
@@ -245,7 +240,7 @@ const formattedTimestamp = computed(() => {
   }
 })
 
-const handleAction = (action) => {
+const handleAction = (action: AlertAction): void => {
   emit('action', action)
 }
 

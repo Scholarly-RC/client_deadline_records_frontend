@@ -1,8 +1,10 @@
-<script setup>
+<script setup lang="ts">
 // Component Props
-const props = defineProps({
-  role: String,
-});
+interface Props {
+  role?: string;
+}
+
+const props = defineProps<Props>();
 </script>
 
 <template>

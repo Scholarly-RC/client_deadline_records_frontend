@@ -1,6 +1,19 @@
 import { useAuthStore } from "~/stores/auth";
 
-// plugins/api.js
+// Type declaration for $apiFetch
+declare module '#app' {
+  interface NuxtApp {
+    $apiFetch: typeof $fetch
+  }
+}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $apiFetch: typeof $fetch
+  }
+}
+
+// plugins/api.ts
 export default defineNuxtPlugin(async (nuxtApp) => {
   const config = useRuntimeConfig();
 
@@ -19,7 +32,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   // Track refresh token operations to prevent multiple simultaneous refreshes
   let isRefreshing = false;
-  let refreshPromise = null;
+  let refreshPromise: Promise<void> | null = null;
 
   const apiFetch = $fetch.create({
     baseURL: config.public.apiBase,
@@ -27,10 +40,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     async onRequest({ options }) {
       const authStore = getAuthStore();
       if (authStore.accessToken) {
-        options.headers = {
-          ...options.headers,
-          Authorization: `Bearer ${authStore.accessToken}`,
-        };
+        if (!options.headers) {
+          (options as any).headers = {};
+        }
+        (options.headers as any).Authorization = `Bearer ${authStore.accessToken}`;
       }
     },
 
@@ -53,14 +66,15 @@ export default defineNuxtPlugin(async (nuxtApp) => {
           // Clone the original options to avoid mutation issues
           const newOptions = {
             ...options,
-            headers: {
-              ...options.headers,
-              Authorization: `Bearer ${authStore.accessToken}`,
-            },
           };
+          
+          if (!newOptions.headers) {
+            (newOptions as any).headers = {};
+          }
+          (newOptions.headers as any).Authorization = `Bearer ${authStore.accessToken}`;
 
           // Retry the original request
-          return $fetch(request, newOptions);
+          return $fetch(request, newOptions as any);
         } catch (error) {
           // Clear auth and redirect only on client side
           authStore.clearAuth();

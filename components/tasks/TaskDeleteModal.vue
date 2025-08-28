@@ -1,40 +1,42 @@
-<script setup>
+<script setup lang="ts">
 import { categoryChoices } from "~/constants/choices";
+import type { TaskList } from "~/types";
+import StatusBadge from "../ui/StatusBadge.vue";
+import PriorityBadge from "../ui/PriorityBadge.vue";
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  task: {
-    type: Object,
-    required: true,
-  },
-});
+interface Props {
+  modelValue?: boolean;
+  task: TaskList;
+}
 
-const emit = defineEmits(["update:modelValue", "success"]);
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  (e: "update:modelValue", value: boolean): void;
+  (e: "success", task: TaskList): void;
+}>();
 
 // Stores
 const taskStore = useTaskStore();
 const notificationStore = useNotificationStore();
 
 // Computed for modal state
-const isOpen = computed({
-  get: () => props.modelValue,
-  set: (value) => emit("update:modelValue", value),
+const isOpen = computed<boolean>({
+  get: () => props.modelValue ?? false,
+  set: (value: boolean) => emit("update:modelValue", value),
 });
 
 // Reactive state
-const isDeleting = ref(false);
+const isDeleting = ref<boolean>(false);
 
 // Helper function to get category label
-const getCategoryLabel = (categoryValue) => {
+const getCategoryLabel = (categoryValue: string): string => {
   const choice = categoryChoices.find((c) => c.value === categoryValue);
   return choice ? choice.label : categoryValue;
 };
 
 // Handle task deletion
-const handleDelete = async () => {
+const handleDelete = async (): Promise<void> => {
   try {
     isDeleting.value = true;
     
@@ -76,12 +78,12 @@ const handleDelete = async () => {
 };
 
 // Handle modal close
-const handleCancel = () => {
+const handleCancel = (): void => {
   isOpen.value = false;
 };
 
 // Send notification to assigned user
-const sendDeleteNotification = async () => {
+const sendDeleteNotification = async (): Promise<void> => {
   try {
     const authStore = useAuthStore();
     
@@ -114,7 +116,7 @@ const sendDeleteNotification = async () => {
 };
 
 // Format deadline for display
-const formatDate = (dateString) => {
+const formatDate = (dateString: string): string => {
   if (!dateString) return "Not specified";
   
   try {
@@ -204,14 +206,21 @@ const formatDate = (dateString) => {
                 {{ formatDate(task.deadline) }}
               </span>
             </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Status:</span>
+              <StatusBadge :status="task.status" />
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600 dark:text-gray-400">Priority:</span>
+              <PriorityBadge :priority="task.priority" />
+            </div>
           </div>
         </div>
 
         <!-- Confirmation Text -->
-        <div class="text-sm text-gray-600 dark:text-gray-400">
-          <p>
-            Are you sure you want to delete this task? This will permanently remove all task data
-            and cannot be recovered.
+        <div class="text-center">
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Type <strong>DELETE</strong> to confirm this action:
           </p>
         </div>
       </div>
@@ -220,23 +229,21 @@ const formatDate = (dateString) => {
     <template #footer>
       <div class="flex justify-end gap-3">
         <UButton
-          color="gray"
-          variant="outline"
+          variant="ghost"
+          color="neutral"
           @click="handleCancel"
           :disabled="isDeleting"
         >
           Cancel
         </UButton>
         <UButton
-          color="red"
+          color="error"
+          variant="solid"
           @click="handleDelete"
           :loading="isDeleting"
           :disabled="isDeleting"
         >
-          <template #leading>
-            <UIcon name="i-heroicons-trash" />
-          </template>
-          {{ isDeleting ? "Deleting..." : "Delete Task" }}
+          Delete Task
         </UButton>
       </div>
     </template>

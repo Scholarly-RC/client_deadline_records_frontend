@@ -1,44 +1,41 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch } from "vue";
+import type { TaskList } from "~/types";
 
-const props = defineProps({
-  modelValue: {
-    type: Boolean,
-    default: false,
-  },
-  task: {
-    type: Object,
-    required: true,
-  },
-  isSubmitting: {
-    type: Boolean,
-    default: false,
-  },
-});
+interface Props {
+  modelValue?: boolean;
+  task: TaskList;
+  isSubmitting?: boolean;
+}
 
-const emit = defineEmits(["update:modelValue", "complete"]);
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  (e: "update:modelValue", value: boolean): void;
+  (e: "complete", completionData: { remarks: string }): void;
+}>();
 
 // Form data
-const remarks = ref("");
+const remarks = ref<string>("");
 
 // Computed properties
-const isOpen = computed({
-  get: () => props.modelValue,
-  set: (value) => emit("update:modelValue", value),
+const isOpen = computed<boolean>({
+  get: () => props.modelValue ?? false,
+  set: (value: boolean) => emit("update:modelValue", value),
 });
 
 // Set default values when modal opens
-const resetForm = () => {
+const resetForm = (): void => {
   remarks.value = "";
 };
 
 // Form validation
-const isFormValid = computed(() => {
+const isFormValid = computed<boolean>(() => {
   return remarks.value.trim().length > 0;
 });
 
 // Handle form submission
-const handleSubmit = () => {
+const handleSubmit = (): void => {
   if (!isFormValid.value) return;
 
   const completionData = {
@@ -49,7 +46,7 @@ const handleSubmit = () => {
 };
 
 // Handle modal close
-const handleClose = () => {
+const handleClose = (): void => {
   if (!props.isSubmitting) {
     isOpen.value = false;
     resetForm();
@@ -59,7 +56,7 @@ const handleClose = () => {
 // Watch for modal opening to reset form
 watch(
   () => props.modelValue,
-  (newValue) => {
+  (newValue: boolean | undefined) => {
     if (newValue) {
       resetForm();
     }
@@ -143,7 +140,7 @@ watch(
     <template #footer>
       <div class="flex gap-3">
         <UButton
-          color="gray"
+          color="neutral"
           variant="ghost"
           @click="handleClose"
           :disabled="isSubmitting"

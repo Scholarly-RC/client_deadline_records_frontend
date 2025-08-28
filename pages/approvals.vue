@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { useTaskStore } from "~/stores/tasks";
 import { useAuthStore } from "~/stores/auth";
 import ApprovalActionsPanel from "~/components/tasks/ApprovalActionsPanel.vue";
@@ -223,14 +223,14 @@ onMounted(async () => {
                   <div class="space-y-2">
                     <div
                       v-for="approval in task.approval_history"
-                      :key="approval.step"
+                      :key="approval.approval_step"
                       class="flex items-center justify-between text-sm"
                     >
                       <div class="flex items-center space-x-2">
                         <span
                           class="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded text-xs"
                         >
-                          Step {{ approval.step }}
+                          Step {{ approval.approval_step }}
                         </span>
                         <span>{{ approval.approver }}</span>
                         <span class="text-green-600 dark:text-green-400">{{
@@ -238,7 +238,7 @@ onMounted(async () => {
                         }}</span>
                       </div>
                       <span class="text-gray-500 dark:text-gray-400">{{
-                        approval.date
+                        approval.formatted_date
                       }}</span>
                     </div>
                   </div>

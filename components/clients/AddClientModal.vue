@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
+import type { ClientFormData } from '~/types/entities';
 
 // Stores
 const clientStore = useClientStore();
@@ -35,28 +36,28 @@ const {
   handleSubmit,
   isSubmitting,
   resetForm,
-} = useForm({
+} = useForm<ClientFormData>({
   validationSchema,
 });
 
 // Form Fields
-const [name] = defineField("name");
-const [status] = defineField("status");
-const [category] = defineField("category");
-const [contactPerson] = defineField("contactPerson");
-const [email] = defineField("email");
-const [phone] = defineField("phone");
-const [dateOfBirth] = defineField("dateOfBirth");
-const [address] = defineField("address");
-const [notes] = defineField("notes");
+const [name, nameAttr] = defineField("name");
+const [status, statusAttr] = defineField("status");
+const [category, categoryAttr] = defineField("category");
+const [contactPerson, contactPersonAttr] = defineField("contactPerson");
+const [email, emailAttr] = defineField("email");
+const [phone, phoneAttr] = defineField("phone");
+const [dateOfBirth, dateOfBirthAttr] = defineField("dateOfBirth");
+const [address, addressAttr] = defineField("address");
+const [notes, notesAttr] = defineField("notes");
 
 // Computed
-const disableSubmit = computed(() => {
+const disableSubmit = computed<boolean>(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
 
 // Methods
-const onSubmit = handleSubmit(async (values) => {
+const onSubmit = handleSubmit(async (values: ClientFormData) => {
   const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
@@ -84,7 +85,7 @@ const onSubmit = handleSubmit(async (values) => {
       icon: "mdi:checkbox-multiple-marked",
       duration: 2000,
     });
-  } catch (error) {
+  } catch (error: any) {
     toast.add({
       title: "Client Creation Failed",
       description: getErrorMessage(error),

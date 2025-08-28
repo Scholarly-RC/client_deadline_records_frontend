@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Enhanced Dashboard Components
 import PageHeader from "../ui/PageHeader.vue"
 import DashboardLayoutSwitcher from "./DashboardLayoutSwitcher.vue"
@@ -12,16 +12,27 @@ import PersonalDashboardLayout from "./layouts/PersonalDashboardLayout.vue"
 import ClientBirthdays from "./ClientBirthdays.vue"
 import Stats from "./Stats.vue"
 
+// Type imports
+import type { Ref } from 'vue'
+import type { User } from '~/types/entities'
+
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
 const { currentLayout, isAnyLoading, realtimeEnabled } = storeToRefs(dashboardStore)
 const { isAdmin } = storeToRefs(authStore)
 
-const isRefreshing = ref(false)
-const showLegacyFallback = ref(false)
+const isRefreshing: Ref<boolean> = ref(false)
+const showLegacyFallback: Ref<boolean> = ref(false)
+
+interface LayoutComponents {
+  executive: typeof ExecutiveDashboardLayout
+  operations: typeof OperationsDashboardLayout
+  analytics: typeof AnalyticsDashboardLayout
+  personal: typeof PersonalDashboardLayout
+}
 
 // Layout component mapping
-const layoutComponents = {
+const layoutComponents: LayoutComponents = {
   executive: ExecutiveDashboardLayout,
   operations: OperationsDashboardLayout,
   analytics: AnalyticsDashboardLayout,
@@ -29,11 +40,11 @@ const layoutComponents = {
 }
 
 const currentLayoutComponent = computed(() => {
-  return layoutComponents[currentLayout.value] || OperationsDashboardLayout
+  return layoutComponents[currentLayout.value as keyof LayoutComponents] || OperationsDashboardLayout
 })
 
 // Enhanced data loading
-const loadDashboardData = async () => {
+const loadDashboardData = async (): Promise<void> => {
   try {
     isRefreshing.value = true
     
@@ -56,29 +67,29 @@ const loadDashboardData = async () => {
 }
 
 // Real-time data refresh
-const handleRefresh = async () => {
+const handleRefresh = async (): Promise<void> => {
   await loadDashboardData()
 }
 
 // Toggle real-time updates
-const handleToggleRealtime = () => {
+const handleToggleRealtime = (): void => {
   dashboardStore.toggleRealtime()
 }
 
 // Handle real-time status changes
-const handleRealtimeStatusChange = (data) => {
+const handleRealtimeStatusChange = (data: any): void => {
   console.log('Real-time status changed:', data)
   // Additional logic for status changes can be added here
 }
 
 // Handle refresh interval changes
-const handleIntervalChange = (newInterval) => {
+const handleIntervalChange = (newInterval: number): void => {
   console.log('Refresh interval changed to:', newInterval)
   // Additional logic for interval changes can be added here
 }
 
 // Export dashboard functionality
-const handleExport = async (format) => {
+const handleExport = async (format: string): Promise<void> => {
   const toast = useToast()
   
   try {
@@ -118,19 +129,19 @@ const handleExport = async (format) => {
 }
 
 // Navigation handler
-const handleNavigation = (route) => {
+const handleNavigation = (route: string): void => {
   navigateTo(route)
 }
 
 // Chart click handler for data drilling
-const handleChartClick = (data) => {
+const handleChartClick = (data: any): void => {
   console.log('Chart clicked:', data)
   // Implement chart drilling logic here
   // Could open modals, navigate to filtered views, etc.
 }
 
 // Alert action handler
-const handleAlertAction = (alert) => {
+const handleAlertAction = (alert: any): void => {
   console.log('Alert action:', alert)
   // Implement alert-specific actions
   switch (alert.type) {
@@ -148,31 +159,31 @@ const handleAlertAction = (alert) => {
 }
 
 // Modal opening handler
-const handleOpenModal = (modalType) => {
+const handleOpenModal = (modalType: string): void => {
   console.log('Open modal:', modalType)
   // Implement modal opening logic
   // This would integrate with your existing modal system
 }
 
 // Action handler for various dashboard actions
-const handleAction = (action) => {
+const handleAction = (action: any): void => {
   console.log('Dashboard action:', action)
   // Implement action-specific logic
 }
 
 // Error boundary for layout components
-const handleLayoutError = (error) => {
+const handleLayoutError = (error: Error): void => {
   console.error('Layout error:', error)
   showLegacyFallback.value = true
 }
 
 // Initialize dashboard data on mount
-onMounted(async () => {
+onMounted(async (): Promise<void> => {
   await loadDashboardData()
 })
 
 // Cleanup real-time updates on unmount
-onUnmounted(() => {
+onUnmounted((): void => {
   if (realtimeEnabled.value) {
     dashboardStore.stopRealTimeUpdates()
   }

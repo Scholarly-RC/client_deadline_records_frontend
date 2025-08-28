@@ -1,5 +1,17 @@
+import { defineStore } from 'pinia';
+import { useNuxtApp } from '#app/nuxt'
+import type { AppLog } from '~/types';
+
+interface LogsState {
+  logs: AppLog[];
+  pagination: Record<string, any>;
+  page: number | null;
+  user: number | null;
+  isLoading: boolean;
+}
+
 export const useLogsStore = defineStore("logsStore", {
-  state: () => ({
+  state: (): LogsState => ({
     logs: [],
     pagination: {},
     page: null,
@@ -8,7 +20,7 @@ export const useLogsStore = defineStore("logsStore", {
   }),
 
   actions: {
-    async getLogs() {
+    async getLogs(): Promise<void> {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
@@ -16,31 +28,31 @@ export const useLogsStore = defineStore("logsStore", {
 
         const params = new URLSearchParams();
         if (this.page) {
-          params.append("page", this.page);
+          params.append("page", this.page.toString());
         }
         if (this.user) {
-          params.append("user", this.user);
+          params.append("user", this.user.toString());
         }
         url += params.toString();
 
-        const response = await $apiFetch(url, {
+        const response: any = await $apiFetch(url, {
           method: "GET",
         });
 
         const { results, ...pagination } = response;
         this.logs = results;
         this.pagination = pagination;
-      } catch (error) {
+      } catch (error: any) {
         console.error(error);
       } finally {
         this.isLoading = false;
       }
     },
-    async setPage(page = null) {
+    async setPage(page: number | null = null): Promise<void> {
       this.page = page;
       await this.getLogs();
     },
-    async setUser(user = null) {
+    async setUser(user: number | null = null): Promise<void> {
       this.user = user;
       this.page = null;
       await this.getLogs();

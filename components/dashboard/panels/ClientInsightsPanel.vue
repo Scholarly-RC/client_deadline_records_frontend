@@ -9,7 +9,7 @@
             v-model="selectedClientFilter" 
             :options="clientFilterOptions"
             size="sm"
-            @change="handleClientFilterChange"
+            @update:model-value="handleClientFilterChange"
           />
           <!-- View All Clients Button -->
           <UButton 
@@ -215,16 +215,50 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import PieChartComponent from '../charts/PieChartComponent.vue'
 import BarChartComponent from '../charts/BarChartComponent.vue'
 
-const props = defineProps({
-  isLoading: {
-    type: Boolean,
-    default: false
-  }
+// Define interfaces for type safety
+interface ClientInsightData {
+  client__id: number;
+  client__name: string;
+  client__status: string;
+  total_tasks: number;
+  completed_tasks: number;
+  pending_tasks: number;
+  overdue_tasks: number;
+  completion_rate: number;
+}
+
+interface WorkloadChartItem {
+  name: string;
+  value: number;
+  display_name: string;
+}
+
+interface CompletionRateChartData {
+  categories: string[];
+  series: {
+    name: string;
+    data: number[];
+  }[];
+}
+
+interface ClientSummary {
+  totalClients: number;
+  avgTasksPerClient: string;
+  avgCompletionRate: string;
+  totalOverdue: number;
+}
+
+interface Props {
+  isLoading?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isLoading: false
 })
 
 const emit = defineEmits(['viewAllClients', 'viewClient', 'clientFilterChange', 'chartClick'])
@@ -241,11 +275,11 @@ const clientFilterOptions = [
   { label: 'At Risk', value: 'at_risk' }
 ]
 
-const topClients = computed(() => {
+const topClients = computed((): ClientInsightData[] => {
   return clientInsights.value?.top_clients || []
 })
 
-const workloadChartData = computed(() => {
+const workloadChartData = computed((): WorkloadChartItem[] | null => {
   if (!topClients.value?.length) return null
   
   return topClients.value.map(client => ({
@@ -255,7 +289,7 @@ const workloadChartData = computed(() => {
   }))
 })
 
-const completionRateChartData = computed(() => {
+const completionRateChartData = computed((): CompletionRateChartData | null => {
   if (!topClients.value?.length) return null
   
   return {
@@ -273,7 +307,7 @@ const completionRateChartData = computed(() => {
   }
 })
 
-const clientSummary = computed(() => {
+const clientSummary = computed((): ClientSummary | null => {
   if (!topClients.value?.length) return null
   
   const totalClients = topClients.value.length
@@ -289,47 +323,48 @@ const clientSummary = computed(() => {
   }
 })
 
-const getClientInitials = (name) => {
+const getClientInitials = (name: string): string => {
   return name.split(' ').map(word => word.charAt(0)).join('').substring(0, 2).toUpperCase()
 }
 
-const getClientStatusColor = (status) => {
+const getClientStatusColor = (status: string): 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral' => {
   switch (status?.toLowerCase()) {
     case 'active':
-      return 'green'
+      return 'success'
     case 'inactive':
-      return 'gray'
+      return 'neutral'
     case 'pending':
-      return 'yellow'
+      return 'warning'
     default:
-      return 'blue'
+      return 'primary'
   }
 }
 
-const getCompletionRateColor = (rate) => {
+const getCompletionRateColor = (rate: number): string => {
   if (rate >= 80) return 'text-green-600 dark:text-green-400'
   if (rate >= 60) return 'text-blue-600 dark:text-blue-400'
   if (rate >= 40) return 'text-yellow-600 dark:text-yellow-400'
   return 'text-red-600 dark:text-red-400'
 }
 
-const getProgressBarColor = (rate) => {
+const getProgressBarColor = (rate: number): string => {
   if (rate >= 80) return 'bg-green-500'
   if (rate >= 60) return 'bg-blue-500'
   if (rate >= 40) return 'bg-yellow-500'
   return 'bg-red-500'
 }
 
-const handleClientFilterChange = (filter) => {
-  selectedClientFilter.value = filter
-  emit('clientFilterChange', filter)
+const handleClientFilterChange = (filter: any): void => {
+  const filterValue = typeof filter === 'string' ? filter : filter?.value || filter
+  selectedClientFilter.value = filterValue
+  emit('clientFilterChange', filterValue)
 }
 
-const handleWorkloadChartClick = (params) => {
+const handleWorkloadChartClick = (params: any): void => {
   emit('chartClick', { type: 'workload', params })
 }
 
-const handleCompletionRateChartClick = (params) => {
+const handleCompletionRateChartClick = (params: any): void => {
   emit('chartClick', { type: 'completion_rate', params })
 }
 
@@ -337,7 +372,7 @@ const viewAllClients = () => {
   emit('viewAllClients')
 }
 
-const viewClientDetails = (client) => {
+const viewClientDetails = (client: ClientInsightData): void => {
   emit('viewClient', client)
 }
 

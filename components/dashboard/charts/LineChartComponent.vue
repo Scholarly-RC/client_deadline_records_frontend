@@ -10,12 +10,12 @@
             v-model="selectedTimeRange" 
             :options="timeRangeOptions"
             size="sm"
-            @change="handleTimeRangeChange"
+            @update:model-value="handleTimeRangeChange"
           />
           <!-- Export Button -->
           <UButton 
             v-if="showExport"
-            @click="exportChart" 
+            @click="() => exportChart()" 
             variant="ghost" 
             size="sm"
             icon="mdi:download"
@@ -40,67 +40,87 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import type { ComposeOption } from 'echarts/core'
+import type {
+  LineSeriesOption,
+} from 'echarts/charts'
+import type {
+  TitleComponentOption,
+  TooltipComponentOption,
+  GridComponentOption,
+  LegendComponentOption,
+  DataZoomComponentOption,
+  BrushComponentOption,
+  ToolboxComponentOption
+} from 'echarts/components'
+import type { ECElementEvent } from 'echarts'
 import { useChartInteractivity } from '~/composables/useChartInteractivity.js'
+import type { ChartClickParams } from '~/types/entities'
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: 'Line Chart'
-  },
-  data: {
-    type: Object,
-    required: true,
-    validator: (value) => {
-      return value && typeof value === 'object' && 
-             Array.isArray(value.xAxis) && 
-             Array.isArray(value.datasets)
-    }
-  },
-  isLoading: {
-    type: Boolean,
-    default: false
-  },
-  showTimeRange: {
-    type: Boolean,
-    default: true
-  },
-  showExport: {
-    type: Boolean,
-    default: true
-  },
-  colors: {
-    type: Array,
-    default: () => ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
-  },
-  smooth: {
-    type: Boolean,
-    default: true
-  },
-  height: {
-    type: String,
-    default: '400px'
-  },
-  chartType: {
-    type: String,
-    default: 'trends' // For interactivity identification
-  },
-  enableInteractivity: {
-    type: Boolean,
-    default: true
-  },
-  drillContext: {
-    type: Object,
-    default: () => ({})
-  }
+// Define the proper ECharts option type
+type ECOption = ComposeOption<
+  | LineSeriesOption
+  | TitleComponentOption
+  | TooltipComponentOption
+  | GridComponentOption
+  | LegendComponentOption
+  | DataZoomComponentOption
+  | BrushComponentOption
+  | ToolboxComponentOption
+>
+
+interface LineDataset {
+  name: string
+  data: number[]
+  showArea?: boolean
+}
+
+interface LineChartData {
+  xAxis: string[]
+  datasets: LineDataset[]
+}
+
+interface Props {
+  title?: string
+  data: LineChartData
+  isLoading?: boolean
+  showTimeRange?: boolean
+  showExport?: boolean
+  colors?: string[]
+  smooth?: boolean
+  height?: string
+  chartType?: string
+  enableInteractivity?: boolean
+  drillContext?: Record<string, any>
+}
+
+interface Emits {
+  (e: 'click', data: ChartClickParams): void
+  (e: 'timeRangeChange', value: string): void
+  (e: 'export', data: any): void
+  (e: 'drill', data: { params: ChartClickParams; context: any; chartType: string }): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  title: 'Line Chart',
+  isLoading: false,
+  showTimeRange: true,
+  showExport: true,
+  colors: () => ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'],
+  smooth: true,
+  height: '400px',
+  chartType: 'trends',
+  enableInteractivity: true,
+  drillContext: () => ({})
 })
 
-const emit = defineEmits(['click', 'timeRangeChange', 'export', 'drill'])
+const emit = defineEmits<Emits>()
 
-const chartRef = ref(null)
-const selectedTimeRange = ref('7d')
-const realTimeCleanup = ref(null)
+const chartRef = ref<any>(null)
+const selectedTimeRange = ref<string>('7d')
+const realTimeCleanup = ref<(() => void) | null>(null)
 
 // Enhanced interactivity with composable
 const {
@@ -114,7 +134,7 @@ const {
   exportProgress
 } = useChartInteractivity({
   customDrillHandlers: {
-    [props.chartType]: (params, context) => {
+    [props.chartType]: (params: any, context: any) => {
       emit('drill', { params, context, chartType: props.chartType })
     }
   }
@@ -126,9 +146,9 @@ const timeRangeOptions = [
   { label: '30 Days', value: '30d' },
   { label: '90 Days', value: '90d' },
   { label: '1 Year', value: '1y' }
-]
+] as const
 
-const chartOption = computed(() => {
+const chartOption = computed<ECOption>(() => {
   if (!props.data || !props.data.xAxis || !props.data.datasets) {
     return {}
   }
@@ -278,14 +298,28 @@ const chartOption = computed(() => {
   }
 })
 
-const handleChartClick = async (params) => {
+const handleChartClick = async (params: any): Promise<void> => {
+  // Convert ECElementEvent to ChartClickParams format
+  const chartParams: ChartClickParams = {
+    componentType: params.componentType,
+    seriesType: params.seriesType || 'line',
+    seriesIndex: params.seriesIndex || 0,
+    seriesName: params.seriesName || '',
+    name: params.name || '',
+    dataIndex: params.dataIndex || 0,
+    data: params.data,
+    dataType: params.dataType,
+    value: params.value as number | number[],
+    color: params.color || ''
+  }
+  
   // Emit the basic click event
-  emit('click', params)
+  emit('click', chartParams)
   
   // Handle interactive drilling if enabled
   if (props.enableInteractivity) {
     try {
-      await handleInteractiveChartClick(props.chartType, params, {
+      await handleInteractiveChartClick(props.chartType, chartParams, {
         timeRange: selectedTimeRange.value,
         drillContext: props.drillContext,
         chartData: props.data
@@ -296,12 +330,17 @@ const handleChartClick = async (params) => {
   }
 }
 
-const handleTimeRangeChange = (value) => {
-  selectedTimeRange.value = value
-  emit('timeRangeChange', value)
+const handleTimeRangeChange = (value: any): void => {
+  if (typeof value === 'string') {
+    selectedTimeRange.value = value
+    emit('timeRangeChange', value)
+  } else if (value && typeof value.value === 'string') {
+    selectedTimeRange.value = value.value
+    emit('timeRangeChange', value.value)
+  }
 }
 
-const exportChart = async (format = 'png') => {
+const exportChart = async (format: string = 'png'): Promise<any> => {
   if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
     try {
       const chartInstance = chartRef.value.getEchartsInstance()

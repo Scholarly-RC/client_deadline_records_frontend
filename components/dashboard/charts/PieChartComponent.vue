@@ -10,12 +10,12 @@
             v-model="chartTypeSelection" 
             :options="chartTypeOptions"
             size="sm"
-            @change="handleChartTypeChange"
+            @update:model-value="handleChartTypeChange"
           />
           <!-- Export Button -->
           <UButton 
             v-if="showExport"
-            @click="exportChart" 
+            @click="() => exportChart()" 
             variant="ghost" 
             size="sm"
             icon="mdi:download"
@@ -80,88 +80,86 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import type { ComposeOption } from 'echarts/core'
+import type {
+  PieSeriesOption,
+} from 'echarts/charts'
+import type {
+  TitleComponentOption,
+  TooltipComponentOption,
+  LegendComponentOption
+} from 'echarts/components'
+import type { ECElementEvent } from 'echarts'
 import { useChartInteractivity } from '~/composables/useChartInteractivity.js'
+import type { ChartClickParams } from '~/types/entities'
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: 'Pie Chart'
-  },
-  data: {
-    type: Array,
-    required: true,
-    validator: (value) => {
-      return Array.isArray(value) && value.every(item => 
-        typeof item === 'object' && 
-        'name' in item && 
-        'value' in item
-      )
-    }
-  },
-  isLoading: {
-    type: Boolean,
-    default: false
-  },
-  showLegend: {
-    type: Boolean,
-    default: true
-  },
-  showPercentages: {
-    type: Boolean,
-    default: true
-  },
-  showTotal: {
-    type: Boolean,
-    default: true
-  },
-  showChartTypeToggle: {
-    type: Boolean,
-    default: true
-  },
-  showExport: {
-    type: Boolean,
-    default: true
-  },
-  colors: {
-    type: Array,
-    default: () => [
-      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
-      '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1'
-    ]
-  },
-  height: {
-    type: String,
-    default: '350px'
-  },
-  innerRadius: {
-    type: String,
-    default: '0%'
-  },
-  outerRadius: {
-    type: String,
-    default: '70%'
-  },
-  chartType: {
-    type: String,
-    default: 'category_distribution' // For interactivity identification
-  },
-  enableInteractivity: {
-    type: Boolean,
-    default: true
-  },
-  drillContext: {
-    type: Object,
-    default: () => ({})
-  }
+// Define the proper ECharts option type
+type ECOption = ComposeOption<
+  | PieSeriesOption
+  | TitleComponentOption
+  | TooltipComponentOption
+  | LegendComponentOption
+>
+
+interface PieDataItem {
+  name: string
+  value: number
+  display_name?: string
+}
+
+interface Props {
+  title?: string
+  data: PieDataItem[]
+  isLoading?: boolean
+  showLegend?: boolean
+  showPercentages?: boolean
+  showTotal?: boolean
+  showChartTypeToggle?: boolean
+  showExport?: boolean
+  colors?: string[]
+  height?: string
+  innerRadius?: string
+  outerRadius?: string
+  chartType?: string
+  enableInteractivity?: boolean
+  drillContext?: Record<string, any>
+}
+
+interface Emits {
+  (e: 'click', data: ChartClickParams): void
+  (e: 'legendClick', data: { item: PieDataItem; index: number }): void
+  (e: 'chartTypeChange', type: string): void
+  (e: 'export', data: any): void
+  (e: 'drill', data: { params: ChartClickParams; context: any; chartType: string }): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  title: 'Pie Chart',
+  isLoading: false,
+  showLegend: true,
+  showPercentages: true,
+  showTotal: true,
+  showChartTypeToggle: true,
+  showExport: true,
+  colors: () => [
+    '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', 
+    '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1'
+  ],
+  height: '350px',
+  innerRadius: '0%',
+  outerRadius: '70%',
+  chartType: 'category_distribution',
+  enableInteractivity: true,
+  drillContext: () => ({})
 })
 
-const emit = defineEmits(['click', 'legendClick', 'chartTypeChange', 'export', 'drill'])
+const emit = defineEmits<Emits>()
 
-const chartRef = ref(null)
-const chartTypeSelection = ref('pie')
-const realTimeCleanup = ref(null)
+const chartRef = ref<any>(null)
+const chartTypeSelection = ref<string>('pie')
+const realTimeCleanup = ref<(() => void) | null>(null)
 
 // Enhanced interactivity with composable
 const {
@@ -174,7 +172,7 @@ const {
   exportProgress
 } = useChartInteractivity({
   customDrillHandlers: {
-    [props.chartType]: (params, context) => {
+    [props.chartType]: (params: any, context: any) => {
       emit('drill', { params, context, chartType: props.chartType })
     }
   }
@@ -184,20 +182,20 @@ const chartTypeOptions = [
   { label: 'Pie Chart', value: 'pie' },
   { label: 'Donut Chart', value: 'donut' },
   { label: 'Rose Chart', value: 'rose' }
-]
+] as const
 
-const legendData = computed(() => {
+const legendData = computed<PieDataItem[]>(() => {
   return props.data.map(item => ({
     ...item,
     display_name: item.display_name || item.name
   }))
 })
 
-const totalValue = computed(() => {
+const totalValue = computed<number>(() => {
   return props.data.reduce((sum, item) => sum + (item.value || 0), 0)
 })
 
-const chartOption = computed(() => {
+const chartOption = computed<ECOption>(() => {
   if (!props.data || props.data.length === 0) {
     return {}
   }
@@ -213,7 +211,7 @@ const chartOption = computed(() => {
       trigger: 'item',
       formatter: createEnhancedTooltipFormatter('pie', {
         showClickHint: props.enableInteractivity,
-        customFormatter: (params) => {
+        customFormatter: (params: any) => {
           const percentage = ((params.value / totalValue.value) * 100).toFixed(1)
           return `${params.name}<br/>${params.seriesName}: ${params.value} (${percentage}%)`
         }
@@ -233,7 +231,7 @@ const chartOption = computed(() => {
         name: props.title,
         type: 'pie',
         radius: isDonut ? [props.innerRadius || '40%', props.outerRadius] : props.outerRadius,
-        roseType: isRose ? 'area' : false,
+        roseType: isRose ? 'area' : undefined,
         center: ['50%', '50%'],
         data: props.data.map((item, index) => ({
           ...item,
@@ -273,23 +271,37 @@ const chartOption = computed(() => {
   }
 })
 
-const getItemColor = (index) => {
+const getItemColor = (index: number): string => {
   return props.colors[index % props.colors.length]
 }
 
-const calculatePercentage = (value) => {
-  if (totalValue.value === 0) return 0
+const calculatePercentage = (value: number): string => {
+  if (totalValue.value === 0) return '0'
   return ((value / totalValue.value) * 100).toFixed(1)
 }
 
-const handleChartClick = async (params) => {
+const handleChartClick = async (params: any): Promise<void> => {
+  // Convert ECElementEvent to ChartClickParams format
+  const chartParams: ChartClickParams = {
+    componentType: params.componentType,
+    seriesType: params.seriesType || 'pie',
+    seriesIndex: params.seriesIndex || 0,
+    seriesName: params.seriesName || '',
+    name: params.name || '',
+    dataIndex: params.dataIndex || 0,
+    data: params.data,
+    dataType: params.dataType,
+    value: params.value as number | number[],
+    color: params.color || ''
+  }
+  
   // Emit the basic click event
-  emit('click', params)
+  emit('click', chartParams)
   
   // Handle interactive drilling if enabled
   if (props.enableInteractivity) {
     try {
-      await handleInteractiveChartClick(props.chartType, params, {
+      await handleInteractiveChartClick(props.chartType, chartParams, {
         chartData: props.data,
         drillContext: props.drillContext
       })
@@ -299,7 +311,7 @@ const handleChartClick = async (params) => {
   }
 }
 
-const handleLegendClick = (item, index) => {
+const handleLegendClick = (item: PieDataItem, index: number): void => {
   // Toggle item visibility in chart
   if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
     try {
@@ -318,12 +330,17 @@ const handleLegendClick = (item, index) => {
   emit('legendClick', { item, index })
 }
 
-const handleChartTypeChange = (type) => {
-  chartTypeSelection.value = type
-  emit('chartTypeChange', type)
+const handleChartTypeChange = (value: any): void => {
+  if (typeof value === 'string') {
+    chartTypeSelection.value = value
+    emit('chartTypeChange', value)
+  } else if (value && typeof value.value === 'string') {
+    chartTypeSelection.value = value.value
+    emit('chartTypeChange', value.value)
+  }
 }
 
-const exportChart = async (format = 'png') => {
+const exportChart = async (format: string = 'png'): Promise<any> => {
   if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
     try {
       const chartInstance = chartRef.value.getEchartsInstance()

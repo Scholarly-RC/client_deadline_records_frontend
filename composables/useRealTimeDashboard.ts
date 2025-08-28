@@ -3,9 +3,30 @@
  * Provides reactive real-time dashboard functionality for components
  */
 
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, readonly } from 'vue'
+import { useToast } from '../node_modules/@nuxt/ui/dist/runtime/composables/useToast'
+import { useDashboardStore } from '../stores/dashboard'
 
-export const useRealTimeDashboard = (options = {}) => {
+interface RealTimeDashboardOptions {
+  autoStart?: boolean;
+  interval?: number;
+  enableNotifications?: boolean;
+  enableVisibilityOptimization?: boolean;
+  [key: string]: any;
+}
+
+interface RefreshStatus {
+  isActive: boolean;
+  interval: number;
+  lastRefresh: Date | null;
+  refreshCount: number;
+  connectionStatus: string;
+  dataFreshness: any;
+  timeSinceLastUpdate: string | null;
+  isVisible: boolean;
+}
+
+export const useRealTimeDashboard = (options: RealTimeDashboardOptions = {}) => {
   const dashboardStore = useDashboardStore()
   
   // Configuration
@@ -19,7 +40,7 @@ export const useRealTimeDashboard = (options = {}) => {
   
   // Reactive state
   const isRealTimeActive = ref(false)
-  const lastRefreshTime = ref(null)
+  const lastRefreshTime = ref<Date | null>(null)
   const refreshCount = ref(0)
   const isVisible = ref(true)
   const connectionStatus = ref('connected') // connected, disconnected, error
@@ -32,7 +53,7 @@ export const useRealTimeDashboard = (options = {}) => {
     
     const now = new Date()
     const lastUpdate = new Date(dashboardStore.lastUpdated)
-    const diffMinutes = Math.floor((now - lastUpdate) / (1000 * 60))
+    const diffMinutes = Math.floor((now.getTime() - lastUpdate.getTime()) / (1000 * 60))
     
     if (diffMinutes < 1) return 'Just now'
     if (diffMinutes < 60) return `${diffMinutes} minutes ago`
@@ -43,7 +64,7 @@ export const useRealTimeDashboard = (options = {}) => {
   })
   
   // Internal state
-  let refreshInterval = null
+  let refreshInterval: NodeJS.Timeout | null = null
   let reconnectAttempts = 0
   const maxReconnectAttempts = 5
   
@@ -66,8 +87,7 @@ export const useRealTimeDashboard = (options = {}) => {
       toast.add({
         title: 'Real-time Updates',
         description: 'Dashboard will update automatically',
-        color: 'success',
-        timeout: 3000
+        color: 'success'
       })
     }
   }
@@ -90,8 +110,7 @@ export const useRealTimeDashboard = (options = {}) => {
       toast.add({
         title: 'Real-time Updates Paused',
         description: 'Dashboard updates have been disabled',
-        color: 'gray',
-        timeout: 3000
+        color: 'neutral'
       })
     }
   }
@@ -139,7 +158,7 @@ export const useRealTimeDashboard = (options = {}) => {
   /**
    * Update refresh interval
    */
-  const updateInterval = (newInterval) => {
+  const updateInterval = (newInterval: number) => {
     config.interval = newInterval
     
     if (isRealTimeActive.value) {

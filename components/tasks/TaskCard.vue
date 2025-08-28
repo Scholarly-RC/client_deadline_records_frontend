@@ -1,28 +1,29 @@
-<script setup>
+<script setup lang="ts">
 import { getDaysRemaining } from "~/utils/getDaysRemaining";
 import PriorityBadge from "../ui/PriorityBadge.vue";
 import StatusBadge from "../ui/StatusBadge.vue";
 import ApprovalHistoryComponent from "../tasks/ApprovalHistoryComponent.vue";
 import ApprovalWorkflowModal from "../tasks/ApprovalWorkflowModal.vue";
 import TaskCompletionModal from "../tasks/TaskCompletionModal.vue";
+import type { TaskList, TaskCompletionRequest } from "~/types";
+
+interface Props {
+  task: TaskList;
+  category: string;
+}
+
+interface Emits {
+  (e: 'task-updated', taskId: number): void;
+  (e: 'approval-initiated', taskId: number): void;
+}
+
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
 
 const taskUpdate = useTaskUpdate();
 const taskStore = useTaskStore();
 const authStore = useAuthStore();
 const userTasksStore = useUserTasksStore();
-
-const props = defineProps({
-  task: {
-    type: Object,
-    required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-  },
-});
-
-const emit = defineEmits(["task-updated", "approval-initiated"]);
 
 const showApprovalHistoryModal = ref(false);
 const showStatusHistoryModal = ref(false);
@@ -37,12 +38,12 @@ const daysRemaining = computed(() => {
 });
 
 // Create a local reactive copy of the task to ensure reactivity
-const localTask = ref({ ...props.task });
+const localTask = ref<TaskList>({ ...props.task });
 
 // Watch for changes in the task prop and update local copy
 watch(
   () => props.task,
-  (newTask) => {
+  (newTask: TaskList) => {
     localTask.value = { ...newTask };
     // Fetch status history when task prop changes
     fetchStatusHistory();
@@ -51,7 +52,7 @@ watch(
 );
 
 // Fetch status history for the current task
-const fetchStatusHistory = async () => {
+const fetchStatusHistory = async (): Promise<void> => {
   try {
     await taskStore.fetchStatusHistory(localTask.value.id);
   } catch (error) {
@@ -98,7 +99,7 @@ const shouldShowApprovalHistory = computed(() => {
   return (
     localTask.value.requires_approval ||
     localTask.value.current_approval_step ||
-    localTask.value.approval_history?.length > 0 ||
+    (localTask.value.approval_history && localTask.value.approval_history.length > 0) ||
     localTask.value.status === "completed"
   );
 });
@@ -114,50 +115,57 @@ const canShowAddUpdateButton = computed(() => {
   return !hiddenStatuses.includes(localTask.value.status);
 });
 
-const openApprovalHistory = () => {
+const openApprovalHistory = (): void => {
   showApprovalHistoryModal.value = true;
 };
 
-const openStatusHistory = () => {
+const openStatusHistory = (): void => {
   showStatusHistoryModal.value = true;
 };
 
-const onApprovalAction = async () => {
+const onApprovalAction = async (): Promise<void> => {
   // Emit event to notify parent to refresh only this specific task
   emit("task-updated", localTask.value.id);
 };
 
-const initiateApproval = () => {
+const initiateApproval = (): void => {
   showApprovalModal.value = true;
 };
 
-const onApprovalInitiated = async () => {
+const onApprovalInitiated = async (): Promise<void> => {
   showApprovalModal.value = false;
   // Emit event to notify parent to refresh only this specific task
   emit("approval-initiated", localTask.value.id);
 };
 
-const openAddUpdate = () => {
+const openAddUpdate = (): void => {
   taskUpdate.open(props.category, localTask.value);
 };
 
 // Task completion methods
-const openCompletionModal = () => {
+const openCompletionModal = (): void => {
   showCompletionModal.value = true;
 };
 
-const handleTaskCompletion = async (completionData) => {
+const handleTaskCompletion = async (completionData: { remarks: string }): Promise<void> => {
   isCompletingTask.value = true;
   try {
+    // Convert simple completion data to TaskCompletionRequest
+    const fullCompletionData: TaskCompletionRequest = {
+      remarks: completionData.remarks,
+      completion_date: new Date().toISOString().split('T')[0],
+      date_complied: new Date().toISOString().split('T')[0],
+    };
+
     // Use userTasks store if available, otherwise use tasks store
     const userTasksStore = useUserTasksStore();
     if (userTasksStore && userTasksStore.markTaskCompleted) {
       await userTasksStore.markTaskCompleted(
         localTask.value.id,
-        completionData
+        fullCompletionData
       );
     } else {
-      await taskStore.markCompleted(localTask.value.id, completionData);
+      await taskStore.markCompleted(localTask.value.id, fullCompletionData);
     }
 
     showCompletionModal.value = false;
@@ -178,7 +186,7 @@ onMounted(() => {
 // Watch for when the task update modal closes (indicating completion)
 watch(
   () => taskUpdate.showModal,
-  async (newValue, oldValue) => {
+  async (newValue: boolean, oldValue: boolean): Promise<void> => {
     // If modal was open and is now closed, update was likely completed
     if (
       oldValue &&
@@ -194,7 +202,8 @@ watch(
         const updatedTask = await taskService.getTask(
           localTask.value.id
         );
-        localTask.value = updatedTask;
+        // Convert Task to TaskList format or use type assertion since the UI fields are compatible
+        localTask.value = updatedTask as any as TaskList;
 
         // Fetch status history which should contain the status history
         await taskStore.fetchStatusHistory(localTask.value.id);
@@ -356,7 +365,7 @@ watch(
             label="Request Approval"
             icon="i-lucide-check-circle"
             variant="soft"
-            color="blue"
+            color="primary"
             size="sm"
           />
         </div>
@@ -366,7 +375,7 @@ watch(
     <!-- Approval History Modal -->
     <UModal
       v-model:open="showApprovalHistoryModal"
-      :ui="{ width: 'sm:max-w-4xl' }"
+      :ui="{ content: 'sm:max-w-4xl' } as any"
     >
       <template #content>
         <UCard>
@@ -395,7 +404,7 @@ watch(
     <!-- Status History Modal -->
     <UModal
       v-model:open="showStatusHistoryModal"
-      :ui="{ width: 'sm:max-w-4xl' }"
+      :ui="{ content: 'sm:max-w-4xl' } as any"
     >
       <template #content>
         <UCard>
@@ -433,7 +442,8 @@ watch(
                     <span class="text-gray-600 dark:text-gray-400"
                       >Status:</span
                     >
-                    <StatusBadge :status="historyItem.old_status" />
+                    <StatusBadge v-if="historyItem.old_status" :status="historyItem.old_status" />
+                    <span v-else class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded text-xs">No previous status</span>
                     <UIcon
                       name="i-lucide-arrow-right"
                       class="h-3 w-3 text-gray-400"

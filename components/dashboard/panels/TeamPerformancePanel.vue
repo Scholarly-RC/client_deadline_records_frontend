@@ -9,7 +9,7 @@
             v-model="selectedPeriod" 
             :options="periodOptions"
             size="sm"
-            @change="handlePeriodChange"
+            @update:model-value="handlePeriodChange"
           />
           <!-- View Details Button -->
           <UButton 
@@ -81,7 +81,7 @@
           <div class="leaderboard space-y-2">
             <div 
               v-for="(performer, index) in topPerformers" 
-              :key="performer.assigned_to__id"
+              :key="performer.id"
               class="performer-item"
               @click="viewPerformerDetails(performer)"
             >
@@ -98,7 +98,7 @@
                   </span>
                   <UBadge 
                     v-if="performer.is_admin" 
-                    color="purple" 
+                    color="primary" 
                     variant="subtle" 
                     size="xs"
                   >
@@ -166,19 +166,45 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import BarChartComponent from '../charts/BarChartComponent.vue'
 
-const props = defineProps({
-  isLoading: {
-    type: Boolean,
-    default: false
-  },
-  teamData: {
-    type: Object,
-    default: () => ({})
-  }
+// Define interfaces for type safety
+interface TeamPerformer {
+  id: number;
+  fullname: string;
+  is_admin: boolean;
+  completed_tasks: number;
+  total_tasks: number;
+  overdue_tasks: number;
+  completion_rate: number;
+  overdue_rate: number;
+}
+
+interface PerformanceChartData {
+  categories: string[];
+  series: {
+    name: string;
+    data: number[];
+  }[];
+}
+
+interface PerformanceSummary {
+  totalMembers: number;
+  avgCompletionRate: string;
+  totalCompleted: number;
+  totalOverdue: number;
+}
+
+interface Props {
+  isLoading?: boolean;
+  teamData?: Record<string, any>;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isLoading: false,
+  teamData: () => ({})
 })
 
 const emit = defineEmits(['viewDetails', 'viewPerformer', 'periodChange', 'chartClick'])
@@ -195,40 +221,40 @@ const periodOptions = [
   { label: 'This Year', value: 'year' }
 ]
 
-const topPerformers = computed(() => {
+const topPerformers = computed((): TeamPerformer[] => {
   return teamAnalytics.value?.user_performance
-    ?.sort((a, b) => b.completion_rate - a.completion_rate)
+    ?.sort((a: TeamPerformer, b: TeamPerformer) => b.completion_rate - a.completion_rate)
     ?.slice(0, 5) || []
 })
 
-const performanceChartData = computed(() => {
+const performanceChartData = computed((): PerformanceChartData | null => {
   if (!teamAnalytics.value?.user_performance?.length) return null
   
   const users = teamAnalytics.value.user_performance
   
   return {
-    categories: users.map(user => user.fullname),
+    categories: users.map((user: TeamPerformer) => user.fullname),
     series: [
       {
         name: 'Completion Rate',
-        data: users.map(user => user.completion_rate)
+        data: users.map((user: TeamPerformer) => user.completion_rate)
       },
       {
         name: 'Overdue Rate', 
-        data: users.map(user => user.overdue_rate)
+        data: users.map((user: TeamPerformer) => user.overdue_rate)
       }
     ]
   }
 })
 
-const performanceSummary = computed(() => {
+const performanceSummary = computed((): PerformanceSummary | null => {
   if (!teamAnalytics.value?.user_performance?.length) return null
   
   const users = teamAnalytics.value.user_performance
   const totalMembers = users.length
-  const avgCompletionRate = (users.reduce((sum, user) => sum + user.completion_rate, 0) / totalMembers).toFixed(1)
-  const totalCompleted = users.reduce((sum, user) => sum + user.completed_tasks, 0)
-  const totalOverdue = users.reduce((sum, user) => sum + user.overdue_tasks, 0)
+  const avgCompletionRate = (users.reduce((sum: number, user: TeamPerformer) => sum + user.completion_rate, 0) / totalMembers).toFixed(1)
+  const totalCompleted = users.reduce((sum: number, user: TeamPerformer) => sum + user.completed_tasks, 0)
+  const totalOverdue = users.reduce((sum: number, user: TeamPerformer) => sum + user.overdue_tasks, 0)
   
   return {
     totalMembers,
@@ -238,7 +264,7 @@ const performanceSummary = computed(() => {
   }
 })
 
-const getRankBadgeClasses = (index) => {
+const getRankBadgeClasses = (index: number): string => {
   const baseClasses = 'w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs'
   
   switch (index) {
@@ -253,33 +279,38 @@ const getRankBadgeClasses = (index) => {
   }
 }
 
-const getCompletionRateColor = (rate) => {
+const getCompletionRateColor = (rate: number): string => {
   if (rate >= 80) return 'text-green-600 dark:text-green-400'
   if (rate >= 60) return 'text-blue-600 dark:text-blue-400'
   if (rate >= 40) return 'text-yellow-600 dark:text-yellow-400'
   return 'text-red-600 dark:text-red-400'
 }
 
-const getPerformanceBadgeColor = (rate) => {
-  if (rate >= 80) return 'green'
-  if (rate >= 60) return 'blue'
-  if (rate >= 40) return 'yellow'
-  return 'red'
+const getPerformanceBadgeColor = (rate: number): 'success' | 'primary' | 'warning' | 'error' => {
+  if (rate >= 80) return 'success'
+  if (rate >= 60) return 'primary'
+  if (rate >= 40) return 'warning'
+  return 'error'
 }
 
-const getPerformanceLabel = (rate) => {
+const getPerformanceLabel = (rate: number): string => {
   if (rate >= 80) return 'Excellent'
   if (rate >= 60) return 'Good'
   if (rate >= 40) return 'Fair'
   return 'Needs Improvement'
 }
 
-const handlePeriodChange = (period) => {
-  selectedPeriod.value = period
-  emit('periodChange', period)
+const handlePeriodChange = (period: string | any): void => {
+  if (typeof period === 'string') {
+    selectedPeriod.value = period
+    emit('periodChange', period)
+  } else if (period && typeof period === 'object' && period.value) {
+    selectedPeriod.value = period.value
+    emit('periodChange', period.value)
+  }
 }
 
-const handleChartClick = (params) => {
+const handleChartClick = (params: any): void => {
   emit('chartClick', params)
 }
 
@@ -287,7 +318,7 @@ const viewDetails = () => {
   emit('viewDetails')
 }
 
-const viewPerformerDetails = (performer) => {
+const viewPerformerDetails = (performer: TeamPerformer): void => {
   emit('viewPerformer', performer)
 }
 

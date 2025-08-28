@@ -10,12 +10,12 @@
             v-model="gaugeStyle" 
             :options="styleOptions"
             size="sm"
-            @change="handleStyleChange"
+            @update:model-value="handleStyleChange"
           />
           <!-- Export Button -->
           <UButton 
             v-if="showExport"
-            @click="exportChart" 
+            @click="() => exportChart()" 
             variant="ghost" 
             size="sm"
             icon="mdi:download"
@@ -56,77 +56,78 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import type { ComposeOption } from 'echarts/core'
+import type {
+  GaugeSeriesOption,
+} from 'echarts/charts'
+import type { ECElementEvent } from 'echarts'
+import type { ChartClickParams } from '~/types/entities'
 
-const props = defineProps({
-  title: {
-    type: String,
-    default: 'Gauge Chart'
-  },
-  value: {
-    type: Number,
-    required: true
-  },
-  min: {
-    type: Number,
-    default: 0
-  },
-  max: {
-    type: Number,
-    default: 100
-  },
-  unit: {
-    type: String,
-    default: '%'
-  },
-  isLoading: {
-    type: Boolean,
-    default: false
-  },
-  showStyleToggle: {
-    type: Boolean,
-    default: true
-  },
-  showExport: {
-    type: Boolean,
-    default: true
-  },
-  showDetails: {
-    type: Boolean,
-    default: true
-  },
-  height: {
-    type: String,
-    default: '300px'
-  },
-  thresholds: {
-    type: Array,
-    default: () => [
-      { value: 25, color: '#EF4444', label: 'Poor' },
-      { value: 50, color: '#F59E0B', label: 'Fair' },
-      { value: 75, color: '#10B981', label: 'Good' },
-      { value: 100, color: '#059669', label: 'Excellent' }
-    ]
-  }
+// Define the proper ECharts option type
+type ECOption = ComposeOption<GaugeSeriesOption>
+
+interface ThresholdConfig {
+  value: number
+  color: string
+  label: string
+}
+
+interface Props {
+  title?: string
+  value: number
+  min?: number
+  max?: number
+  unit?: string
+  isLoading?: boolean
+  showStyleToggle?: boolean
+  showExport?: boolean
+  showDetails?: boolean
+  height?: string
+  thresholds?: ThresholdConfig[]
+}
+
+interface Emits {
+  (e: 'click', data: ChartClickParams): void
+  (e: 'styleChange', style: string): void
+  (e: 'export', data: any): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  title: 'Gauge Chart',
+  min: 0,
+  max: 100,
+  unit: '%',
+  isLoading: false,
+  showStyleToggle: true,
+  showExport: true,
+  showDetails: true,
+  height: '300px',
+  thresholds: () => [
+    { value: 25, color: '#EF4444', label: 'Poor' },
+    { value: 50, color: '#F59E0B', label: 'Fair' },
+    { value: 75, color: '#10B981', label: 'Good' },
+    { value: 100, color: '#059669', label: 'Excellent' }
+  ]
 })
 
-const emit = defineEmits(['click', 'styleChange', 'export'])
+const emit = defineEmits<Emits>()
 
-const chartRef = ref(null)
-const gaugeStyle = ref('arc')
+const chartRef = ref<any>(null)
+const gaugeStyle = ref<string>('arc')
 
 const styleOptions = [
   { label: 'Arc Gauge', value: 'arc' },
   { label: 'Full Circle', value: 'circle' },
   { label: 'Half Circle', value: 'half' }
-]
+] as const
 
-const formattedValue = computed(() => {
+const formattedValue = computed<string>(() => {
   return `${props.value.toFixed(1)}${props.unit}`
 })
 
-const performanceLabel = computed(() => {
+const performanceLabel = computed<string>(() => {
   for (let i = props.thresholds.length - 1; i >= 0; i--) {
     if (props.value >= props.thresholds[i].value) {
       return props.thresholds[i].label
@@ -135,7 +136,7 @@ const performanceLabel = computed(() => {
   return 'Poor'
 })
 
-const performanceClass = computed(() => {
+const performanceClass = computed<string>(() => {
   const performance = performanceLabel.value.toLowerCase()
   switch (performance) {
     case 'excellent':
@@ -151,17 +152,17 @@ const performanceClass = computed(() => {
   }
 })
 
-const chartOption = computed(() => {
+const chartOption = computed<ECOption>(() => {
   const range = props.max - props.min
   const normalizedValue = ((props.value - props.min) / range) * 100
   
   // Generate color stops for gauge
-  const axisLineColorStops = props.thresholds.map((threshold, index) => {
+  const axisLineColorStops: [number, string][] = props.thresholds.map((threshold) => {
     const normalizedThreshold = ((threshold.value - props.min) / range)
     return [normalizedThreshold, threshold.color]
   })
   
-  let startAngle, endAngle, center, radius
+  let startAngle: number, endAngle: number, center: [string, string], radius: string
   
   switch (gaugeStyle.value) {
     case 'circle':
@@ -261,16 +262,35 @@ const chartOption = computed(() => {
   }
 })
 
-const handleChartClick = (params) => {
-  emit('click', params)
+const handleChartClick = (params: any): void => {
+  // Convert ECElementEvent to ChartClickParams format
+  const chartParams: ChartClickParams = {
+    componentType: params.componentType,
+    seriesType: params.seriesType || 'gauge',
+    seriesIndex: params.seriesIndex || 0,
+    seriesName: params.seriesName || '',
+    name: params.name || '',
+    dataIndex: params.dataIndex || 0,
+    data: params.data,
+    dataType: params.dataType,
+    value: params.value as number | number[],
+    color: params.color || ''
+  }
+  
+  emit('click', chartParams)
 }
 
-const handleStyleChange = (style) => {
-  gaugeStyle.value = style
-  emit('styleChange', style)
+const handleStyleChange = (value: any): void => {
+  if (typeof value === 'string') {
+    gaugeStyle.value = value
+    emit('styleChange', value)
+  } else if (value && typeof value.value === 'string') {
+    gaugeStyle.value = value.value
+    emit('styleChange', value.value)
+  }
 }
 
-const exportChart = () => {
+const exportChart = (): void => {
   if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
     try {
       const chartInstance = chartRef.value.getEchartsInstance()

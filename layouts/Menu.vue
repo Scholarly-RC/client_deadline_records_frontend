@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import ConfirmationModal from "~/components/ui/ConfirmationModal.vue";
 import Sidebar from "~/components/ui/Sidebar.vue";
 </script>

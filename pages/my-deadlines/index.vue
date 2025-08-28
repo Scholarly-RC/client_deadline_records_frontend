@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+import type { TaskList } from '~/types';
 import PageHeader from "~/components/ui/PageHeader.vue";
 import TaskCard from "~/components/tasks/TaskCard.vue";
 import { useUserTasksStore } from "~/stores/userTasks";
@@ -24,9 +25,9 @@ const isLoading = computed(() => userTasksStore.isLoading);
 
 // Filter out completed and cancelled tasks
 const filteredCategorizedTasks = computed(() => {
-  const filtered = {};
-  Object.entries(categorizedTasks.value).forEach(([category, tasks]) => {
-    filtered[category] = tasks.filter(task => 
+  const filtered: Record<string, TaskList[]> = {};
+  Object.entries(categorizedTasks.value).forEach(([category, tasks]: [string, TaskList[]]) => {
+    filtered[category] = tasks.filter((task: TaskList) => 
       task.status !== 'completed' && task.status !== 'cancelled'
     );
   });
@@ -35,7 +36,7 @@ const filteredCategorizedTasks = computed(() => {
 
 const hasTasks = computed(() => {
   return Object.values(filteredCategorizedTasks.value).some(
-    (category) => category.length > 0
+    (category: TaskList[]) => category.length > 0
   );
 });
 
@@ -46,7 +47,7 @@ onMounted(async () => {
 });
 
 // Handle task updates from TaskCard components
-const handleTaskUpdate = async (taskId) => {
+const handleTaskUpdate = async (taskId: number) => {
   try {
     // Refresh only the specific task without affecting page scroll or other tasks
     await userTasksStore.refreshSingleTask(taskId);
@@ -93,11 +94,11 @@ const handleTaskUpdate = async (taskId) => {
           v-for="(tasks, category) in filteredCategorizedTasks"
           :key="category"
         >
-          <div v-if="tasks.length > 0" class="mb-8">
+          <div v-if="(tasks as TaskList[]).length > 0" class="mb-8">
             <h2
               class="text-2xl font-bold capitalize mb-6 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-100"
             >
-              {{ category.replace(/_/g, " ") }}
+              {{ (category as string).replace(/_/g, " ") }}
             </h2>
             <TransitionGroup
               name="task-card"
@@ -105,10 +106,10 @@ const handleTaskUpdate = async (taskId) => {
               class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
             >
               <TaskCard
-                v-for="task in tasks"
+                v-for="task in (tasks as TaskList[])"
                 :key="task.id"
                 :task="task"
-                :category="category"
+                :category="category as string"
                 @task-updated="handleTaskUpdate"
                 @approval-initiated="handleTaskUpdate"
               />

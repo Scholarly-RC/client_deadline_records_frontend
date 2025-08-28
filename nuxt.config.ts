@@ -4,6 +4,10 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@pinia/nuxt", "@nuxtjs/color-mode", "@vite-pwa/nuxt", "@nuxt/ui", "nuxt-echarts"],
   ssr: false,
+  typescript: {
+    typeCheck: true,
+    strict: true
+  },
   
   // ECharts configuration for dashboard charts
   echarts: {

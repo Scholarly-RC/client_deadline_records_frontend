@@ -1,6 +1,11 @@
-<script setup>
+<script setup lang="ts">
+import { nextTick, ref, computed, watch, onMounted } from "vue";
+import type { PropType } from "vue";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
+import { storeToRefs } from "pinia";
+import type { Task, Client } from '~/types/entities'
+import type { TaskCategory } from '~/constants/choices'
 import {
   TASK_CATEGORIES,
   categoryChoices,
@@ -9,7 +14,6 @@ import {
   birFormChoices,
   typeOfTaxCaseChoices,
   fsrTypeChoices,
-  CATEGORY_FIELDS,
 } from "~/constants/choices";
 import {
   getSchemaForCategory,
@@ -18,13 +22,14 @@ import {
   isFieldRequiredForCategory,
 } from "~/schema/task.schema";
 
+// Props
 const props = defineProps({
   isOpen: {
     type: Boolean,
     default: false,
   },
   editTask: {
-    type: Object,
+    type: Object as PropType<Task>,
     default: null,
   },
   selectedClient: {
@@ -37,6 +42,7 @@ const props = defineProps({
   },
 });
 
+// Emits
 const emit = defineEmits(["close", "success", "clearAddDeadlineForm"]);
 
 // Stores
@@ -48,12 +54,13 @@ const taskStore = useTaskStore();
 const { users } = storeToRefs(userStore);
 const { activeClients } = storeToRefs(clientStore);
 
-// Reactive form state
+// Reactive state
 const selectedCategory = ref(
   props.selectedCategory || props.editTask?.category || null
 );
+const validationSchema = ref<any>(null);
 
-// Computed for modal open state
+// Computed properties
 const modalOpen = computed({
   get: () => props.isOpen,
   set: (value) => {
@@ -63,22 +70,20 @@ const modalOpen = computed({
   },
 });
 
-// Watch for category changes to update form validation
-watch(selectedCategory, (newCategory) => {
-  if (newCategory) {
-    updateFormValidation(newCategory);
-  }
-});
-
-// Form initial values - computed based on category and edit mode
 const initialValues = computed(() => {
   if (props.editTask) {
-    return { ...props.editTask };
+    const clientId = props.editTask.client || props.selectedClient;
+    const normalizedClientId = clientId ? Number(clientId) : null;
+
+    return {
+      ...props.editTask,
+      client: normalizedClientId,
+    };
   }
 
   if (selectedCategory.value) {
     return {
-      ...getDefaultValuesForCategory(selectedCategory.value),
+      ...getDefaultValuesForCategory(selectedCategory.value as TaskCategory),
       client: props.selectedClient,
     };
   }
@@ -96,19 +101,73 @@ const initialValues = computed(() => {
   };
 });
 
-// Dynamic validation schema
-const validationSchema = ref(null);
+const userItems = computed(() => {
+  return users.value.map((user) => ({
+    label: user.fullname,
+    value: user.id,
+  }));
+});
 
-const updateFormValidation = (category) => {
-  if (category) {
-    validationSchema.value = toTypedSchema(getSchemaForCategory(category));
+const clientItems = computed(() => {
+  let items = activeClients.value.map((client) => ({
+    label: client.name,
+    value: client.id,
+  }));
+
+  // Add inactive client if editing and client not in active list
+  if (props.editTask?.client) {
+    const taskClientId = Number(props.editTask.client);
+    const clientExists = items.some((item) => item.value === taskClientId);
+
+    if (!clientExists) {
+      let clientName = `Client ${taskClientId}`;
+      if (props.editTask.client_detail?.name) {
+        clientName = props.editTask.client_detail.name;
+      } else if (props.editTask.client_detail?.name) {
+        clientName = props.editTask.client_detail.name;
+      }
+
+      items.unshift({
+        label: `${clientName} (Inactive)`,
+        value: taskClientId,
+      });
+    }
   }
-};
 
-// Initialize validation schema
-if (selectedCategory.value) {
-  updateFormValidation(selectedCategory.value);
-}
+  return items;
+});
+
+const selectedClientName = computed(() => {
+  if (!client?.value) return "";
+  const clientObj = activeClients.value.find((c) => c.id === client.value);
+  return clientObj?.name || "";
+});
+
+const isEditMode = computed(() => !!props.editTask);
+const isClientFieldDisabled = computed(() => isEditMode.value);
+const isCategoryFieldDisabled = computed(() => isEditMode.value);
+
+const modalTitle = computed(() => {
+  if (isEditMode.value) {
+    return "Edit Task";
+  }
+  return selectedCategory.value
+    ? `Create ${getCategoryLabel(selectedCategory.value)} Task`
+    : "Create Task";
+});
+
+const modalDescription = computed(() => {
+  if (selectedClientName.value) {
+    return `${isEditMode.value ? "Editing" : "Creating"} task for ${
+      selectedClientName.value
+    }`;
+  }
+  return isEditMode.value ? "Edit task details" : "Create a new task";
+});
+
+const disableSubmit = computed(() => {
+  return !formMeta.value.valid || isSubmitting.value || !category.value;
+});
 
 // Form setup
 const {
@@ -125,7 +184,7 @@ const {
   validationSchema: validationSchema.value,
 });
 
-// Base form fields
+// Form fields
 const [client] = defineField("client");
 const [category] = defineField("category");
 const [description] = defineField("description");
@@ -151,91 +210,92 @@ const [area] = defineField("area");
 const [period_covered] = defineField("period_covered");
 const [engagement_date] = defineField("engagement_date");
 
-// Computed values
-const userItems = computed(() => {
-  return users.value.map((user) => ({
-    label: user.fullname,
-    value: user.id,
-  }));
-});
-
-const clientItems = computed(() => {
-  return activeClients.value.map((client) => ({
-    label: client.name,
-    value: client.id,
-  }));
-});
-
-const selectedClientName = computed(() => {
-  if (!client.value) return "";
-  const clientObj = activeClients.value.find((c) => c.id === client.value);
-  return clientObj ? clientObj.name : "";
-});
-
-const disableSubmit = computed(() => {
-  return !formMeta.value.valid || isSubmitting.value || !category.value;
-});
-
-const isEditMode = computed(() => !!props.editTask);
-
-const modalTitle = computed(() => {
-  if (isEditMode.value) {
-    return "Edit Task";
+// Helper functions
+const updateFormValidation = (categoryValue: string) => {
+  if (categoryValue) {
+    validationSchema.value = toTypedSchema(getSchemaForCategory(categoryValue as TaskCategory));
   }
-  return selectedCategory.value
-    ? `Create ${getCategoryLabel(selectedCategory.value)} Task`
-    : "Create Task";
-});
-
-const modalDescription = computed(() => {
-  if (selectedClientName.value) {
-    return `${isEditMode.value ? "Editing" : "Creating"} task for ${
-      selectedClientName.value
-    }`;
-  }
-  return isEditMode.value ? "Edit task details" : "Create a new task";
-});
-
-// Helper function to get category label
-const getCategoryLabel = (categoryValue) => {
-  const choice = categoryChoices.find((c) => c.value === categoryValue);
-  return choice ? choice.label : categoryValue;
 };
 
-// Check if field should be shown for current category
-const shouldShowField = (fieldName) => {
+const getCategoryLabel = (categoryValue: string) => {
+  const choice = categoryChoices.find((c) => c.value === categoryValue);
+  return choice?.label || categoryValue;
+};
+
+const shouldShowField = (fieldName: string) => {
   if (!category.value) return false;
   const categoryFields = getFieldsForCategory(category.value);
   return categoryFields.includes(fieldName);
 };
 
-// Check if field is required for current category
-const isFieldRequired = (fieldName) => {
+const isFieldRequired = (fieldName: string) => {
   if (!category.value) return false;
   return isFieldRequiredForCategory(fieldName, category.value);
 };
 
-// Handle category change
-const handleCategoryChange = (newCategory) => {
+const ensureClientData = async () => {
+  if (activeClients.value.length === 0) {
+    await clientStore.getAllClients();
+  }
+};
+
+const setClientValue = (clientId: number) => {
+  const normalizedClientId = clientId ? Number(clientId) : null;
+  if (normalizedClientId) {
+    nextTick(() => {
+      if (client && typeof client !== "undefined") {
+        client.value = normalizedClientId;
+      }
+    });
+  }
+};
+
+const initializeFormForEdit = async (editTask: Task) => {
+  if (!editTask) return;
+
+  await ensureClientData();
+
+  selectedCategory.value = editTask.category;
+  updateFormValidation(editTask.category);
+
+  const clientId =
+    editTask.client || props.selectedClient;
+  const normalizedClientId = clientId ? Number(clientId) : null;
+
+  const editValues = {
+    ...editTask,
+    client: normalizedClientId,
+  };
+
+  setValues(editValues);
+  if (normalizedClientId) {
+    setClientValue(normalizedClientId);
+  }
+};
+
+// Event handlers
+const handleCategoryChange = (newCategory: string) => {
   selectedCategory.value = newCategory;
   category.value = newCategory;
 
-  // Update form validation schema
   updateFormValidation(newCategory);
 
-  // Update form values with category defaults
-  const defaultValues = getDefaultValuesForCategory(newCategory);
+  const defaultValues = getDefaultValuesForCategory(newCategory as TaskCategory);
   setValues({
     ...values,
     ...defaultValues,
     category: newCategory,
-    client: client.value, // Preserve client selection
+    client: client.value,
   });
 };
 
-// Form submission handler
-const onSubmit = handleSubmit(async (formValues) => {
+const onSubmit = async () => {
   const toast = useToast();
+  
+  // Check if form is valid
+  if (!formMeta.value.valid) {
+    return
+  }
 
   if (!client.value) {
     toast.add({
@@ -249,27 +309,25 @@ const onSubmit = handleSubmit(async (formValues) => {
   }
 
   try {
-    // Clean up form values - remove null/undefined category-specific fields
-    const cleanedValues = { ...formValues };
+    const cleanedValues = { ...values };
 
-    // Only include category-specific fields that are relevant
+    // Only include relevant category-specific fields
     if (category.value) {
       const relevantFields = getFieldsForCategory(category.value);
+      const baseFields = [
+        "client",
+        "category",
+        "description",
+        "assigned_to",
+        "priority",
+        "deadline",
+        "remarks",
+        "date_complied",
+        "completion_date",
+      ];
+
       Object.keys(cleanedValues).forEach((key) => {
-        if (
-          ![
-            "client",
-            "category",
-            "description",
-            "assigned_to",
-            "priority",
-            "deadline",
-            "remarks",
-            "date_complied",
-            "completion_date",
-          ].includes(key) &&
-          !relevantFields.includes(key)
-        ) {
+        if (!baseFields.includes(key) && !relevantFields.includes(key)) {
           delete cleanedValues[key];
         }
       });
@@ -298,7 +356,6 @@ const onSubmit = handleSubmit(async (formValues) => {
       });
     }
 
-    // Reset form and close modal
     resetForm();
     emit("success");
     emit("clearAddDeadlineForm");
@@ -307,39 +364,75 @@ const onSubmit = handleSubmit(async (formValues) => {
     console.error("Error saving task:", error);
     toast.add({
       title: isEditMode.value ? "Update Failed" : "Creation Failed",
-      description: getErrorMessage(error),
+      description: getErrorMessage(error as any),
       color: "error",
       icon: "i-lucide-alert-circle",
       duration: 5000,
     });
   }
-});
+};
 
 const handleClose = () => {
   resetForm();
   emit("close");
 };
 
-// Initialize form when editing
-onMounted(() => {
+// Watchers
+watch(selectedCategory, (newCategory) => {
+  if (newCategory) {
+    updateFormValidation(newCategory);
+  }
+});
+
+watch(
+  () => props.editTask,
+  (newTask) => {
+    if (newTask) {
+      initializeFormForEdit(newTask as Task);
+    }
+  },
+  { deep: true }
+);
+
+watch(
+  [() => props.isOpen, () => props.editTask],
+  async ([isOpen, newEditTask]) => {
+    if (isOpen && newEditTask) {
+      await initializeFormForEdit(newEditTask as Task);
+    }
+  }
+);
+
+watch(
+  () => props.isOpen,
+  async (isOpen) => {
+    if (isOpen && activeClients.value.length === 0) {
+      await clientStore.getAllClients();
+    }
+  }
+);
+
+// Lifecycle
+onMounted(async () => {
+  await ensureClientData();
+
   if (props.editTask) {
-    selectedCategory.value = props.editTask.category;
-    updateFormValidation(props.editTask.category);
-    // Set form values for edit mode
-    setValues({
-      ...props.editTask,
-    });
+    await initializeFormForEdit(props.editTask as Task);
   } else if (props.selectedCategory) {
-    // Set initial category if provided
     selectedCategory.value = props.selectedCategory;
     category.value = props.selectedCategory;
     updateFormValidation(props.selectedCategory);
-    // Set default values for the category
-    const defaultValues = getDefaultValuesForCategory(props.selectedCategory);
+
+    const defaultValues = getDefaultValuesForCategory(props.selectedCategory as TaskCategory);
     setValues({
       ...defaultValues,
       client: props.selectedClient,
     });
+  }
+
+  // Initialize validation schema
+  if (selectedCategory.value) {
+    updateFormValidation(selectedCategory.value);
   }
 });
 </script>
@@ -356,7 +449,7 @@ onMounted(() => {
       <UForm
         id="unified-task-form"
         :state="values"
-        @submit.prevent="onSubmit"
+        @submit="onSubmit"
         class="space-y-8"
       >
         <!-- Basic Task Information -->
@@ -365,9 +458,9 @@ onMounted(() => {
             Task Information
           </h3>
           <div class="space-y-4">
-            <!-- Client Selection (if not pre-selected) -->
+            <!-- Client Selection -->
             <UFormField
-              v-if="!props.selectedClient"
+              v-if="!props.selectedClient || isEditMode"
               label="Client"
               name="client"
               :error="errors.client"
@@ -379,11 +472,17 @@ onMounted(() => {
                 value-key="value"
                 placeholder="Select Client"
                 class="w-full"
-                :disabled="isSubmitting"
+                :disabled="isSubmitting || isClientFieldDisabled"
               />
+              <div
+                v-if="isClientFieldDisabled"
+                class="text-sm text-amber-600 mt-1"
+              >
+                Client cannot be changed in edit mode
+              </div>
             </UFormField>
 
-            <!-- Category Selection (if not pre-selected) -->
+            <!-- Category Selection -->
             <UFormField
               v-if="!props.selectedCategory || isEditMode"
               label="Task Category"
@@ -397,9 +496,15 @@ onMounted(() => {
                 value-key="value"
                 placeholder="Select Category"
                 class="w-full"
-                :disabled="isSubmitting"
+                :disabled="isSubmitting || isCategoryFieldDisabled"
                 @update:model-value="handleCategoryChange"
               />
+              <div
+                v-if="isCategoryFieldDisabled"
+                class="text-sm text-amber-600 mt-1"
+              >
+                Category cannot be changed in edit mode
+              </div>
             </UFormField>
 
             <!-- Description -->
@@ -755,10 +860,10 @@ onMounted(() => {
       </UForm>
     </template>
 
-    <template #footer="{ close }">
+    <template #footer>
       <div class="w-full flex justify-end space-x-3">
         <UButton
-          color="gray"
+          color="neutral"
           variant="ghost"
           @click="handleClose"
           :disabled="isSubmitting"

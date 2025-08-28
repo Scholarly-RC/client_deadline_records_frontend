@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Components
 import Clients from "~/components/clients/Clients.vue";
 

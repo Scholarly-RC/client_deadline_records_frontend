@@ -1,22 +1,27 @@
-<script setup>
+<script setup lang="ts">
 import { computed, ref } from "vue";
 import { useTaskStore } from "~/stores/tasks";
 import { useAuthStore } from "~/stores/auth";
+import type { TaskList } from "~/types/entities";
 
-const props = defineProps({
-  task: {
-    type: Object,
-    required: true,
-  },
-});
+interface Props {
+  task: TaskList;
+}
 
-const emit = defineEmits(["approved", "rejected"]);
+type ApprovalAction = 'approve' | 'reject';
+
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  approved: [];
+  rejected: [];
+}>()
 
 const taskStore = useTaskStore();
 const authStore = useAuthStore();
 
 const showDecisionModal = ref(false);
-const decisionAction = ref("approved");
+const decisionAction = ref<ApprovalAction>("approve");
 const comments = ref("");
 
 const canShowActions = computed(() => {
@@ -25,7 +30,7 @@ const canShowActions = computed(() => {
 
 
 
-const openApprovalDialog = (action) => {
+const openApprovalDialog = (action: ApprovalAction): void => {
   decisionAction.value = action;
   comments.value = "";
   showDecisionModal.value = true;
@@ -40,15 +45,21 @@ const closeDecisionModal = () => {
 
 
 
-const processDecision = async () => {
+const processDecision = async (): Promise<void> => {
   try {
     await taskStore.processApproval(
       props.task.id,
-      decisionAction.value,
-      comments.value || null
+      {
+        action: decisionAction.value,
+        remarks: comments.value || undefined
+      }
     );
 
-    emit(decisionAction.value);
+    if (decisionAction.value === 'approve') {
+      emit('approved');
+    } else {
+      emit('rejected');
+    }
     closeDecisionModal();
   } catch (error) {
     console.error("Failed to process approval:", error);
@@ -84,7 +95,7 @@ const processDecision = async () => {
             color="success"
             size="sm"
             icon="mdi:check"
-            @click="openApprovalDialog('approved')"
+            @click="openApprovalDialog('approve')"
             :loading="taskStore.isProcessingApproval"
           >
             Approve
@@ -95,7 +106,7 @@ const processDecision = async () => {
             variant="outline"
             size="sm"
             icon="mdi:close"
-            @click="openApprovalDialog('rejected')"
+            @click="openApprovalDialog('reject')"
             :loading="taskStore.isProcessingApproval"
           >
             Reject
@@ -112,7 +123,7 @@ const processDecision = async () => {
         <UCard>
           <template #header>
             <h3 class="text-lg font-semibold">
-              {{ decisionAction === "approved" ? "Approve" : "Reject" }} Task
+              {{ decisionAction === "approve" ? "Approve" : "Reject" }} Task
             </h3>
           </template>
 
@@ -137,22 +148,22 @@ const processDecision = async () => {
               required
               hint="Required"
               :help="`Add your ${
-                decisionAction === 'approved' ? 'approval' : 'rejection'
+                decisionAction === 'approve' ? 'approval' : 'rejection'
               } comments`"
             >
               <UTextarea
                 v-model="comments"
                 :placeholder="`Add your ${
-                  decisionAction === 'approved' ? 'approval' : 'rejection'
+                  decisionAction === 'approve' ? 'approval' : 'rejection'
                 } comments...`"
-                :required="decisionAction === 'rejected'"
+                :required="decisionAction === 'reject'"
                 :rows="3"
                 class="w-full"
               />
             </UFormField>
 
             <div
-              v-if="decisionAction === 'rejected'"
+              v-if="decisionAction === 'reject'"
               class="bg-red-50 dark:bg-red-900/20 p-3 rounded-md"
             >
               <div class="flex">
@@ -182,12 +193,12 @@ const processDecision = async () => {
                 Cancel
               </UButton>
               <UButton
-                :color="decisionAction === 'approved' ? 'success' : 'error'"
+                :color="decisionAction === 'approve' ? 'success' : 'error'"
                 @click="processDecision"
                 :loading="taskStore.isProcessingApproval"
                 :disabled="!comments.trim()"
               >
-                {{ decisionAction === "approved" ? "Approve" : "Reject" }}
+                {{ decisionAction === "approve" ? "Approve" : "Reject" }}
               </UButton>
             </div>
           </template>

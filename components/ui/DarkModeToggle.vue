@@ -1,11 +1,11 @@
-<script setup>
+<script setup lang="ts">
 const colorMode = useColorMode();
 
-const isDark = computed({
+const isDark = computed<boolean>({
   get() {
     return colorMode.value === "dark";
   },
-  set(_isDark) {
+  set(_isDark: boolean) {
     colorMode.preference = _isDark ? "dark" : "light";
   },
 });

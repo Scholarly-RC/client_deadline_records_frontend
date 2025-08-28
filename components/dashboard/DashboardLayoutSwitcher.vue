@@ -25,7 +25,7 @@
         :options="layouts"
         option-attribute="label"
         value-attribute="value"
-        @change="handleMobileLayoutChange"
+        @update:model-value="handleMobileLayoutChange"
         class="w-48"
       >
         <template #leading>
@@ -40,7 +40,7 @@
         icon="mdi:information-outline" 
         variant="ghost" 
         size="sm"
-        color="gray"
+        color="neutral"
       />
     </UTooltip>
     
@@ -61,7 +61,7 @@
       <UButton 
         @click="toggleRealtime"
         :variant="realtimeEnabled ? 'solid' : 'ghost'"
-        :color="realtimeEnabled ? 'green' : 'gray'"
+        :color="realtimeEnabled ? 'success' : 'neutral'"
         size="sm"
         :icon="realtimeEnabled ? 'mdi:wifi' : 'mdi:wifi-off'"
         :title="realtimeEnabled ? 'Real-time updates enabled' : 'Enable real-time updates'"
@@ -80,41 +80,47 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, watch } from 'vue'
+// Import removed - DropdownItem type not needed for this component
 
-const props = defineProps({
-  modelValue: {
-    type: String,
-    default: 'operations'
-  },
-  availableLayouts: {
-    type: Array,
-    default: () => ['executive', 'operations', 'analytics', 'personal']
-  },
-  showTooltip: {
-    type: Boolean,
-    default: true
-  },
-  showQuickActions: {
-    type: Boolean,
-    default: true
-  },
-  showExportOptions: {
-    type: Boolean,
-    default: true
-  },
-  isRefreshing: {
-    type: Boolean,
-    default: false
-  },
-  realtimeEnabled: {
-    type: Boolean,
-    default: false
-  }
+interface LayoutOption {
+  value: string;
+  label: string;
+  icon: string;
+  description: string;
+  requiredRole: string | null;
+  color: string;
+}
+
+interface Props {
+  modelValue?: string;
+  availableLayouts?: string[];
+  showTooltip?: boolean;
+  showQuickActions?: boolean;
+  showExportOptions?: boolean;
+  isRefreshing?: boolean;
+  realtimeEnabled?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: 'operations',
+  availableLayouts: () => ['executive', 'operations', 'analytics', 'personal'],
+  showTooltip: true,
+  showQuickActions: true,
+  showExportOptions: true,
+  isRefreshing: false,
+  realtimeEnabled: false
 })
 
-const emit = defineEmits(['update:modelValue', 'refresh', 'toggleRealtime', 'export'])
+interface Emits {
+  (e: 'update:modelValue', value: string): void;
+  (e: 'refresh'): void;
+  (e: 'toggleRealtime'): void;
+  (e: 'export', format: string): void;
+}
+
+const emit = defineEmits<Emits>()
 
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
@@ -125,7 +131,7 @@ const selectedLayout = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
-const allLayouts = [
+const allLayouts: LayoutOption[] = [
   {
     value: 'executive',
     label: 'Executive',
@@ -202,7 +208,7 @@ const exportOptions = computed(() => [
   }]
 ])
 
-const getLayoutButtonClasses = (layoutValue) => {
+const getLayoutButtonClasses = (layoutValue: string): string => {
   const isActive = selectedLayout.value === layoutValue
   const baseClasses = 'px-3 py-2 rounded-md transition-all duration-200 flex items-center'
   
@@ -213,26 +219,30 @@ const getLayoutButtonClasses = (layoutValue) => {
   }
 }
 
-const switchLayout = (layoutValue) => {
+const switchLayout = (layoutValue: string): void => {
   if (layoutValue !== selectedLayout.value) {
     selectedLayout.value = layoutValue
     dashboardStore.switchLayout(layoutValue)
   }
 }
 
-const handleMobileLayoutChange = (layout) => {
-  switchLayout(layout.value)
+const handleMobileLayoutChange = (layoutValue: any): void => {
+  if (layoutValue && typeof layoutValue === 'string') {
+    switchLayout(layoutValue)
+  } else if (layoutValue && layoutValue.value) {
+    switchLayout(layoutValue.value)
+  }
 }
 
-const handleRefresh = () => {
+const handleRefresh = (): void => {
   emit('refresh')
 }
 
-const toggleRealtime = () => {
+const toggleRealtime = (): void => {
   emit('toggleRealtime')
 }
 
-const handleExport = (format) => {
+const handleExport = (format: string): void => {
   emit('export', format)
 }
 

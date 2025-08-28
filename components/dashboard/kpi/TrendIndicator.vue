@@ -5,41 +5,39 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps({
-  trend: {
-    type: Object,
-    required: true,
-    validator: (value) => {
-      return typeof value === 'object' && 
-             'direction' in value && 
-             'percentage' in value &&
-             ['up', 'down', 'stable'].includes(value.direction)
-    }
-  },
-  showPercentage: {
-    type: Boolean,
-    default: true
-  },
-  size: {
-    type: String,
-    default: 'sm', // xs, sm, md, lg
-  }
+// Define interfaces for type safety
+interface TrendData {
+  direction: 'up' | 'down' | 'stable';
+  percentage: number;
+}
+
+type TrendSize = 'xs' | 'sm' | 'md' | 'lg';
+
+interface Props {
+  trend: TrendData;
+  showPercentage?: boolean;
+  size?: TrendSize;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  showPercentage: true,
+  size: 'sm'
 })
 
 const trendClasses = computed(() => {
   const baseClasses = 'flex items-center gap-1 px-2 py-1 rounded-full'
   
-  const sizeClasses = {
+  const sizeClasses: Record<TrendSize, string> = {
     xs: 'text-xs',
     sm: 'text-xs',
     md: 'text-sm',
     lg: 'text-base'
   }
   
-  const directionClasses = {
+  const directionClasses: Record<TrendData['direction'], string> = {
     up: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     down: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     stable: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
@@ -49,7 +47,7 @@ const trendClasses = computed(() => {
 })
 
 const trendIcon = computed(() => {
-  const icons = {
+  const icons: Record<TrendData['direction'], string> = {
     up: 'mdi:trending-up',
     down: 'mdi:trending-down',
     stable: 'mdi:trending-neutral'

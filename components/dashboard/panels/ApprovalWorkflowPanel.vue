@@ -9,7 +9,7 @@
             v-model="selectedWorkflowFilter" 
             :options="workflowFilterOptions"
             size="sm"
-            @change="handleWorkflowFilterChange"
+            @update:model-value="handleWorkflowFilterChange"
           />
           <!-- View All Approvals Button -->
           <UButton 
@@ -243,15 +243,45 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import PieChartComponent from '../charts/PieChartComponent.vue'
 
-const props = defineProps({
-  isLoading: {
-    type: Boolean,
-    default: false
-  }
+// Define interfaces for type safety
+interface WorkflowData {
+  tasks_requiring_approval: number;
+  tasks_in_approval: number;
+  tasks_approved: number;
+  pending_my_approval: number;
+}
+
+interface ApprovalChartItem {
+  name: string;
+  value: number;
+  display_name: string;
+}
+
+interface RecentApproval {
+  id: number;
+  title: string;
+  client_name: string;
+  status: 'pending' | 'in_review' | 'approved' | 'rejected';
+  updated_at: Date;
+}
+
+interface FilterOption {
+  label: string;
+  value: string;
+}
+
+interface Props {
+  isLoading?: boolean;
+}
+
+type ApprovalStatus = 'pending' | 'in_review' | 'approved' | 'rejected';
+
+const props = withDefaults(defineProps<Props>(), {
+  isLoading: false
 })
 
 const emit = defineEmits([
@@ -271,21 +301,26 @@ const { isAdmin } = storeToRefs(authStore)
 
 const selectedWorkflowFilter = ref('all')
 
-const workflowFilterOptions = [
+const workflowFilterOptions: FilterOption[] = [
   { label: 'All Workflows', value: 'all' },
   { label: 'Pending Only', value: 'pending' },
   { label: 'My Approvals', value: 'my_approvals' },
   { label: 'Recently Approved', value: 'recent_approved' }
 ]
 
-const workflowData = computed(() => {
-  return businessIntelligence.value?.approval_workflow || {}
+const workflowData = computed((): WorkflowData => {
+  return businessIntelligence.value?.approval_workflow || {
+    tasks_requiring_approval: 0,
+    tasks_in_approval: 0,
+    tasks_approved: 0,
+    pending_my_approval: 0
+  }
 })
 
-const approvalChartData = computed(() => {
+const approvalChartData = computed((): ApprovalChartItem[] | null => {
   if (!workflowData.value || Object.keys(workflowData.value).length === 0) return null
   
-  const data = []
+  const data: ApprovalChartItem[] = []
   
   if (workflowData.value.tasks_requiring_approval > 0) {
     data.push({
@@ -315,42 +350,42 @@ const approvalChartData = computed(() => {
 })
 
 // Mock data for recent approvals - in real implementation, this would come from the API
-const recentApprovals = computed(() => {
+const recentApprovals = computed((): RecentApproval[] => {
   // This would typically come from the enhanced statistics API or a separate approvals endpoint
   return [
     {
       id: 1,
       title: 'Tax Compliance Review',
       client_name: 'Christine Vang',
-      status: 'approved',
+      status: 'approved' as const,
       updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
     },
     {
       id: 2,
       title: 'Financial Statement Audit',
       client_name: 'Fletcher Rice',
-      status: 'pending',
+      status: 'pending' as const,
       updated_at: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 hours ago
     },
     {
       id: 3,
       title: 'Quarterly Report',
       client_name: 'Aristotle Walton',
-      status: 'in_review',
+      status: 'in_review' as const,
       updated_at: new Date(Date.now() - 8 * 60 * 60 * 1000) // 8 hours ago
     },
     {
       id: 4,
       title: 'Budget Analysis',
       client_name: 'Hiroko Snowee',
-      status: 'rejected',
+      status: 'rejected' as const,
       updated_at: new Date(Date.now() - 12 * 60 * 60 * 1000) // 12 hours ago
     }
   ]
 })
 
-const getApprovalStatusIcon = (status) => {
-  const icons = {
+const getApprovalStatusIcon = (status: ApprovalStatus): string => {
+  const icons: Record<ApprovalStatus, string> = {
     pending: 'mdi:clock-outline',
     in_review: 'mdi:eye-outline',
     approved: 'mdi:check-circle-outline',
@@ -359,9 +394,9 @@ const getApprovalStatusIcon = (status) => {
   return icons[status] || icons.pending
 }
 
-const getApprovalStatusIconClasses = (status) => {
+const getApprovalStatusIconClasses = (status: ApprovalStatus): string => {
   const base = 'flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center'
-  const colors = {
+  const colors: Record<ApprovalStatus, string> = {
     pending: 'bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-200',
     in_review: 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200',
     approved: 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200',
@@ -370,26 +405,26 @@ const getApprovalStatusIconClasses = (status) => {
   return `${base} ${colors[status] || colors.pending}`
 }
 
-const getApprovalStatusColor = (status) => {
-  const colors = {
-    pending: 'orange',
-    in_review: 'blue',
-    approved: 'green',
-    rejected: 'red'
+const getApprovalStatusColor = (status: ApprovalStatus): 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral' => {
+  const colors: Record<ApprovalStatus, 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral'> = {
+    pending: 'warning',
+    in_review: 'info',
+    approved: 'success',
+    rejected: 'error'
   }
   return colors[status] || colors.pending
 }
 
-const formatApprovalStatus = (status) => {
+const formatApprovalStatus = (status: ApprovalStatus): string => {
   return status.replace('_', ' ').split(' ').map(word => 
     word.charAt(0).toUpperCase() + word.slice(1)
   ).join(' ')
 }
 
-const formatApprovalTime = (timestamp) => {
+const formatApprovalTime = (timestamp: Date): string => {
   const date = new Date(timestamp)
   const now = new Date()
-  const diffInHours = Math.floor((now - date) / (1000 * 60 * 60))
+  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
   
   if (diffInHours < 1) {
     return 'Just now'
@@ -401,32 +436,33 @@ const formatApprovalTime = (timestamp) => {
   }
 }
 
-const handleWorkflowFilterChange = (filter) => {
-  selectedWorkflowFilter.value = filter
-  emit('workflowFilterChange', filter)
+const handleWorkflowFilterChange = (filter: any): void => {
+  const filterValue = typeof filter === 'string' ? filter : filter?.value || filter
+  selectedWorkflowFilter.value = filterValue
+  emit('workflowFilterChange', filterValue)
 }
 
-const handleApprovalChartClick = (params) => {
+const handleApprovalChartClick = (params: any): void => {
   emit('chartClick', { type: 'approval_status', params })
 }
 
-const viewAllApprovals = () => {
+const viewAllApprovals = (): void => {
   emit('viewAllApprovals')
 }
 
-const viewApprovalDetails = (approval) => {
+const viewApprovalDetails = (approval: RecentApproval): void => {
   emit('viewApproval', approval)
 }
 
-const viewPendingApprovals = () => {
+const viewPendingApprovals = (): void => {
   emit('viewPendingApprovals')
 }
 
-const viewApprovalHistory = () => {
+const viewApprovalHistory = (): void => {
   emit('viewApprovalHistory')
 }
 
-const configureWorkflow = () => {
+const configureWorkflow = (): void => {
   emit('configureWorkflow')
 }
 

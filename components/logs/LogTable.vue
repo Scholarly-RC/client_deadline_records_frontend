@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import Log from "./Log.vue";
 import { storeToRefs } from "pinia";
 
@@ -10,11 +10,11 @@ const { logs, pagination, isLoading } = storeToRefs(logsStore);
 const { usersWithLogs } = storeToRefs(userStore);
 
 // Methods
-const handleSetPage = async (page) => {
+const handleSetPage = async (page: number): Promise<void> => {
   await logsStore.setPage(page);
 };
 
-watch(user, async (value) => await logsStore.setUser(value));
+watch(user, async (value: number) => await logsStore.setUser(value));
 </script>
 
 <template>

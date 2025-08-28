@@ -226,7 +226,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import MetricCard from '../kpi/MetricCard.vue'
 import TrendCard from '../kpi/TrendCard.vue'
@@ -376,7 +376,7 @@ const getCapacityRecommendations = () => {
   }
 }
 
-const getHeatmapCellClasses = (intensity) => {
+const getHeatmapCellClasses = (intensity: number): string => {
   const baseClasses = 'w-full h-full'
   
   if (intensity === 0) return `${baseClasses} bg-gray-200 dark:bg-gray-700`
@@ -387,17 +387,17 @@ const getHeatmapCellClasses = (intensity) => {
 }
 
 // Event handlers
-const handleTrendsClick = (params) => emit('chartClick', { type: 'detailed_trends', params })
-const handleCategoryPerformanceClick = (params) => emit('chartClick', { type: 'category_performance', params })
-const handleTimeRangeChange = (range) => emit('timeRangeChange', range)
-const handleChartClick = (data) => emit('chartClick', data)
+const handleTrendsClick = (params: any): void => emit('chartClick', { type: 'detailed_trends', params })
+const handleCategoryPerformanceClick = (params: any): void => emit('chartClick', { type: 'category_performance', params })
+const handleTimeRangeChange = (range: any): void => emit('timeRangeChange', range)
+const handleChartClick = (data: any): void => emit('chartClick', data)
 
 // Navigation and actions
-const navigateToClients = () => emit('navigate', '/clients')
-const viewClientDetails = (client) => emit('navigate', `/clients/${client.id}`)
-const generatePerformanceReport = () => emit('action', 'generatePerformanceReport')
-const generateTrendReport = () => emit('action', 'generateTrendReport')
-const openCustomAnalytics = () => emit('action', 'openCustomAnalytics')
+const navigateToClients = (): void => emit('navigate', '/clients')
+const viewClientDetails = (client: any): void => emit('navigate', `/clients/${client.id}`)
+const generatePerformanceReport = (): void => emit('action', 'generatePerformanceReport')
+const generateTrendReport = (): void => emit('action', 'generateTrendReport')
+const openCustomAnalytics = (): void => emit('action', 'openCustomAnalytics')
 </script>
 
 <style scoped>

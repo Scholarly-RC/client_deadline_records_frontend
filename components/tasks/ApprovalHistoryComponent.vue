@@ -1,27 +1,24 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, watch } from "vue";
 import { useTaskStore } from "~/stores/tasks";
 import StatusBadge from "../ui/StatusBadge.vue";
+import type { TaskList, ApprovalHistoryEntry } from "~/types";
 
-const props = defineProps({
-  task: {
-    type: Object,
-    required: true,
-  },
-  autoFetch: {
-    type: Boolean,
-    default: true,
-  },
-});
+interface Props {
+  task: TaskList;
+  autoFetch?: boolean;
+}
+
+const props = defineProps<Props>();
 
 const taskStore = useTaskStore();
 
-const approvalHistory = computed(() => {
+const approvalHistory = computed<ApprovalHistoryEntry[]>(() => {
   // The API returns an array directly, so we access it as such
   return taskStore.approvalHistory[props.task.id] || [];
 });
 
-const getApprovalStatusClasses = (action) => {
+const getApprovalStatusClasses = (action: string): string => {
   switch (action) {
     case "approved":
       return "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400";
@@ -34,7 +31,7 @@ const getApprovalStatusClasses = (action) => {
   }
 };
 
-const getApprovalBadgeClasses = (action) => {
+const getApprovalBadgeClasses = (action: string): string => {
   switch (action) {
     case "approved":
       return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
@@ -47,7 +44,7 @@ const getApprovalBadgeClasses = (action) => {
   }
 };
 
-const getApprovalIcon = (action) => {
+const getApprovalIcon = (action: string): string => {
   switch (action) {
     case "approved":
       return "i-lucide-check";
@@ -61,7 +58,7 @@ const getApprovalIcon = (action) => {
 };
 
 // Fetch approval history when component mounts or task changes
-const fetchHistory = async () => {
+const fetchHistory = async (): Promise<void> => {
   if (props.task?.id && props.autoFetch) {
     await taskStore.fetchApprovalHistory(props.task.id);
   }
@@ -146,11 +143,11 @@ watch(() => props.task?.id, fetchHistory, { immediate: true });
                   class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full"
                   :class="getApprovalBadgeClasses(approval.action)"
                 >
-                  {{ approval.action_display }}
+                  {{ approval.action_display || approval.action }}
                 </span>
               </div>
               <span class="text-sm text-gray-500 dark:text-gray-400">
-                Step {{ approval.step_number }}
+                Step {{ approval.step_number || approval.approval_step }}
               </span>
             </div>
 
@@ -159,10 +156,10 @@ watch(() => props.task?.id, fetchHistory, { immediate: true });
             </p>
 
             <div
-              v-if="approval.comments"
+              v-if="approval.comments || approval.remarks"
               class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 rounded p-2"
             >
-              "{{ approval.comments }}"
+              "{{ approval.comments || approval.remarks }}"
             </div>
           </div>
         </div>

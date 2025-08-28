@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 // Components
 import PageHeader from "../ui/PageHeader.vue";
 import UnifiedTaskFormModal from "../tasks/UnifiedTaskFormModal.vue";
@@ -10,7 +10,7 @@ const userStore = useUserStore();
 
 // State
 const showAddTaskModal = ref(false);
-const taskTabsRef = ref(null);
+const taskTabsRef = ref<any>(null);
 
 // Fetch initial data
 onMounted(async () => {

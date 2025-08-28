@@ -81,7 +81,7 @@
           :key="action.label"
           :label="action.label"
           :variant="action.variant || 'ghost'"
-          :color="action.color"
+          :color="action.color || 'neutral'"
           size="sm"
           @click="handleAction(action)"
           :disabled="action.disabled"
@@ -95,66 +95,69 @@
   </UCard>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue'
 import TrendIndicator from './TrendIndicator.vue'
 
-const props = defineProps({
-  title: {
-    type: String,
-    required: true
-  },
-  description: {
-    type: String,
-    default: ''
-  },
-  value: {
-    type: [Number, String],
-    required: true
-  },
-  valueLabel: {
-    type: String,
-    default: 'Current Value'
-  },
-  trend: {
-    type: Object,
-    default: null
-  },
-  secondaryMetrics: {
-    type: Array,
-    default: () => []
-  },
-  chartData: {
-    type: Array,
-    default: () => []
-  },
-  chartType: {
-    type: String,
-    default: 'line' // line, area, bar
-  },
-  actions: {
-    type: Array,
-    default: () => []
-  },
-  isLoading: {
-    type: Boolean,
-    default: false
-  },
-  format: {
-    type: String,
-    default: 'number'
-  },
-  variant: {
-    type: String,
-    default: 'default'
-  }
+// Define interfaces for type safety
+interface TrendInfo {
+  direction: 'up' | 'down' | 'stable';
+  percentage: number;
+  value?: number;
+}
+
+interface SecondaryMetric {
+  label: string;
+  value: string | number;
+  trend?: TrendInfo;
+}
+
+interface ActionButton {
+  label: string;
+  variant?: 'solid' | 'outline' | 'soft' | 'subtle' | 'ghost';
+  color?: 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral';
+  disabled?: boolean;
+  icon?: string;
+  action: string;
+}
+
+type CardVariant = 'default' | 'success' | 'warning' | 'error';
+type FormatType = 'number' | 'currency' | 'percentage';
+type ChartType = 'line' | 'area' | 'bar';
+
+interface Props {
+  title: string;
+  description?: string;
+  value: number | string;
+  valueLabel?: string;
+  trend?: TrendInfo | null;
+  secondaryMetrics?: SecondaryMetric[];
+  chartData?: number[];
+  chartType?: ChartType;
+  actions?: ActionButton[];
+  isLoading?: boolean;
+  format?: FormatType;
+  variant?: CardVariant;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  description: '',
+  valueLabel: 'Current Value',
+  trend: null,
+  secondaryMetrics: () => [],
+  chartData: () => [],
+  chartType: 'line',
+  actions: () => [],
+  isLoading: false,
+  format: 'number',
+  variant: 'default'
 })
 
 const emit = defineEmits(['action'])
 
 const cardClasses = computed(() => {
   const base = 'trend-card transition-all duration-200 hover:shadow-lg'
-  const variants = {
+  const variants: Record<CardVariant, string> = {
     default: 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
     success: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800',
     warning: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800',
@@ -164,23 +167,23 @@ const cardClasses = computed(() => {
   return `${base} ${variants[props.variant] || variants.default}`
 })
 
-const trendColor = computed(() => {
-  if (!props.trend) return 'gray'
+const trendColor = computed((): 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'error' | 'neutral' => {
+  if (!props.trend) return 'neutral'
   
   switch (props.trend.direction) {
     case 'up':
-      return 'green'
+      return 'success'
     case 'down':
-      return 'red'
+      return 'error'
     default:
-      return 'gray'
+      return 'neutral'
   }
 })
 
 const trendLabel = computed(() => {
   if (!props.trend) return 'No Change'
   
-  const labels = {
+  const labels: Record<string, string> = {
     up: 'Increasing',
     down: 'Decreasing',
     stable: 'Stable'
@@ -249,15 +252,15 @@ const miniChartOption = computed(() => {
     symbol: 'none',
     lineStyle: {
       width: 2,
-      color: trendColor.value === 'green' ? '#10B981' : trendColor.value === 'red' ? '#EF4444' : '#6B7280'
+      color: trendColor.value === 'success' ? '#10B981' : trendColor.value === 'error' ? '#EF4444' : '#6B7280'
     },
     itemStyle: {
-      color: trendColor.value === 'green' ? '#10B981' : trendColor.value === 'red' ? '#EF4444' : '#6B7280'
+      color: trendColor.value === 'success' ? '#10B981' : trendColor.value === 'error' ? '#EF4444' : '#6B7280'
     }
   }
   
   if (props.chartType === 'area') {
-    series.areaStyle = {
+    (series as any).areaStyle = {
       color: {
         type: 'linear',
         x: 0,
@@ -267,11 +270,11 @@ const miniChartOption = computed(() => {
         colorStops: [
           {
             offset: 0,
-            color: (trendColor.value === 'green' ? '#10B981' : trendColor.value === 'red' ? '#EF4444' : '#6B7280') + '40'
+            color: (trendColor.value === 'success' ? '#10B981' : trendColor.value === 'error' ? '#EF4444' : '#6B7280') + '40'
           },
           {
             offset: 1,
-            color: (trendColor.value === 'green' ? '#10B981' : trendColor.value === 'red' ? '#EF4444' : '#6B7280') + '10'
+            color: (trendColor.value === 'success' ? '#10B981' : trendColor.value === 'error' ? '#EF4444' : '#6B7280') + '10'
           }
         ]
       }
@@ -284,7 +287,7 @@ const miniChartOption = computed(() => {
   }
 })
 
-const handleAction = (action) => {
+const handleAction = (action: ActionButton): void => {
   emit('action', action)
 }
 </script>

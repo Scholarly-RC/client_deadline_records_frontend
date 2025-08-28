@@ -1,7 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
+import type { ClientFormData } from '~/types/entities';
+import type { Client } from "~/types";
 
 // Stores
 const editClientStore = useEditClientStore();
@@ -10,13 +12,13 @@ const clientStore = useClientStore();
 
 // Form initial values
 const initialValues = computed(() => ({
-  name: client.value?.name || "",
+  name: client.value?.client_name || client.value?.name || "",
   status: client.value?.status || "",
   category: client.value?.category || "",
   contactPerson: client.value?.contact_person || "",
   email: client.value?.email || "",
-  phone: client.value?.phone || "",
-  dateOfBirth: client.value?.date_of_birth || "",
+  phone: client.value?.phone_number || client.value?.phone || "",
+  dateOfBirth: client.value?.birthday || client.value?.date_of_birth || "",
   address: client.value?.address || "",
   notes: client.value?.notes || "",
 }));
@@ -48,33 +50,33 @@ const {
   handleSubmit,
   isSubmitting,
   resetForm,
-} = useForm({
+} = useForm<ClientFormData>({
   initialValues: initialValues.value,
   validationSchema,
 });
 
 // Form fields
-const [name] = defineField("name");
-const [status] = defineField("status");
-const [category] = defineField("category");
-const [contactPerson] = defineField("contactPerson");
-const [email] = defineField("email");
-const [phone] = defineField("phone");
-const [dateOfBirth] = defineField("dateOfBirth");
-const [address] = defineField("address");
-const [notes] = defineField("notes");
+const [name, nameAttr] = defineField("name");
+const [status, statusAttr] = defineField("status");
+const [category, categoryAttr] = defineField("category");
+const [contactPerson, contactPersonAttr] = defineField("contactPerson");
+const [email, emailAttr] = defineField("email");
+const [phone, phoneAttr] = defineField("phone");
+const [dateOfBirth, dateOfBirthAttr] = defineField("dateOfBirth");
+const [address, addressAttr] = defineField("address");
+const [notes, notesAttr] = defineField("notes");
 
 // Computed properties
-const disableSubmit = computed(() => {
+const disableSubmit = computed<boolean>(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
 
 // Methods
-const onSubmit = handleSubmit(async (values) => {
+const onSubmit = handleSubmit(async (values: ClientFormData) => {
   const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
-    const response = await $apiFetch(`/api/clients/${client.value.id}/`, {
+    const response = await $apiFetch(`/api/clients/${client.value?.id}/`, {
       method: "PATCH",
       body: {
         name: values.name,
@@ -88,8 +90,10 @@ const onSubmit = handleSubmit(async (values) => {
         notes: values.notes,
       },
     });
-    await editClientStore.getClient(client.value.id);
-    await clientStore.getAllClients();
+    if (client.value?.id) {
+      await editClientStore.getClient(client.value.id);
+      await clientStore.getAllClients();
+    }
     toast.add({
       title: "Client Updated",
       description: "Client information has been updated successfully.",
@@ -100,7 +104,7 @@ const onSubmit = handleSubmit(async (values) => {
     resetForm({
       values: initialValues.value,
     });
-  } catch (error) {
+  } catch (error: any) {
     toast.add({
       title: "Update Failed",
       description: getErrorMessage(error),
