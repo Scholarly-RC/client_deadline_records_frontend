@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
-import type { Client, PaginatedResponse, ClientBirthdaysData } from '~/types';
+import { defineStore } from "pinia";
+import type { Client, PaginatedResponse, ClientBirthdaysData } from "~/types";
 
 interface ClientState {
   clients: Client[];
@@ -7,11 +7,12 @@ interface ClientState {
     count?: number;
     next?: string | null;
     previous?: string | null;
+    current_page?: number;
+    total_pages?: number;
+    page_size?: number;
   };
   page: number | null;
   search: string | null;
-  category: string[];
-  status: string | null;
   isLoading: boolean;
 }
 
@@ -30,14 +31,12 @@ interface ClientBirthdaysState {
   isLoading: boolean;
 }
 
-export const useClientStore = defineStore('clientStore', {
+export const useClientStore = defineStore("clientStore", {
   state: (): ClientState => ({
     clients: [],
     pagination: {},
     page: null,
     search: null,
-    category: [],
-    status: null,
     isLoading: false,
   }),
 
@@ -57,21 +56,15 @@ export const useClientStore = defineStore('clientStore', {
 
         const params = new URLSearchParams();
         if (this.page) {
-          params.append('page', this.page.toString());
+          params.append("page", this.page.toString());
         }
         if (this.search) {
-          params.append('search', this.search);
-        }
-        if (this.category && this.category.length > 0) {
-          params.append('category', this.category.join(','));
-        }
-        if (this.status) {
-          params.append('status', this.status);
+          params.append("search", this.search);
         }
         url += params.toString();
 
         const response = await $apiFetch<PaginatedResponse<Client>>(url, {
-          method: 'GET',
+          method: "GET",
         });
 
         const { results, ...pagination } = response;
@@ -91,19 +84,7 @@ export const useClientStore = defineStore('clientStore', {
 
     async setSearch(search: string | null = null): Promise<void> {
       this.search = search;
-      this.page = null;
-      await this.getAllClients();
-    },
-
-    async setCategory(category: string[] = []): Promise<void> {
-      this.category = category;
-      this.page = null;
-      await this.getAllClients();
-    },
-
-    async setStatus(status: string | null = null): Promise<void> {
-      this.status = status;
-      this.page = null;
+      this.page = 1; // Reset to first page when searching
       await this.getAllClients();
     },
 
@@ -111,16 +92,19 @@ export const useClientStore = defineStore('clientStore', {
       const toast = useToast();
       try {
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch<any>(`api/clients/client-with-deadlines`, {
-          method: 'GET',
-        });
+        const response = await $apiFetch<any>(
+          `api/clients/client-with-deadlines`,
+          {
+            method: "GET",
+          }
+        );
         return response;
       } catch (error: any) {
         toast.add({
-          title: 'Retrieving Failed',
+          title: "Retrieving Failed",
           description: getErrorMessage(error),
-          color: 'error',
-          icon: 'mdi:close-box-multiple',
+          color: "error",
+          icon: "mdi:close-box-multiple",
           duration: 5000,
         });
         console.error(error);
@@ -131,16 +115,19 @@ export const useClientStore = defineStore('clientStore', {
       const toast = useToast();
       try {
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch<any>(`api/users/users-with-deadlines`, {
-          method: 'GET',
-        });
+        const response = await $apiFetch<any>(
+          `api/users/users-with-deadlines`,
+          {
+            method: "GET",
+          }
+        );
         return response;
       } catch (error: any) {
         toast.add({
-          title: 'Retrieving Failed',
+          title: "Retrieving Failed",
           description: getErrorMessage(error),
-          color: 'error',
-          icon: 'mdi:close-box-multiple',
+          color: "error",
+          icon: "mdi:close-box-multiple",
           duration: 5000,
         });
         console.error(error);
@@ -149,7 +136,7 @@ export const useClientStore = defineStore('clientStore', {
   },
 });
 
-export const useAddClientStore = defineStore('addClientStore', {
+export const useAddClientStore = defineStore("addClientStore", {
   state: (): AddClientState => ({
     showModal: false,
   }),
@@ -164,7 +151,7 @@ export const useAddClientStore = defineStore('addClientStore', {
   },
 });
 
-export const useEditClientStore = defineStore('editClientStore', {
+export const useEditClientStore = defineStore("editClientStore", {
   state: (): EditClientState => ({
     client: null,
     showModal: false,
@@ -184,19 +171,19 @@ export const useEditClientStore = defineStore('editClientStore', {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
         const response = await $apiFetch<Client>(`/api/clients/${id}/`, {
-          method: 'GET',
+          method: "GET",
         });
         this.client = response;
       } catch (error: any) {
         toast.add({
-          title: 'Client Not Found',
+          title: "Client Not Found",
           description: getErrorMessage(error),
-          color: 'error',
-          icon: 'mdi:close-box-multiple',
+          color: "error",
+          icon: "mdi:close-box-multiple",
           duration: 5000,
         });
         console.error(error);
-        await navigateTo('/clients');
+        await navigateTo("/clients");
       } finally {
         this.isLoading = false;
       }
@@ -204,7 +191,7 @@ export const useEditClientStore = defineStore('editClientStore', {
   },
 });
 
-export const useClientBirthdays = defineStore('clientBirthdays', {
+export const useClientBirthdays = defineStore("clientBirthdays", {
   state: (): ClientBirthdaysState => ({
     data: null,
     isLoading: false,
@@ -216,16 +203,19 @@ export const useClientBirthdays = defineStore('clientBirthdays', {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch<ClientBirthdaysData>(`/api/clients/birthdays/`, {
-          method: 'GET',
-        });
+        const response = await $apiFetch<ClientBirthdaysData>(
+          `/api/clients/birthdays/`,
+          {
+            method: "GET",
+          }
+        );
         this.data = response;
       } catch (error: any) {
         toast.add({
-          title: 'Failed To Load Client Birthdays',
+          title: "Failed To Load Client Birthdays",
           description: getErrorMessage(error),
-          color: 'error',
-          icon: 'mdi:close-box-multiple',
+          color: "error",
+          icon: "mdi:close-box-multiple",
           duration: 5000,
         });
         console.error(error);

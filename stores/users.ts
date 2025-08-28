@@ -1,12 +1,16 @@
 import { defineStore } from 'pinia';
-import type { User, PaginatedResponse } from '~/types';
+import type { User, UserMini, PaginatedResponse } from '~/types';
 
 interface UserState {
   users: User[];
+  usersWithLogsData: UserMini[]; // Separate storage for users with logs
   pagination: {
     count?: number;
     next?: string | null;
     previous?: string | null;
+    current_page?: number;
+    total_pages?: number;
+    page_size?: number;
   };
   page: number | null;
   search: string | null;
@@ -26,6 +30,7 @@ interface EditUserState {
 export const useUserStore = defineStore('userStore', {
   state: (): UserState => ({
     users: [],
+    usersWithLogsData: [],
     pagination: {},
     page: null,
     search: null,
@@ -33,8 +38,10 @@ export const useUserStore = defineStore('userStore', {
   }),
 
   getters: {
-    usersWithLogs: (state): User[] => {
-      return state.users.filter((user) => user.has_logs === true);
+    usersWithLogs: (state): UserMini[] => {
+      // Return the dedicated usersWithLogsData when using getUsersWithLogs()
+      // This contains the specific data from /api/app-logs/users/
+      return state.usersWithLogsData;
     },
   },
 
@@ -87,6 +94,21 @@ export const useUserStore = defineStore('userStore', {
       }
     },
 
+    async getUsersWithLogs(): Promise<void> {
+      try {
+        this.isLoading = true;
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch<UserMini[]>('/api/app-logs/users/', {
+          method: 'GET',
+        });
+        this.usersWithLogsData = response;
+      } catch (error) {
+        console.error(error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
+
     async setPage(page: number | null = null): Promise<void> {
       this.page = page;
       await this.getAllUsers();
@@ -94,7 +116,7 @@ export const useUserStore = defineStore('userStore', {
 
     async setSearch(search: string | null = null): Promise<void> {
       this.search = search;
-      this.page = null;
+      this.page = 1; // Reset to first page when searching
       await this.getAllUsers();
     },
   },

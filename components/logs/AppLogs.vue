@@ -13,7 +13,7 @@ const userStore = useUserStore();
 // Lifecycle Hooks
 onMounted(async () => {
   await logsStore.getLogs();
-  await userStore.getAllUsers();
+  await userStore.getUsersWithLogs();
 });
 </script>
 

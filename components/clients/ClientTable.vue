@@ -2,10 +2,10 @@
 // Components
 import { watchDebounced } from "@vueuse/core";
 import AddClientModal from "./AddClientModal.vue";
-import ClientFilterModal from "./ClientFilterModal.vue";
 import type { Client } from "~/types";
 
 const search = ref<string>("");
+const isSearching = ref<boolean>(false);
 
 // Stores
 const clientStore = useClientStore();
@@ -50,6 +50,35 @@ const columns: Column[] = [
 ];
 
 // Methods
+const clearSearch = (): void => {
+  search.value = "";
+};
+
+const goToFirstPage = async (): Promise<void> => {
+  await handleSetPage(1);
+};
+
+const goToLastPage = async (): Promise<void> => {
+  if (pagination.value.total_pages) {
+    await handleSetPage(pagination.value.total_pages);
+  }
+};
+
+const goToPreviousPage = async (): Promise<void> => {
+  const currentPage = pagination.value.current_page || 1;
+  if (currentPage > 1) {
+    await handleSetPage(currentPage - 1);
+  }
+};
+
+const goToNextPage = async (): Promise<void> => {
+  const currentPage = pagination.value.current_page || 1;
+  const totalPages = pagination.value.total_pages || 1;
+  if (currentPage < totalPages) {
+    await handleSetPage(currentPage + 1);
+  }
+};
+
 const categoryMap: Record<string, string> = {
   TOE: "Tax (One Engagement)",
   TRP: "Tax (Regular Processing)",
@@ -59,7 +88,8 @@ const categoryMap: Record<string, string> = {
   OCC: "Other Consultancy Client",
 };
 
-const getFullCategory = (category: string): string | null => categoryMap[category] || null;
+const getFullCategory = (category: string): string | null =>
+  categoryMap[category] || null;
 
 const handleSetPage = async (page: number): Promise<void> => {
   await clientStore.setPage(page);
@@ -108,25 +138,30 @@ const deleteConfirmation = async (id: number): Promise<void> => {
 watchDebounced(
   search,
   async (value: string) => {
-    await clientStore.setSearch(value);
+    isSearching.value = true;
+    await clientStore.setSearch(value || null);
+    isSearching.value = false;
   },
-  { debounce: 750, maxWait: 5000 }
+  { debounce: 500, maxWait: 3000 }
 );
 </script>
 
 <template>
   <div class="space-y-4">
     <!-- Search and Add Client -->
-    <div class="flex flex-col sm:flex-row justify-between items-end mb-6 gap-4">
-      <div class="w-full sm:w-80 flex flex-row gap-2">
+    <div
+      class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4"
+    >
+      <div class="w-full sm:w-96 relative">
         <UInput
+          type="search"
           v-model="search"
           icon="mdi:account-search-outline"
           size="xl"
           variant="outline"
-          placeholder="Search..."
+          placeholder="Search clients by name, contact person, or category..."
+          :loading="isSearching"
         />
-        <ClientFilterModal />
       </div>
       <AddClientModal />
     </div>
@@ -151,7 +186,7 @@ watchDebounced(
           />
         </template>
         <template #category-cell="{ row }">
-          {{ getFullCategory(row.original.category || '') }}
+          {{ getFullCategory(row.original.category || "") }}
         </template>
         <template #actions-cell="{ row }">
           <div class="flex gap-1">
@@ -174,43 +209,104 @@ watchDebounced(
       </UTable>
     </div>
 
-    <!-- Pagination -->
+    <!-- Enhanced Pagination -->
     <div
-    v-if="pagination.count || isLoading"
-      class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4"
+      v-if="pagination.count || isLoading"
+      class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
     >
+      <!-- Results Info -->
       <div
         v-if="isLoading"
         class="h-5 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"
       ></div>
-      <div v-else class="text-sm text-gray-500 dark:text-gray-400">
-        Showing
-        <span class="font-medium">{{ (pagination as any)?.item_range }}</span> of
-        <span class="font-medium">{{ pagination?.count }}</span> results
+      <div v-else class="text-sm text-gray-600 dark:text-gray-300">
+        <span v-if="pagination.count">
+          Showing
+          <span class="font-semibold">{{
+            ((pagination.current_page || 1) - 1) *
+              (pagination.page_size || 10) +
+            1
+          }}</span>
+          to
+          <span class="font-semibold">{{
+            Math.min(
+              (pagination.current_page || 1) * (pagination.page_size || 10),
+              pagination.count
+            )
+          }}</span>
+          of
+          <span class="font-semibold">{{ pagination.count }}</span>
+          {{ pagination.count === 1 ? "client" : "clients" }}
+        </span>
+        <span v-else>No clients found</span>
       </div>
 
+      <!-- Pagination Controls -->
       <div v-if="isLoading" class="flex space-x-2">
         <div
-          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-20 animate-pulse"
-        ></div>
-        <div
+          v-for="i in 5"
+          :key="i"
           class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-8 animate-pulse"
         ></div>
-        <div
-          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md w-20 animate-pulse"
-        ></div>
       </div>
-      <div v-else class="flex space-x-2">
-        <UPagination
-          v-if="pagination"
-          v-model:page="(pagination as any).current_page"
-          :total="pagination.count"
-          :page-count="10"
-          :sibling-count="1"
-          show-edges
-          :ui="{
-            root: 'flex items-center gap-1',
-          }"
+      <div
+        v-else-if="pagination.total_pages && pagination.total_pages > 1"
+        class="flex items-center space-x-2"
+      >
+        <!-- First Page -->
+        <UButton
+          :disabled="(pagination.current_page || 1) <= 1"
+          icon="mdi:chevron-double-left"
+          size="sm"
+          color="neutral"
+          variant="outline"
+          @click="goToFirstPage"
+          :loading="isLoading"
+        />
+
+        <!-- Previous Page -->
+        <UButton
+          :disabled="(pagination.current_page || 1) <= 1"
+          icon="mdi:chevron-left"
+          size="sm"
+          color="neutral"
+          variant="outline"
+          @click="goToPreviousPage"
+          :loading="isLoading"
+        />
+
+        <!-- Page Numbers -->
+        <div class="flex items-center space-x-1">
+          <span class="text-sm text-gray-600 dark:text-gray-300 px-2">
+            Page {{ pagination.current_page || 1 }} of
+            {{ pagination.total_pages }}
+          </span>
+        </div>
+
+        <!-- Next Page -->
+        <UButton
+          :disabled="
+            (pagination.current_page || 1) >= (pagination.total_pages || 1)
+          "
+          icon="mdi:chevron-right"
+          size="sm"
+          color="neutral"
+          variant="outline"
+          @click="goToNextPage"
+          :loading="isLoading"
+        />
+
+        <!-- Last Page -->
+        <UButton
+          :disabled="
+            (pagination.current_page || 1) >= (pagination.total_pages || 1)
+          "
+          icon="mdi:chevron-double-right"
+          size="sm"
+          color="neutral"
+          variant="outline"
+          @click="goToLastPage"
+          :loading="isLoading"
         />
       </div>
     </div>
