@@ -7,6 +7,9 @@ import {
 import StatusBadge from "../ui/StatusBadge.vue";
 import PriorityBadge from "../ui/PriorityBadge.vue";
 import TaskCompletionModal from "./TaskCompletionModal.vue";
+import TaskViewModal from "./TaskViewModal.vue";
+import TaskEditModal from "./TaskEditModal.vue";
+import TaskDeleteModal from "./TaskDeleteModal.vue";
 
 const props = defineProps({
   category: {
@@ -28,12 +31,15 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["edit", "delete", "view"]);
+// No longer emitting to parent since we handle actions internally
 
 // Stores
 const taskStore = useTaskStore();
 const userStore = useUserStore();
 const authStore = useAuthStore();
+
+// Composables
+const { getTaskPermissions } = useTaskPermissions();
 
 // Store refs
 const { tasks, isLoading, pagination } = storeToRefs(taskStore);
@@ -60,6 +66,12 @@ const assigneeFilter = ref(null);
 const showCompletionModal = ref(false);
 const selectedTaskForCompletion = ref(null);
 const isCompletingTask = ref(false);
+
+// Action modal states
+const showViewModal = ref(false);
+const showEditModal = ref(false);
+const showDeleteModal = ref(false);
+const selectedTask = ref(null);
 
 // Computed
 const filteredTasks = computed(() => {
@@ -154,9 +166,9 @@ const refreshData = async () => {
       // Fetch tasks for the current user only using the new paginated endpoint
       const taskService = useTaskService();
       const response = await taskService.getUserDeadlines(authStore.user.id, {
-        category: props.category || undefined // Only include category if specified
+        category: props.category || undefined, // Only include category if specified
       });
-      
+
       // Handle paginated response structure
       if (response.results) {
         taskStore.tasks = response.results;
@@ -175,17 +187,28 @@ const refreshData = async () => {
   }
 };
 
-const handleDelete = async (task) => {
-  if (
-    confirm(`Are you sure you want to delete this task: ${task.description}?`)
-  ) {
-    try {
-      await taskStore.deleteTask(task.id);
-      await refreshData();
-    } catch (error) {
-      console.error("Error deleting task:", error);
-    }
-  }
+// Modal handlers
+const handleView = (task) => {
+  selectedTask.value = task;
+  showViewModal.value = true;
+};
+
+const handleEdit = (task) => {
+  selectedTask.value = task;
+  showEditModal.value = true;
+};
+
+const handleDelete = (task) => {
+  selectedTask.value = task;
+  showDeleteModal.value = true;
+};
+
+const handleDeleteSuccess = async () => {
+  await refreshData();
+};
+
+const handleEditSuccess = async () => {
+  await refreshData();
 };
 
 // Task completion methods
@@ -196,10 +219,13 @@ const openCompletionModal = (task) => {
 
 const handleTaskCompletion = async (completionData) => {
   if (!selectedTaskForCompletion.value) return;
-  
+
   isCompletingTask.value = true;
   try {
-    await taskStore.markCompleted(selectedTaskForCompletion.value.id, completionData);
+    await taskStore.markCompleted(
+      selectedTaskForCompletion.value.id,
+      completionData
+    );
     showCompletionModal.value = false;
     selectedTaskForCompletion.value = null;
     await refreshData();
@@ -482,26 +508,38 @@ defineExpose({
               variant="soft"
               icon="i-heroicons-check-circle"
             />
+
+            <!-- View button - always available -->
             <UButton
-              @click="emit('view', row.original)"
+              v-if="getTaskPermissions(row.original).canView"
+              @click="handleView(row.original)"
               label="View"
               color="info"
               size="sm"
               variant="soft"
+              icon="i-heroicons-eye"
             />
+
+            <!-- Edit button - only for admins on /tasks route with not_yet_started status -->
             <UButton
-              @click="emit('edit', row.original)"
+              v-if="getTaskPermissions(row.original).canEdit"
+              @click="handleEdit(row.original)"
               label="Edit"
               color="primary"
               size="sm"
               variant="soft"
+              icon="i-heroicons-pencil"
             />
+
+            <!-- Delete button - only for admins on /tasks route with not_yet_started status -->
             <UButton
+              v-if="getTaskPermissions(row.original).canDelete"
               @click="handleDelete(row.original)"
               label="Delete"
               color="error"
               size="sm"
               variant="soft"
+              icon="i-heroicons-trash"
             />
           </div>
         </template>
@@ -529,5 +567,28 @@ defineExpose({
     :task="selectedTaskForCompletion"
     :is-submitting="isCompletingTask"
     @complete="handleTaskCompletion"
+  />
+
+  <!-- Task View Modal -->
+  <TaskViewModal
+    v-if="selectedTask && showViewModal"
+    v-model="showViewModal"
+    :task="selectedTask"
+  />
+
+  <!-- Task Edit Modal -->
+  <TaskEditModal
+    v-if="selectedTask && showEditModal"
+    v-model="showEditModal"
+    :task="selectedTask"
+    @success="handleEditSuccess"
+  />
+
+  <!-- Task Delete Modal -->
+  <TaskDeleteModal
+    v-if="selectedTask && showDeleteModal"
+    v-model="showDeleteModal"
+    :task="selectedTask"
+    @success="handleDeleteSuccess"
   />
 </template>

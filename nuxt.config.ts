@@ -2,8 +2,37 @@
 export default defineNuxtConfig({
   compatibilityDate: "2024-11-01",
   devtools: { enabled: true },
-  modules: ["@pinia/nuxt", "@nuxtjs/color-mode", "@vite-pwa/nuxt", "@nuxt/ui"],
+  modules: ["@pinia/nuxt", "@nuxtjs/color-mode", "@vite-pwa/nuxt", "@nuxt/ui", "nuxt-echarts"],
   ssr: false,
+  
+  // ECharts configuration for dashboard charts
+  echarts: {
+    renderer: ['canvas', 'svg'],
+    charts: [
+      'LineChart',
+      'BarChart', 
+      'PieChart',
+      'GaugeChart',
+      'HeatmapChart',
+      'ScatterChart'
+    ],
+    components: [
+      'DatasetComponent',
+      'GridComponent',
+      'TooltipComponent',
+      'LegendComponent',
+      'DataZoomComponent',
+      'MarkLineComponent',
+      'MarkPointComponent',
+      'TitleComponent',
+      'ToolboxComponent',
+      'BrushComponent'
+    ],
+    features: [
+      'LabelLayout',
+      'UniversalTransition'
+    ]
+  },
   
   // Route redirects for backward compatibility
   nitro: {

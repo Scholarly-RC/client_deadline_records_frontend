@@ -131,6 +131,30 @@ export const useNotificationStore = defineStore("notificationStore", {
         this.isLoading = false;
       }
     },
+    
+    async createNotification(notificationData) {
+      try {
+        const { $apiFetch } = useNuxtApp();
+        const response = await $apiFetch(
+          `/api/notifications/`,
+          {
+            method: "POST",
+            body: notificationData,
+          }
+        );
+        
+        // Optionally refresh notifications if the current user is the recipient
+        const authStore = useAuthStore();
+        if (notificationData.recipient_id === authStore.user?.id) {
+          await this.refreshNotifications();
+        }
+        
+        return response;
+      } catch (error) {
+        console.error('Error creating notification:', error);
+        throw error;
+      }
+    },
   },
 });
 

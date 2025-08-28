@@ -93,19 +93,6 @@ const items = [
   },
 ];
 
-// Event handlers for table actions
-const handleEditTask = (task) => {
-  // TODO: Implement edit functionality
-};
-
-const handleViewTask = (task) => {
-  // TODO: Implement view functionality or navigation to task details
-};
-
-const handleDeleteTask = (task) => {
-  // TODO: Implement delete functionality if needed
-};
-
 const active = computed({
   get() {
     return route.query.tab || "compliance";
@@ -129,9 +116,6 @@ const active = computed({
         title="Compliance Tasks"
         :show-category-column="false"
         :show-user-tasks-only="props.showUserTasksOnly"
-        @edit="handleEditTask"
-        @view="handleViewTask"
-        @delete="handleDeleteTask"
       />
     </template>
     <template #financial_statement>
@@ -141,9 +125,6 @@ const active = computed({
         title="Financial Statement Tasks"
         :show-category-column="false"
         :show-user-tasks-only="props.showUserTasksOnly"
-        @edit="handleEditTask"
-        @view="handleViewTask"
-        @delete="handleDeleteTask"
       />
     </template>
     <template #finance_implementation>
@@ -153,9 +134,6 @@ const active = computed({
         title="Finance Implementation Tasks"
         :show-category-column="false"
         :show-user-tasks-only="props.showUserTasksOnly"
-        @edit="handleEditTask"
-        @view="handleViewTask"
-        @delete="handleDeleteTask"
       />
     </template>
     <template #hr_implementation>
@@ -165,9 +143,6 @@ const active = computed({
         title="HR Implementation Tasks"
         :show-category-column="false"
         :show-user-tasks-only="props.showUserTasksOnly"
-        @edit="handleEditTask"
-        @view="handleViewTask"
-        @delete="handleDeleteTask"
       />
     </template>
     <template #auditing_accounting>
@@ -177,9 +152,6 @@ const active = computed({
         title="Auditing & Accounting Tasks"
         :show-category-column="false"
         :show-user-tasks-only="props.showUserTasksOnly"
-        @edit="handleEditTask"
-        @view="handleViewTask"
-        @delete="handleDeleteTask"
       />
     </template>
     <template #miscellaneous>
@@ -189,9 +161,6 @@ const active = computed({
         title="Miscellaneous Tasks"
         :show-category-column="false"
         :show-user-tasks-only="props.showUserTasksOnly"
-        @edit="handleEditTask"
-        @view="handleViewTask"
-        @delete="handleDeleteTask"
       />
     </template>
     <template #tax>
@@ -201,9 +170,6 @@ const active = computed({
         title="Tax Tasks"
         :show-category-column="false"
         :show-user-tasks-only="props.showUserTasksOnly"
-        @edit="handleEditTask"
-        @view="handleViewTask"
-        @delete="handleDeleteTask"
       />
     </template>
   </UTabs>
