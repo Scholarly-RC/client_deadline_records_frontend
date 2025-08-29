@@ -151,41 +151,6 @@ export interface AppLog {
   user_agent: string | null;
 }
 
-// Document interfaces
-export interface Document {
-  id: number;
-  name: string;
-  description: string;
-  file: string;
-  file_url: string;
-  file_size: number;
-  file_extension: string;
-  client: number;
-  uploaded_by: UserMini;
-  uploaded_at: string;
-  updated_at: string;
-}
-
-export interface DocumentFormData {
-  name: string;
-  description: string;
-  file: File | null;
-  client: number;
-}
-
-export interface DocumentListResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: Document[];
-}
-
-export interface DocumentDownloadResponse {
-  download_url: string;
-  filename: string;
-  expires_in: number;
-}
-
 // Status History interfaces
 export interface StatusHistoryEntry {
   id: number;

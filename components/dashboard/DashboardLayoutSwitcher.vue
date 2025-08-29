@@ -2,12 +2,8 @@
   <div class="dashboard-layout-switcher">
     <!-- Desktop Layout Switcher -->
     <div class="hidden md:flex items-center gap-2">
-      <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2"
-        >View:</span
-      >
-      <div
-        class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1"
-      >
+      <span class="text-sm font-medium text-gray-700 dark:text-gray-300 mr-2">View:</span>
+      <div class="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
         <button
           v-for="layout in layouts"
           :key="layout.value"
@@ -21,12 +17,12 @@
         </button>
       </div>
     </div>
-
+    
     <!-- Mobile Layout Switcher -->
     <div class="md:hidden">
-      <USelectMenu
-        :v-model="selectedLayout"
-        :items="layouts"
+      <USelectMenu 
+        v-model="selectedLayout" 
+        :options="layouts"
         option-attribute="label"
         value-attribute="value"
         @update:model-value="handleMobileLayoutChange"
@@ -37,21 +33,21 @@
         </template>
       </USelectMenu>
     </div>
-
+    
     <!-- Layout Info Tooltip -->
     <UTooltip v-if="showTooltip" :text="currentLayoutDescription" class="ml-2">
-      <UButton
-        icon="mdi:information-outline"
-        variant="ghost"
+      <UButton 
+        icon="mdi:information-outline" 
+        variant="ghost" 
         size="sm"
         color="neutral"
       />
     </UTooltip>
-
+    
     <!-- Quick Actions -->
     <div v-if="showQuickActions" class="flex items-center gap-2 ml-4">
       <!-- Refresh Button -->
-      <UButton
+      <UButton 
         @click="handleRefresh"
         :loading="isRefreshing"
         variant="ghost"
@@ -60,24 +56,20 @@
         :disabled="isRefreshing"
         title="Refresh Dashboard Data"
       />
-
+      
       <!-- Real-time Toggle -->
-      <UButton
+      <UButton 
         @click="toggleRealtime"
         :variant="realtimeEnabled ? 'solid' : 'ghost'"
         :color="realtimeEnabled ? 'success' : 'neutral'"
         size="sm"
         :icon="realtimeEnabled ? 'mdi:wifi' : 'mdi:wifi-off'"
-        :title="
-          realtimeEnabled
-            ? 'Real-time updates enabled'
-            : 'Enable real-time updates'
-        "
+        :title="realtimeEnabled ? 'Real-time updates enabled' : 'Enable real-time updates'"
       />
-
+      
       <!-- Export Dashboard -->
       <UDropdown v-if="showExportOptions" :items="exportOptions">
-        <UButton
+        <UButton 
           variant="ghost"
           size="sm"
           icon="mdi:download"
@@ -89,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed, watch } from 'vue'
 // Import removed - DropdownItem type not needed for this component
 
 interface LayoutOption {
@@ -112,178 +104,163 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: "operations",
-  availableLayouts: () => ["executive", "operations", "analytics", "personal"],
+  modelValue: 'operations',
+  availableLayouts: () => ['executive', 'operations', 'analytics', 'personal'],
   showTooltip: true,
   showQuickActions: true,
   showExportOptions: true,
   isRefreshing: false,
-  realtimeEnabled: false,
-});
+  realtimeEnabled: false
+})
 
 interface Emits {
-  (e: "update:modelValue", value: string): void;
-  (e: "refresh"): void;
-  (e: "toggleRealtime"): void;
-  (e: "export", format: string): void;
+  (e: 'update:modelValue', value: string): void;
+  (e: 'refresh'): void;
+  (e: 'toggleRealtime'): void;
+  (e: 'export', format: string): void;
 }
 
-const emit = defineEmits<Emits>();
+const emit = defineEmits<Emits>()
 
-const dashboardStore = useDashboardStore();
-const authStore = useAuthStore();
-const { isAdmin, user } = storeToRefs(authStore);
+const dashboardStore = useDashboardStore()
+const authStore = useAuthStore()
+const { isAdmin, user } = storeToRefs(authStore)
 
 const selectedLayout = computed({
   get: () => props.modelValue,
-  set: (value) => emit("update:modelValue", value),
-});
+  set: (value) => emit('update:modelValue', value)
+})
 
 const allLayouts: LayoutOption[] = [
   {
-    value: "executive",
-    label: "Executive",
-    icon: "mdi:chart-line",
-    description: "High-level KPIs and business performance metrics",
-    requiredRole: "admin",
-    color: "purple",
+    value: 'executive',
+    label: 'Executive',
+    icon: 'mdi:chart-line',
+    description: 'High-level KPIs and business performance metrics',
+    requiredRole: 'admin',
+    color: 'purple'
   },
   {
-    value: "operations",
-    label: "Operations",
-    icon: "mdi:cog-outline",
-    description:
-      "Task distribution, workload management, and team coordination",
+    value: 'operations',
+    label: 'Operations',
+    icon: 'mdi:cog-outline',
+    description: 'Task distribution, workload management, and team coordination',
     requiredRole: null,
-    color: "blue",
+    color: 'blue'
   },
   {
-    value: "analytics",
-    label: "Analytics",
-    icon: "mdi:chart-bar",
-    description: "Detailed trends, patterns, and productivity insights",
-    requiredRole: "admin",
-    color: "green",
+    value: 'analytics',
+    label: 'Analytics',
+    icon: 'mdi:chart-bar',
+    description: 'Detailed trends, patterns, and productivity insights',
+    requiredRole: 'admin',
+    color: 'green'
   },
   {
-    value: "personal",
-    label: "Personal",
-    icon: "mdi:account-circle-outline",
-    description: "Individual performance and personal productivity metrics",
+    value: 'personal',
+    label: 'Personal',
+    icon: 'mdi:account-circle-outline',
+    description: 'Individual performance and personal productivity metrics',
     requiredRole: null,
-    color: "orange",
-  },
-];
+    color: 'orange'
+  }
+]
 
 const layouts = computed(() => {
-  return allLayouts.filter((layout) => {
+  return allLayouts.filter(layout => {
     // Check if layout is in available layouts
-    if (!props.availableLayouts.includes(layout.value)) return false;
-
+    if (!props.availableLayouts.includes(layout.value)) return false
+    
     // Check role requirements
-    if (layout.requiredRole === "admin" && !isAdmin.value) return false;
-
-    return true;
-  });
-});
+    if (layout.requiredRole === 'admin' && !isAdmin.value) return false
+    
+    return true
+  })
+})
 
 const currentLayout = computed(() => {
-  return (
-    layouts.value.find((layout) => layout.value === selectedLayout.value) ||
-    layouts.value[0]
-  );
-});
+  return layouts.value.find(layout => layout.value === selectedLayout.value) || layouts.value[0]
+})
 
 const currentLayoutIcon = computed(() => {
-  return currentLayout.value?.icon || "mdi:view-dashboard";
-});
+  return currentLayout.value?.icon || 'mdi:view-dashboard'
+})
 
 const currentLayoutDescription = computed(() => {
-  return currentLayout.value?.description || "Dashboard view";
-});
+  return currentLayout.value?.description || 'Dashboard view'
+})
 
 const exportOptions = computed(() => [
-  [
-    {
-      label: "Export as PDF",
-      icon: "mdi:file-pdf-box",
-      click: () => handleExport("pdf"),
-    },
-  ],
-  [
-    {
-      label: "Export as PNG",
-      icon: "mdi:file-image",
-      click: () => handleExport("png"),
-    },
-  ],
-  [
-    {
-      label: "Export Data as CSV",
-      icon: "mdi:file-delimited",
-      click: () => handleExport("csv"),
-    },
-  ],
-]);
+  [{
+    label: 'Export as PDF',
+    icon: 'mdi:file-pdf-box',
+    click: () => handleExport('pdf')
+  }],
+  [{
+    label: 'Export as PNG',
+    icon: 'mdi:file-image',
+    click: () => handleExport('png')
+  }],
+  [{
+    label: 'Export Data as CSV',
+    icon: 'mdi:file-delimited',
+    click: () => handleExport('csv')
+  }]
+])
 
 const getLayoutButtonClasses = (layoutValue: string): string => {
-  const isActive = selectedLayout.value === layoutValue;
-  const baseClasses =
-    "px-3 py-2 rounded-md transition-all duration-200 flex items-center";
-
+  const isActive = selectedLayout.value === layoutValue
+  const baseClasses = 'px-3 py-2 rounded-md transition-all duration-200 flex items-center'
+  
   if (isActive) {
-    return `${baseClasses} bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm`;
+    return `${baseClasses} bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm`
   } else {
-    return `${baseClasses} text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700`;
+    return `${baseClasses} text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700`
   }
-};
+}
 
 const switchLayout = (layoutValue: string): void => {
   if (layoutValue !== selectedLayout.value) {
-    selectedLayout.value = layoutValue;
-    dashboardStore.switchLayout(layoutValue);
+    selectedLayout.value = layoutValue
+    dashboardStore.switchLayout(layoutValue)
   }
-};
+}
 
 const handleMobileLayoutChange = (layoutValue: any): void => {
-  if (layoutValue && typeof layoutValue === "string") {
-    switchLayout(layoutValue);
+  if (layoutValue && typeof layoutValue === 'string') {
+    switchLayout(layoutValue)
   } else if (layoutValue && layoutValue.value) {
-    switchLayout(layoutValue.value);
+    switchLayout(layoutValue.value)
   }
-};
+}
 
 const handleRefresh = (): void => {
-  emit("refresh");
-};
+  emit('refresh')
+}
 
 const toggleRealtime = (): void => {
-  emit("toggleRealtime");
-};
+  emit('toggleRealtime')
+}
 
 const handleExport = (format: string): void => {
-  emit("export", format);
-};
+  emit('export', format)
+}
 
 // Watch for layout changes and update store
-watch(
-  selectedLayout,
-  (newLayout) => {
-    dashboardStore.switchLayout(newLayout);
-  },
-  { immediate: true }
-);
+watch(selectedLayout, (newLayout) => {
+  dashboardStore.switchLayout(newLayout)
+}, { immediate: true })
 
 // Set initial layout based on user role if not specified
 if (!props.modelValue && layouts.value.length > 0) {
   // Default to operations for regular users, executive for admins
-  const defaultLayout = isAdmin.value ? "executive" : "operations";
-  const availableDefault = layouts.value.find((l) => l.value === defaultLayout);
-
+  const defaultLayout = isAdmin.value ? 'executive' : 'operations'
+  const availableDefault = layouts.value.find(l => l.value === defaultLayout)
+  
   if (availableDefault) {
-    selectedLayout.value = defaultLayout;
+    selectedLayout.value = defaultLayout
   } else {
-    selectedLayout.value = layouts.value[0].value;
+    selectedLayout.value = layouts.value[0].value
   }
 }
 </script>

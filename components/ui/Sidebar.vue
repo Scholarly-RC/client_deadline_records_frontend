@@ -42,12 +42,6 @@ const allItems: NavigationItem[][] = [
       adminOnly: true,
     },
     {
-      label: "Documents",
-      icon: "i-lucide-folder",
-      to: "/documents",
-      adminOnly: true,
-    },
-    {
       label: "Tasks",
       icon: "i-lucide-calendar",
       to: "/tasks",
