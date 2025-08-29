@@ -4,9 +4,9 @@ This is a client-side rendered Nuxt.js application for tracking client deadlines
 
 ## Key Technologies
 
-*   **Framework:** Nuxt.js (Vue.js) v3.17.1
+*   **Framework:** Nuxt.js (Vue.js)
 *   **State Management:** Pinia
-*   **UI:** @nuxt/ui (based on Headless UI and Tailwind CSS) v3.3.2
+*   **UI:** @nuxt/ui (based on Headless UI and Tailwind CSS)
 *   **Forms:** VeeValidate with Zod for validation
 *   **PWA:** @vite-pwa/nuxt
 *   **Authentication:** JWT (Access and Refresh Tokens)
