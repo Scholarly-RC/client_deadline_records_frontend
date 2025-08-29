@@ -1,35 +1,36 @@
 <script setup lang="ts">
 // Enhanced Dashboard Components
-import PageHeader from "../ui/PageHeader.vue"
-import DashboardLayoutSwitcher from "./DashboardLayoutSwitcher.vue"
-import RealTimeControls from "./RealTimeControls.vue"
-import EChartsThemeProvider from "./EChartsThemeProvider.vue"
-import ExecutiveDashboardLayout from "./layouts/ExecutiveDashboardLayout.vue"
-import OperationsDashboardLayout from "./layouts/OperationsDashboardLayout.vue"
-import AnalyticsDashboardLayout from "./layouts/AnalyticsDashboardLayout.vue"
-import PersonalDashboardLayout from "./layouts/PersonalDashboardLayout.vue"
+import PageHeader from "../ui/PageHeader.vue";
+import DashboardLayoutSwitcher from "./DashboardLayoutSwitcher.vue";
+import RealTimeControls from "./RealTimeControls.vue";
+import EChartsThemeProvider from "./EChartsThemeProvider.vue";
+import ExecutiveDashboardLayout from "./layouts/ExecutiveDashboardLayout.vue";
+import OperationsDashboardLayout from "./layouts/OperationsDashboardLayout.vue";
+import AnalyticsDashboardLayout from "./layouts/AnalyticsDashboardLayout.vue";
+import PersonalDashboardLayout from "./layouts/PersonalDashboardLayout.vue";
 
 // Legacy components for fallback
-import ClientBirthdays from "./ClientBirthdays.vue"
-import Stats from "./Stats.vue"
+import ClientBirthdays from "./ClientBirthdays.vue";
+import Stats from "./Stats.vue";
 
 // Type imports
-import type { Ref } from 'vue'
-import type { User } from '~/types/entities'
+import type { Ref } from "vue";
+import type { User } from "~/types/entities";
 
-const dashboardStore = useDashboardStore()
-const authStore = useAuthStore()
-const { currentLayout, isAnyLoading, realtimeEnabled } = storeToRefs(dashboardStore)
-const { isAdmin } = storeToRefs(authStore)
+const dashboardStore = useDashboardStore();
+const authStore = useAuthStore();
+const { currentLayout, isAnyLoading, realtimeEnabled } =
+  storeToRefs(dashboardStore);
+const { isAdmin } = storeToRefs(authStore);
 
-const isRefreshing: Ref<boolean> = ref(false)
-const showLegacyFallback: Ref<boolean> = ref(false)
+const isRefreshing: Ref<boolean> = ref(false);
+const showLegacyFallback: Ref<boolean> = ref(false);
 
 interface LayoutComponents {
-  executive: typeof ExecutiveDashboardLayout
-  operations: typeof OperationsDashboardLayout
-  analytics: typeof AnalyticsDashboardLayout
-  personal: typeof PersonalDashboardLayout
+  executive: typeof ExecutiveDashboardLayout;
+  operations: typeof OperationsDashboardLayout;
+  analytics: typeof AnalyticsDashboardLayout;
+  personal: typeof PersonalDashboardLayout;
 }
 
 // Layout component mapping
@@ -37,192 +38,194 @@ const layoutComponents: LayoutComponents = {
   executive: ExecutiveDashboardLayout,
   operations: OperationsDashboardLayout,
   analytics: AnalyticsDashboardLayout,
-  personal: PersonalDashboardLayout
-}
+  personal: PersonalDashboardLayout,
+};
 
 const currentLayoutComponent = computed(() => {
-  return layoutComponents[currentLayout.value as keyof LayoutComponents] || OperationsDashboardLayout
-})
+  return (
+    layoutComponents[currentLayout.value as keyof LayoutComponents] ||
+    OperationsDashboardLayout
+  );
+});
 
 // Enhanced data loading
 const loadDashboardData = async (): Promise<void> => {
   try {
-    isRefreshing.value = true
-    
+    isRefreshing.value = true;
+
     // Load enhanced dashboard data
-    await dashboardStore.fetchEnhancedDashboardData()
-    
+    await dashboardStore.fetchEnhancedDashboardData();
+
     // Load legacy data for backward compatibility if needed
     if (showLegacyFallback.value) {
-      await dashboardStore.getDashboardData()
+      await dashboardStore.getDashboardData();
     }
-    
   } catch (error) {
-    console.error('Failed to load dashboard data:', error)
+    console.error("Failed to load dashboard data:", error);
     // Fallback to legacy components on error
-    showLegacyFallback.value = true
-    await dashboardStore.loadAllDashboardData()
+    showLegacyFallback.value = true;
+    await dashboardStore.loadAllDashboardData();
   } finally {
-    isRefreshing.value = false
+    isRefreshing.value = false;
   }
-}
+};
 
 // Real-time data refresh
 const handleRefresh = async (): Promise<void> => {
-  await loadDashboardData()
-}
+  await loadDashboardData();
+};
 
 // Toggle real-time updates
 const handleToggleRealtime = (): void => {
-  dashboardStore.toggleRealtime()
-}
+  dashboardStore.toggleRealtime();
+};
 
 // Handle real-time status changes
 const handleRealtimeStatusChange = (data: any): void => {
-  console.log('Real-time status changed:', data)
+  console.log("Real-time status changed:", data);
   // Additional logic for status changes can be added here
-}
+};
 
 // Handle refresh interval changes
 const handleIntervalChange = (newInterval: number): void => {
-  console.log('Refresh interval changed to:', newInterval)
+  console.log("Refresh interval changed to:", newInterval);
   // Additional logic for interval changes can be added here
-}
+};
 
 // Export dashboard functionality
 const handleExport = async (format: string): Promise<void> => {
-  const toast = useToast()
-  
+  const toast = useToast();
+
   try {
     switch (format) {
-      case 'pdf':
+      case "pdf":
         // PDF export logic would go here
         toast.add({
-          title: 'Export Started',
-          description: 'Your dashboard PDF is being generated...',
-          color: 'success'
-        })
-        break
-      case 'png':
+          title: "Export Started",
+          description: "Your dashboard PDF is being generated...",
+          color: "success",
+        });
+        break;
+      case "png":
         // PNG export logic would go here
         toast.add({
-          title: 'Export Started', 
-          description: 'Your dashboard image is being generated...',
-          color: 'success'
-        })
-        break
-      case 'csv':
+          title: "Export Started",
+          description: "Your dashboard image is being generated...",
+          color: "success",
+        });
+        break;
+      case "csv":
         // CSV export logic would go here
         toast.add({
-          title: 'Export Started',
-          description: 'Your dashboard data is being exported...',
-          color: 'success'
-        })
-        break
+          title: "Export Started",
+          description: "Your dashboard data is being exported...",
+          color: "success",
+        });
+        break;
     }
   } catch (error) {
     toast.add({
-      title: 'Export Failed',
-      description: 'Failed to export dashboard data',
-      color: 'error'
-    })
+      title: "Export Failed",
+      description: "Failed to export dashboard data",
+      color: "error",
+    });
   }
-}
+};
 
 // Navigation handler
 const handleNavigation = (route: string): void => {
-  navigateTo(route)
-}
+  navigateTo(route);
+};
 
 // Chart click handler for data drilling
 const handleChartClick = (data: any): void => {
-  console.log('Chart clicked:', data)
+  console.log("Chart clicked:", data);
   // Implement chart drilling logic here
   // Could open modals, navigate to filtered views, etc.
-}
+};
 
 // Alert action handler
 const handleAlertAction = (alert: any): void => {
-  console.log('Alert action:', alert)
+  console.log("Alert action:", alert);
   // Implement alert-specific actions
   switch (alert.type) {
-    case 'error':
-      if (alert.title === 'Overdue Tasks') {
-        navigateTo('/tasks?filter=overdue')
+    case "error":
+      if (alert.title === "Overdue Tasks") {
+        navigateTo("/tasks?filter=overdue");
       }
-      break
-    case 'warning':
-      if (alert.title === 'High Priority Tasks') {
-        navigateTo('/tasks?filter=high_priority')
+      break;
+    case "warning":
+      if (alert.title === "High Priority Tasks") {
+        navigateTo("/tasks?filter=high_priority");
       }
-      break
+      break;
   }
-}
+};
 
 // Modal opening handler
 const handleOpenModal = (modalType: string): void => {
-  console.log('Open modal:', modalType)
+  console.log("Open modal:", modalType);
   // Implement modal opening logic
   // This would integrate with your existing modal system
-}
+};
 
 // Action handler for various dashboard actions
 const handleAction = (action: any): void => {
-  console.log('Dashboard action:', action)
+  console.log("Dashboard action:", action);
   // Implement action-specific logic
-}
+};
 
 // Error boundary for layout components
 const handleLayoutError = (error: Error): void => {
-  console.error('Layout error:', error)
-  showLegacyFallback.value = true
-}
+  console.error("Layout error:", error);
+  showLegacyFallback.value = true;
+};
 
 // Initialize dashboard data on mount
 onMounted(async (): Promise<void> => {
-  await loadDashboardData()
-})
+  await loadDashboardData();
+});
 
 // Cleanup real-time updates on unmount
 onUnmounted((): void => {
   if (realtimeEnabled.value) {
-    dashboardStore.stopRealTimeUpdates()
+    dashboardStore.stopRealTimeUpdates();
   }
-})
+});
 </script>
 
 <template>
   <div class="enhanced-dashboard h-screen flex flex-col flex-1 overflow-hidden">
     <!-- Enhanced Header with Layout Switcher and Real-time Controls -->
-    <PageHeader page="Dashboard">
-      <template #actions>
-        <div class="flex items-center gap-4">
-          <!-- Real-time Controls -->
-          <RealTimeControls
-            :auto-start="true"
-            :interval="30000"
-            @refresh="handleRefresh"
-            @status-change="handleRealtimeStatusChange"
-            @interval-change="handleIntervalChange"
-          />
-          
-          <!-- Layout Switcher -->
-          <DashboardLayoutSwitcher
-            v-model="currentLayout"
-            :is-refreshing="isRefreshing"
-            :realtime-enabled="realtimeEnabled"
-            :show-quick-actions="true"
-            :show-export-options="isAdmin"
-            @refresh="handleRefresh"
-            @toggle-realtime="handleToggleRealtime"
-            @export="handleExport"
-          />
-        </div>
-      </template>
-    </PageHeader>
+    <PageHeader page="Dashboard" />
+
+    <div class="flex items-center gap-4">
+      <!-- Real-time Controls -->
+      <RealTimeControls
+        :auto-start="true"
+        :interval="30000"
+        @refresh="handleRefresh"
+        @status-change="handleRealtimeStatusChange"
+        @interval-change="handleIntervalChange"
+      />
+
+      <!-- Layout Switcher -->
+      <DashboardLayoutSwitcher
+        v-model="currentLayout"
+        :is-refreshing="isRefreshing"
+        :realtime-enabled="realtimeEnabled"
+        :show-quick-actions="true"
+        :show-export-options="isAdmin"
+        @refresh="handleRefresh"
+        @toggle-realtime="handleToggleRealtime"
+        @export="handleExport"
+      />
+    </div>
 
     <!-- Enhanced Dashboard Content -->
-    <main class="dashboard-content flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <main
+      class="dashboard-content flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900"
+    >
       <!-- Loading Overlay -->
       <div v-if="isAnyLoading && !showLegacyFallback" class="loading-overlay">
         <div class="loading-content">
@@ -232,11 +235,14 @@ onUnmounted((): void => {
       </div>
 
       <!-- Enhanced Layout Content -->
-      <div v-else-if="!showLegacyFallback" class="layout-container overflow-y-auto">
+      <div
+        v-else-if="!showLegacyFallback"
+        class="layout-container overflow-y-auto"
+      >
         <EChartsThemeProvider>
           <Suspense>
             <template #default>
-              <component 
+              <component
                 :is="currentLayoutComponent"
                 @navigate="handleNavigation"
                 @chart-click="handleChartClick"
@@ -257,15 +263,23 @@ onUnmounted((): void => {
 
       <!-- Legacy Fallback Content -->
       <div v-else class="legacy-content overflow-y-auto p-4">
-        <div class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+        <div
+          class="mb-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+        >
           <div class="flex items-center gap-2">
-            <UIcon name="mdi:information" class="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+            <UIcon
+              name="mdi:information"
+              class="w-5 h-5 text-yellow-600 dark:text-yellow-400"
+            />
             <span class="text-sm text-yellow-800 dark:text-yellow-200">
               Enhanced dashboard temporarily unavailable. Showing basic view.
             </span>
-            <UButton 
-              @click="showLegacyFallback = false; loadDashboardData()" 
-              variant="ghost" 
+            <UButton
+              @click="
+                showLegacyFallback = false;
+                loadDashboardData();
+              "
+              variant="ghost"
               size="sm"
               class="ml-auto"
             >
@@ -273,7 +287,7 @@ onUnmounted((): void => {
             </UButton>
           </div>
         </div>
-        
+
         <div class="space-y-6">
           <!-- Legacy Stats cards -->
           <Stats />
@@ -285,7 +299,9 @@ onUnmounted((): void => {
 
     <!-- Real-time Status Indicator -->
     <div v-if="realtimeEnabled" class="realtime-indicator">
-      <div class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs">
+      <div
+        class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs"
+      >
         <div class="realtime-dot"></div>
         <span>Live updates enabled</span>
       </div>
@@ -381,7 +397,8 @@ onUnmounted((): void => {
   right: 1rem;
   z-index: 40;
   border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .realtime-dot {
@@ -423,7 +440,7 @@ onUnmounted((): void => {
   .dashboard-content {
     max-height: calc(100vh - 3rem);
   }
-  
+
   .realtime-indicator {
     bottom: 0.5rem;
     right: 0.5rem;
@@ -441,7 +458,8 @@ onUnmounted((): void => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -454,15 +472,15 @@ onUnmounted((): void => {
   .loading-spinner {
     animation: none;
   }
-  
+
   .realtime-dot {
     animation: none;
   }
-  
+
   .layout-container {
     transition: none;
   }
-  
+
   .enhanced-dashboard {
     transition: none;
   }
@@ -473,11 +491,11 @@ onUnmounted((): void => {
   .loading-overlay {
     background-color: rgba(255, 255, 255, 0.95);
   }
-  
+
   .dark .loading-overlay {
     background-color: rgba(17, 24, 39, 0.95);
   }
-  
+
   .loading-spinner {
     border-color: #000000;
     border-top-color: #ffffff;
@@ -489,7 +507,7 @@ onUnmounted((): void => {
   .realtime-indicator {
     display: none;
   }
-  
+
   .loading-overlay {
     display: none;
   }

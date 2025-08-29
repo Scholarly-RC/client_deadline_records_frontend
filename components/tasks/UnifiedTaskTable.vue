@@ -10,8 +10,8 @@ import TaskCompletionModal from "./TaskCompletionModal.vue";
 import TaskViewModal from "./TaskViewModal.vue";
 import TaskEditModal from "./TaskEditModal.vue";
 import TaskDeleteModal from "./TaskDeleteModal.vue";
-import type { Task, TaskList, PaginationInfo } from '~/types/entities'
-import type { TaskCategory } from '~/constants/choices'
+import type { Task, TaskList, PaginationInfo } from "~/types/entities";
+import type { TaskCategory } from "~/constants/choices";
 
 interface Props {
   category?: string | null;
@@ -23,9 +23,9 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   category: null,
   showCategoryColumn: true,
-  title: 'Tasks',
-  showUserTasksOnly: false
-})
+  title: "Tasks",
+  showUserTasksOnly: false,
+});
 
 // No longer emitting to parent since we handle actions internally
 
@@ -42,7 +42,9 @@ const { tasks, isLoading, pagination } = storeToRefs(taskStore);
 const { users } = storeToRefs(userStore);
 
 // Type assertion for pagination to access all properties
-const typedPagination = computed(() => pagination.value as PaginationInfo | null)
+const typedPagination = computed(
+  () => pagination.value as PaginationInfo | null
+);
 
 // Computed assignee options
 const assigneeOptions = computed(() => {
@@ -165,13 +167,13 @@ const refreshData = async () => {
       // Fetch tasks for the current user only using the new paginated endpoint
       const taskService = useTaskService();
       // Use getTasksByCategory instead of getUserDeadlines
-      const response = await taskService.getTasksByCategory('all', {
+      const response = await taskService.getTasksByCategory("all", {
         category: (props.category as TaskCategory) || undefined,
         assigned_to: authStore.user.id,
       });
 
       // Handle paginated response structure
-      if (response && 'results' in response) {
+      if (response && "results" in response) {
         taskStore.tasks = response.results;
         const { results, ...paginationData } = response;
         taskStore.pagination = paginationData;
@@ -280,7 +282,10 @@ const formatDate = (dateString: string | null | undefined): string => {
   }
 };
 
-const getDaysRemaining = (deadline: string | null | undefined, task: TaskList | null = null): number | null => {
+const getDaysRemaining = (
+  deadline: string | null | undefined,
+  task: TaskList | null = null
+): number | null => {
   // If the API provides deadline_days_remaining, use that
   if (task && typeof task.deadline_days_remaining === "number") {
     return task.deadline_days_remaining;
@@ -308,7 +313,10 @@ const getDaysRemaining = (deadline: string | null | undefined, task: TaskList | 
   }
 };
 
-const getDeadlineColor = (deadline: string | null | undefined, task: TaskList | null = null): string => {
+const getDeadlineColor = (
+  deadline: string | null | undefined,
+  task: TaskList | null = null
+): string => {
   const daysRemaining = getDaysRemaining(deadline, task);
   if (daysRemaining === null) return "secondary";
   if (daysRemaining < 0) return "error"; // Overdue
@@ -409,6 +417,7 @@ defineExpose({
               :search-input="{
                 placeholder: 'Search statuses...',
               }"
+              class="w-full"
             >
               <template #leading>
                 <UIcon
@@ -433,6 +442,7 @@ defineExpose({
               :search-input="{
                 placeholder: 'Search priorities...',
               }"
+              class="w-full"
             >
               <template #leading>
                 <UIcon
@@ -454,6 +464,7 @@ defineExpose({
               :search-input="{
                 placeholder: 'Search assignees...',
               }"
+              class="w-full"
             >
               <template #leading>
                 <UIcon name="i-heroicons-user-20-solid" class="text-gray-400" />
@@ -465,7 +476,9 @@ defineExpose({
     </UCard>
 
     <!-- Task Table -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+    >
       <UTable
         :data="filteredTasks"
         :columns="columns"
@@ -548,7 +561,10 @@ defineExpose({
       </UTable>
 
       <!-- Pagination -->
-      <div v-if="(typedPagination?.count || 0) > 0" class="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div
+        v-if="(typedPagination?.count || 0) > 0"
+        class="p-4 border-t border-gray-200 dark:border-gray-700"
+      >
         <div class="flex items-center justify-end">
           <UPagination
             v-if="(typedPagination?.total_pages || 0) > 1"
