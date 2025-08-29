@@ -25,8 +25,12 @@
             class="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse flex items-center justify-center"
           >
             <div class="text-center">
-              <div class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded mx-auto mb-2"></div>
-              <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded w-32 mx-auto"></div>
+              <div
+                class="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded mx-auto mb-2"
+              ></div>
+              <div
+                class="h-4 bg-gray-300 dark:bg-gray-600 rounded w-32 mx-auto"
+              ></div>
             </div>
           </div>
         </template>
@@ -79,12 +83,20 @@
               :key="i"
               class="flex items-center gap-3 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg"
             >
-              <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"></div>
+              <div
+                class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"
+              ></div>
               <div class="flex-1 space-y-2">
-                <div class="h-4 bg-gray-300 dark:bg-gray-600 rounded animate-pulse w-3/4"></div>
-                <div class="h-3 bg-gray-200 dark:bg-gray-500 rounded animate-pulse w-1/2"></div>
+                <div
+                  class="h-4 bg-gray-300 dark:bg-gray-600 rounded animate-pulse w-3/4"
+                ></div>
+                <div
+                  class="h-3 bg-gray-200 dark:bg-gray-500 rounded animate-pulse w-1/2"
+                ></div>
               </div>
-              <div class="w-16 h-6 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"></div>
+              <div
+                class="w-16 h-6 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"
+              ></div>
             </div>
           </div>
         </template>
@@ -104,7 +116,9 @@
               <!-- Performer Info -->
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white">
+                  <span
+                    class="text-sm font-medium text-gray-900 dark:text-white"
+                  >
                     {{ performer.fullname }}
                   </span>
                   <UBadge
@@ -117,9 +131,7 @@
                   </UBadge>
                 </div>
                 <div class="text-xs text-gray-600 dark:text-gray-400">
-                  {{ performer.completed_tasks }}/{{
-                    performer.total_tasks
-                  }}
+                  {{ performer.completed_tasks }}/{{ performer.total_tasks }}
                   tasks completed
                   <template v-if="performer.overdue_tasks > 0">
                     •
@@ -175,32 +187,53 @@
     </div>
 
     <!-- Performance Summary -->
-    <div v-if="!isLoading && performanceSummary" class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-      <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Team Summary</h4>
+    <div
+      v-if="!isLoading && performanceSummary"
+      class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700"
+    >
+      <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
+        Team Summary
+      </h4>
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div
+          class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+        >
           <div class="text-2xl font-bold text-gray-900 dark:text-white">
             {{ performanceSummary.totalMembers }}
           </div>
-          <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">Team Members</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
+            Team Members
+          </div>
         </div>
-        <div class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div
+          class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+        >
           <div class="text-2xl font-bold text-green-600 dark:text-green-400">
             {{ performanceSummary.avgCompletionRate }}%
           </div>
-          <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">Avg Completion</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
+            Avg Completion
+          </div>
         </div>
-        <div class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div
+          class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+        >
           <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
             {{ performanceSummary.totalCompleted }}
           </div>
-          <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">Tasks Completed</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
+            Tasks Completed
+          </div>
         </div>
-        <div class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+        <div
+          class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+        >
           <div class="text-2xl font-bold text-red-600 dark:text-red-400">
             {{ performanceSummary.totalOverdue }}
           </div>
-          <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">Overdue Tasks</div>
+          <div class="text-xs text-gray-600 dark:text-gray-400 font-medium">
+            Overdue Tasks
+          </div>
         </div>
       </div>
     </div>
@@ -328,7 +361,7 @@ const performanceSummary = computed((): PerformanceSummary | null => {
 
 const getRankBadgeClasses = (index: number): string => {
   const baseClasses =
-    "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs";
+    "w-8 h-8 rounded-full p-3 flex items-center justify-center text-white font-bold";
 
   switch (index) {
     case 0:
