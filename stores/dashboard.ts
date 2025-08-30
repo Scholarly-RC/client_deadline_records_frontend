@@ -6,37 +6,40 @@ import { useTaskService } from '~/composables/useTaskService'
 interface DashboardState {
   // Legacy stats from /api/stats/
   stats: boolean;
-  
+
   // Enhanced statistics from /api/tasks/statistics/
   enhancedStats: any;
-  
+
   // Chart data from enhanced API
   weeklyTrends: any[];
   categoryDistribution: Record<string, any>;
   statusBreakdown: Record<string, any>;
   priorityBreakdown: Record<string, any>;
-  
+
   // Performance metrics
   performanceMetrics: Record<string, any>;
   teamAnalytics: Record<string, any>;
   clientInsights: Record<string, any>;
   businessIntelligence: Record<string, any>;
   quickActions: Record<string, any>;
-  
+
   // Additional dashboard data
   overdueTasks: any[];
   tasksDueSoon: any[];
-  
+
   // UI state for enhanced dashboard
   currentLayout: string;
   selectedTimeRange: string;
   chartLoadingStates: Record<string, boolean>;
-  
+
+  // Filtering state
+  selectedDateRange: { start: string | null; end: string | null };
+
   // Real-time data
   realtimeEnabled: boolean;
   lastUpdated: string | null;
   refreshInterval: any;
-  
+
   // Loading states
   isLoading: boolean;
   isLoadingTaskStats: boolean;
@@ -49,27 +52,27 @@ export const useDashboardStore = defineStore("dashboardStore", {
   state: (): DashboardState => ({
     // Legacy stats from /api/stats/
     stats: false,
-    
+
     // Enhanced statistics from /api/tasks/statistics/
     enhancedStats: null,
-    
+
     // Chart data from enhanced API
     weeklyTrends: [],
     categoryDistribution: {},
     statusBreakdown: {},
     priorityBreakdown: {},
-    
+
     // Performance metrics
     performanceMetrics: {},
     teamAnalytics: {},
     clientInsights: {},
     businessIntelligence: {},
     quickActions: {},
-    
+
     // Additional dashboard data
     overdueTasks: [],
     tasksDueSoon: [],
-    
+
     // UI state for enhanced dashboard
     currentLayout: 'operations', // executive, operations, analytics, personal
     selectedTimeRange: '7d',
@@ -81,12 +84,15 @@ export const useDashboardStore = defineStore("dashboardStore", {
       teamPerformance: false,
       clientInsights: false
     },
-    
+
+    // Filtering state
+    selectedDateRange: { start: null, end: null },
+
     // Real-time data
     realtimeEnabled: false,
     lastUpdated: null,
     refreshInterval: null,
-    
+
     // Loading states
     isLoading: false,
     isLoadingTaskStats: false,
@@ -323,9 +329,17 @@ export const useDashboardStore = defineStore("dashboardStore", {
         this.isLoadingEnhanced = true;
         this.setChartLoading('all', true);
 
-        // Use the actual statistics endpoint
+        // Use the actual statistics endpoint with optional filtering
         const taskService = useTaskService();
-        const response = await taskService.getTaskStatistics();
+        const filters: { start_date?: string; end_date?: string } = {};
+        if (this.selectedDateRange.start) filters.start_date = this.selectedDateRange.start;
+        if (this.selectedDateRange.end) filters.end_date = this.selectedDateRange.end;
+        const response = await taskService.getTaskStatistics(Object.keys(filters).length > 0 ? filters : undefined);
+
+        // Debug: Log the API response
+        console.log('fetchEnhancedDashboardData - API response:', response);
+        console.log('fetchEnhancedDashboardData - response keys:', Object.keys(response));
+        console.log('fetchEnhancedDashboardData - has performance_metrics:', 'performance_metrics' in response);
 
         // Store the complete enhanced statistics
         this.enhancedStats = response;
@@ -342,6 +356,13 @@ export const useDashboardStore = defineStore("dashboardStore", {
         this.clientInsights = response.client_insights || {};
         this.businessIntelligence = response.business_intelligence || {};
         this.quickActions = response.quick_actions || {};
+
+        // Debug: Log extracted data
+        console.log('fetchEnhancedDashboardData - response.performance_metrics:', response.performance_metrics);
+        console.log('fetchEnhancedDashboardData - this.performanceMetrics:', this.performanceMetrics);
+        console.log('fetchEnhancedDashboardData - on_time_completion_rate:', this.performanceMetrics?.on_time_completion_rate);
+        console.log('fetchEnhancedDashboardData - average_completion_days:', this.performanceMetrics?.average_completion_days);
+        console.log('fetchEnhancedDashboardData - summary:', response.summary);
 
         this.lastUpdated = new Date().toISOString();
 
@@ -618,6 +639,9 @@ export const useDashboardStore = defineStore("dashboardStore", {
     this.currentLayout = 'operations';
     this.selectedTimeRange = '7d';
 
+    // Filtering state
+    this.selectedDateRange = { start: null, end: null };
+
     // Real-time state
     this.stopRealTimeUpdates();
     this.realtimeEnabled = false;
@@ -627,6 +651,22 @@ export const useDashboardStore = defineStore("dashboardStore", {
     Object.keys(this.chartLoadingStates).forEach(key => {
       this.chartLoadingStates[key] = false;
     });
+  },
+
+  /**
+   * Update filtering parameters and refresh data
+   */
+  async updateFilters(startDate: string | null, endDate: string | null) {
+    this.selectedDateRange = { start: startDate, end: endDate };
+    await this.fetchEnhancedDashboardData();
+  },
+
+  /**
+   * Clear all filters and refresh data
+   */
+  async clearFilters() {
+    this.selectedDateRange = { start: null, end: null };
+    await this.fetchEnhancedDashboardData();
   },
   },
 });

@@ -119,7 +119,7 @@ const performanceSummary = computed((): PerformanceSummary | null => {
 
 const getRankBadgeClasses = (index: number): string => {
   const baseClasses =
-    "w-8 h-8 rounded-full p-3 flex items-center justify-center text-white font-bold";
+    "w-8 h-8 rounded-full flex items-center justify-center text-white font-bold";
 
   switch (index) {
     case 0:
@@ -127,7 +127,7 @@ const getRankBadgeClasses = (index: number): string => {
     case 1:
       return `${baseClasses} bg-gray-400`; // Silver
     case 2:
-      return `${baseClasses} bg-yellow-600`; // Bronze
+      return `${baseClasses} bg-amber-600`; // Bronze
     default:
       return `${baseClasses} bg-gray-300 text-gray-700`;
   }
@@ -193,7 +193,7 @@ onMounted(() => {
       </div>
     </template>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
       <!-- Performance Chart Section -->
       <div>
         <div class="mb-4">
@@ -250,120 +250,153 @@ onMounted(() => {
         </template>
       </div>
 
-      <!-- Leaderboard Section -->
+      <!-- Top Performers Section -->
       <div>
-        <div class="mb-4">
-          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <div class="mb-6">
+          <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Top Performers
           </h4>
-          <p class="text-xs text-gray-500 dark:text-gray-400">
-            Based on completion rate and task quality
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Team members with highest completion rates
           </p>
         </div>
 
         <template v-if="isLoading">
-          <div class="space-y-3">
+          <div class="grid gap-4">
             <div
               v-for="i in 5"
               :key="i"
-              class="flex items-center gap-3 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg"
+              class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
             >
-              <div
-                class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full animate-pulse"
-              ></div>
-              <div class="flex-1 space-y-2">
+              <div class="flex items-center gap-4">
                 <div
-                  class="h-4 bg-gray-300 dark:bg-gray-600 rounded animate-pulse w-3/4"
+                  class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse"
                 ></div>
+                <div class="flex-1 space-y-2">
+                  <div
+                    class="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/3"
+                  ></div>
+                  <div
+                    class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/2"
+                  ></div>
+                </div>
                 <div
-                  class="h-3 bg-gray-200 dark:bg-gray-500 rounded animate-pulse w-1/2"
+                  class="w-20 h-8 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"
                 ></div>
               </div>
-              <div
-                class="w-16 h-6 bg-gray-300 dark:bg-gray-600 rounded animate-pulse"
-              ></div>
             </div>
           </div>
         </template>
         <template v-else-if="topPerformers && topPerformers.length">
-          <div class="space-y-2">
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <div
               v-for="(performer, index) in topPerformers"
               :key="performer.id"
-              class="flex items-center gap-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-              @click="viewPerformerDetails(performer)"
+              class="bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-all duration-200"
             >
-              <!-- Rank Badge -->
-              <div :class="getRankBadgeClasses(index)">
-                <span class="text-xs font-bold">{{ index + 1 }}</span>
-              </div>
-
-              <!-- Performer Info -->
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <span
-                    class="text-sm font-medium text-gray-900 dark:text-white"
-                  >
-                    {{ performer.fullname }}
-                  </span>
-                  <UBadge
-                    v-if="performer.is_admin"
-                    color="primary"
-                    variant="subtle"
-                    size="xs"
-                  >
-                    Admin
-                  </UBadge>
-                </div>
-                <div class="text-xs text-gray-600 dark:text-gray-400">
-                  {{ performer.completed_tasks }}/{{ performer.total_tasks }}
-                  tasks completed
-                  <template v-if="performer.overdue_tasks > 0">
-                    •
-                    <span class="text-red-600 dark:text-red-400 font-medium"
-                      >{{ performer.overdue_tasks }} overdue</span
+              <!-- Compact Header -->
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="relative">
+                    <div
+                      class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center"
                     >
-                  </template>
+                      <span class="text-white font-bold text-sm">
+                        {{ performer.fullname.charAt(0).toUpperCase() }}
+                      </span>
+                    </div>
+                    <div
+                      class="absolute -top-1 -right-1 w-5 h-5 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center border-2 border-gray-100 dark:border-gray-700"
+                    >
+                      <span
+                        class="text-xs font-bold text-gray-900 dark:text-white"
+                        >{{ index + 1 }}</span
+                      >
+                    </div>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h4
+                      class="font-medium text-gray-900 dark:text-white text-sm truncate"
+                    >
+                      {{ performer.fullname }}
+                    </h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <UBadge
+                        v-if="performer.is_admin"
+                        color="primary"
+                        variant="soft"
+                        size="xs"
+                      >
+                        Admin
+                      </UBadge>
+                      <span
+                        v-if="performer.overdue_tasks > 0"
+                        class="text-xs text-red-600 dark:text-red-400"
+                      >
+                        {{ performer.overdue_tasks }} overdue
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Compact Performance Score -->
+                <div class="text-right">
+                  <div
+                    class="text-xl font-bold"
+                    :class="getCompletionRateColor(performer.completion_rate)"
+                  >
+                    {{ performer.completion_rate.toFixed(1) }}%
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                    {{ getPerformanceLabel(performer.completion_rate) }}
+                  </div>
                 </div>
               </div>
 
-              <!-- Performance Metrics -->
-              <div class="text-right">
-                <div
-                  class="text-sm font-semibold"
-                  :class="getCompletionRateColor(performer.completion_rate)"
-                >
-                  {{ performer.completion_rate.toFixed(1) }}%
-                </div>
-                <div class="text-xs text-gray-600 dark:text-gray-400">
-                  {{ performer.overdue_rate.toFixed(1) }}% overdue
+              <!-- Compact Stats -->
+              <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-4">
+                  <div class="text-center">
+                    <div
+                      class="text-base font-semibold text-green-600 dark:text-green-400"
+                    >
+                      {{ performer.completed_tasks }}
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400">
+                      Completed
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <div
+                      class="text-base font-semibold text-blue-600 dark:text-blue-400"
+                    >
+                      {{ performer.total_tasks }}
+                    </div>
+                    <div class="text-xs text-gray-600 dark:text-gray-400">
+                      Total
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <!-- Performance Badge -->
-              <UBadge
-                :color="getPerformanceBadgeColor(performer.completion_rate)"
-                class="ml-2"
-              >
-                {{ getPerformanceLabel(performer.completion_rate) }}
-              </UBadge>
             </div>
           </div>
         </template>
         <template v-else>
           <div
-            class="h-40 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg"
+            class="bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8"
           >
             <div class="text-center">
               <UIcon
                 name="mdi:account-group"
-                class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-2"
+                class="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4"
               />
-              <p class="text-gray-600 dark:text-gray-400 font-medium">
-                No team performance data available
-              </p>
-              <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                Add team members to see performance metrics
+              <h5
+                class="text-lg font-medium text-gray-900 dark:text-white mb-2"
+              >
+                No Performance Data
+              </h5>
+              <p class="text-gray-600 dark:text-gray-400">
+                Team performance metrics will appear here once data is available
               </p>
             </div>
           </div>
@@ -379,7 +412,7 @@ onMounted(() => {
       <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
         Team Summary
       </h4>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <div
           class="text-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
         >

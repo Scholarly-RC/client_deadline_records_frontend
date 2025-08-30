@@ -441,12 +441,11 @@ onMounted(() => {
           </template>
           <template v-else-if="recentApprovals && recentApprovals.length">
             <div class="space-y-3 max-h-64 overflow-y-auto">
-              <div
-                v-for="approval in recentApprovals"
-                :key="approval.id"
-                class="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 cursor-pointer"
-                @click="viewApprovalDetails(approval)"
-              >
+             <div
+                 v-for="approval in recentApprovals"
+                 :key="approval.id"
+                 class="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-gray-800"
+               >
                 <!-- Status Icon -->
                 <div :class="getApprovalStatusIconClasses(approval.status)">
                   <UIcon

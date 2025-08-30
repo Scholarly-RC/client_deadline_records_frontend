@@ -126,11 +126,21 @@ export const useTaskService = () => {
   };
 
   /**
-    * Get task statistics
-    */
-  const getTaskStatistics = async (): Promise<any> => {
-    return await $apiFetch<any>('/api/tasks/statistics/', { method: 'GET' });
-  };
+     * Get task statistics with optional date range filtering
+     */
+   const getTaskStatistics = async (filters?: { start_date?: string; end_date?: string }): Promise<any> => {
+     const params = new URLSearchParams();
+
+     if (filters?.start_date) {
+       params.append('start_date', filters.start_date);
+     }
+     if (filters?.end_date) {
+       params.append('end_date', filters.end_date);
+     }
+
+     const url = `/api/tasks/statistics/${params.toString() ? '?' + params.toString() : ''}`;
+     return await $apiFetch<any>(url, { method: 'GET' });
+   };
 
   /**
     * Mark task as completed

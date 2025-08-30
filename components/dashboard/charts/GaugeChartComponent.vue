@@ -58,6 +58,10 @@ const emit = defineEmits<Emits>()
 
 const chartRef = ref<any>(null)
 const gaugeStyle = ref<string>('arc')
+const isMounted = ref<boolean>(false)
+
+// Store cleanup functions
+let resizeHandler: (() => void) | null = null
 
 const styleOptions = [
   { label: 'Arc Gauge', value: 'arc' },
@@ -234,7 +238,7 @@ const exportChart = (): void => {
   if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
     try {
       const chartInstance = chartRef.value.getEchartsInstance()
-      if (!chartInstance) {
+      if (!chartInstance || chartInstance.isDisposed()) {
         console.warn('Chart instance not available for export')
         return
       }
@@ -264,11 +268,12 @@ const exportChart = (): void => {
 
 // Watch for value changes and animate
 watch(() => props.value, async (newValue) => {
+  if (!isMounted.value) return
   if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
     await nextTick()
     try {
       const chartInstance = chartRef.value.getEchartsInstance()
-      if (chartInstance) {
+      if (chartInstance && !chartInstance.isDisposed()) {
         chartInstance.setOption({
           series: [{
             data: [{ value: newValue, name: props.title }]
@@ -283,11 +288,12 @@ watch(() => props.value, async (newValue) => {
 
 // Watch for style changes
 watch(gaugeStyle, async () => {
+  if (!isMounted.value) return
   if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
     await nextTick()
     try {
       const chartInstance = chartRef.value.getEchartsInstance()
-      if (chartInstance) {
+      if (chartInstance && !chartInstance.isDisposed()) {
         chartInstance.setOption(chartOption.value, true)
       }
     } catch (error) {
@@ -297,6 +303,7 @@ watch(gaugeStyle, async () => {
 })
 
 onMounted(async () => {
+  isMounted.value = true
   // Wait for component to be fully mounted
   await nextTick()
 
@@ -318,7 +325,7 @@ onMounted(async () => {
         }
 
         // Handle window resize
-        const handleResize = () => {
+        resizeHandler = () => {
           try {
             chartInstance.resize()
           } catch (error) {
@@ -326,11 +333,7 @@ onMounted(async () => {
           }
         }
 
-        window.addEventListener('resize', handleResize)
-
-        onUnmounted(() => {
-          window.removeEventListener('resize', handleResize)
-        })
+        window.addEventListener('resize', resizeHandler)
 
       } catch (error) {
         console.error('Chart initialization failed:', error)
@@ -344,6 +347,14 @@ onMounted(async () => {
   }
 
   await initializeChart()
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  isMounted.value = false
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler)
+  }
 })
 </script>
 

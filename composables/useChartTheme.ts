@@ -99,8 +99,7 @@ export const useChartTheme = () => {
     left: '3%',
     right: '4%',
     bottom: '15%',
-    top: '5%',
-    containLabel: true
+    top: '5%'
   }))
   
   // Get a specific color with opacity

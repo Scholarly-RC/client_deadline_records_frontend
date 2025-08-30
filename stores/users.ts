@@ -27,6 +27,11 @@ interface EditUserState {
   isLoading: boolean;
 }
 
+interface ChangePasswordState {
+  user: User | null;
+  showModal: boolean;
+}
+
 export const useUserStore = defineStore('userStore', {
   state: (): UserState => ({
     users: [],
@@ -164,6 +169,24 @@ export const useEditUserStore = defineStore('editUserStore', {
       } finally {
         this.isLoading = false;
       }
+    },
+  },
+});
+
+export const useChangePasswordStore = defineStore('changePasswordStore', {
+  state: (): ChangePasswordState => ({
+    user: null,
+    showModal: false,
+  }),
+
+  actions: {
+    open(user: User): void {
+      this.user = user;
+      this.showModal = true;
+    },
+    close(): void {
+      this.showModal = false;
+      this.user = null;
     },
   },
 });

@@ -175,7 +175,7 @@ onMounted(() => {
 
     <div>
       <!-- Client Distribution Charts -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
         <!-- Workload Distribution Chart -->
         <div>
           <div class="mb-4">
@@ -265,8 +265,7 @@ onMounted(() => {
             <div
               v-for="client in topClients"
               :key="client.client__id"
-              class="flex items-center gap-4 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-all duration-200 cursor-pointer"
-              @click="viewClientDetails(client)"
+              class="flex items-center gap-4 p-4 rounded-lg bg-gray-50"
             >
               <!-- Client Avatar/Initial -->
               <div>
@@ -342,7 +341,7 @@ onMounted(() => {
     <!-- Client Summary -->
     <div v-if="!isLoading && clientSummary" class="mt-6 pt-6 border-t">
       <h4 class="text-sm font-medium mb-3">Client Portfolio Summary</h4>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <div class="summary-item text-center">
           <div class="text-2xl font-bold">{{ clientSummary.totalClients }}</div>
           <div class="text-xs text-gray-500">Active Clients</div>

@@ -284,8 +284,7 @@ onMounted(async (): Promise<void> => {
     <!-- Pending Approvals (Admin only) -->
     <UCard
       v-if="isAdmin"
-      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-      @click="$router.push('/approvals')"
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
       <div class="p-1">
         <div class="flex items-center justify-between">

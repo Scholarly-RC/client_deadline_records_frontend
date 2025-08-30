@@ -133,7 +133,7 @@ const handleAction = () => {
 
 <template>
   <UCard :class="cardClasses">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
       <!-- Content Section -->
       <div class="flex-1 min-w-0">
         <!-- Title -->
@@ -147,7 +147,7 @@ const handleAction = () => {
             <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-20"></div>
           </template>
           <template v-else>
-            <span class="metric-value text-2xl font-bold text-gray-900 dark:text-white">
+            <span class="metric-value text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               {{ formattedValue }}
             </span>
             <TrendIndicator v-if="trend && showTrend" :trend="trend" />
@@ -177,7 +177,7 @@ const handleAction = () => {
 
       <!-- Icon Section -->
       <div :class="iconClasses">
-        <UIcon :name="icon" class="w-8 h-8" />
+        <UIcon :name="icon" class="w-6 h-6 sm:w-8 sm:h-8" />
       </div>
     </div>
 

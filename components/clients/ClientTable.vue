@@ -29,10 +29,6 @@ const columns: Column[] = [
     header: "Status",
   },
   {
-    accessorKey: "category",
-    header: "Category",
-  },
-  {
     accessorKey: "contact_person",
     header: "Contact",
   },
@@ -185,13 +181,13 @@ watchDebounced(
       </UTable>
     </div>
 
-     <!-- Pagination -->
-     <Pagination
-       :pagination="pagination"
-       :is-loading="isLoading"
-       :style="'enhanced'"
-       :item-name="'clients'"
-       :on-page-change="handleSetPage"
-     />
+    <!-- Pagination -->
+    <Pagination
+      :pagination="pagination"
+      :is-loading="isLoading"
+      :style="'enhanced'"
+      :item-name="'clients'"
+      :on-page-change="handleSetPage"
+    />
   </div>
 </template>

@@ -3,12 +3,14 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 import type { User } from '~/types/entities'
+import ChangePasswordModal from "./ChangePasswordModal.vue";
 
 // Stores
 const editUserStore = useEditUserStore();
 const userStore = useUserStore();
 const confirmationStore = useConfirmationStore();
 const authStore = useAuthStore();
+const changePasswordStore = useChangePasswordStore();
 
 // Store Refs
 const { showModal, user } = storeToRefs(editUserStore);
@@ -25,34 +27,21 @@ const initialValues = computed(() => ({
   username: user.value?.username || "",
   email: user.value?.email || "",
   role: user.value?.role || "",
-  password: "",
-  confirmPassword: "",
 }));
 
 // Form Schema
 const validationSchema = toTypedSchema(
-  z
-    .object({
-      firstName: z.string().nonempty("First Name is required."),
-      middleName: z.string().nonempty("Middle Name is required."),
-      lastName: z.string().nonempty("Last Name is required."),
-      username: z.string().nonempty("Username is required."),
-      email: z
-        .string()
-        .nonempty("Email is required.")
-        .email("Invalid email format."),
-      role: z.string().nonempty("Role is required."),
-      password: z
-        .string()
-        .refine((val) => val.length === 0 || val.length >= 8, {
-          message: "Password must be at least 8 characters.",
-        }),
-      confirmPassword: z.string(),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-      path: ["confirmPassword"],
-      message: "Passwords do not match.",
-    })
+  z.object({
+    firstName: z.string().nonempty("First Name is required."),
+    middleName: z.string().nonempty("Middle Name is required."),
+    lastName: z.string().nonempty("Last Name is required."),
+    username: z.string().nonempty("Username is required."),
+    email: z
+      .string()
+      .nonempty("Email is required.")
+      .email("Invalid email format."),
+    role: z.string().nonempty("Role is required."),
+  })
 );
 
 // Form Setup
@@ -76,8 +65,6 @@ const [lastName] = defineField("lastName");
 const [username] = defineField("username");
 const [email] = defineField("email");
 const [role] = defineField("role");
-const [password] = defineField("password");
-const [confirmPassword] = defineField("confirmPassword");
 
 // Computed
 const disableSubmit = computed(() => {
@@ -89,6 +76,12 @@ const canToggleStatus = computed<boolean>(() => {
 });
 
 // Methods
+const openChangePasswordModal = () => {
+  if (user.value) {
+    changePasswordStore.open(user.value);
+  }
+};
+
 const toggleUserStatus = async () => {
   if (!user.value) return;
 
@@ -151,7 +144,6 @@ const onSubmit = handleSubmit(async (values) => {
         username: values.username,
         email: values.email,
         role: values.role,
-        ...(values.password ? { password: values.password } : {}),
       },
     });
     toast.add({
@@ -357,74 +349,33 @@ watch(showModal, async () => {
             </p>
           </div>
 
-          <!-- Password Section -->
-          <div>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Password (Optional)
-            </h3>
-            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              <div>
-                <label
-                  for="password"
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  New Password
-                </label>
-                <input
-                  v-model="password"
-                  type="password"
-                  id="password"
-                  name="password"
-                  class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-                <p
-                  v-if="errors.password"
-                  class="mt-1 text-xs text-red-600 dark:text-red-400"
-                >
-                  {{ errors.password }}
-                </p>
-              </div>
-              
-              <div>
-                <label
-                  for="confirm-password"
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Confirm Password
-                </label>
-                <input
-                  v-model="confirmPassword"
-                  type="password"
-                  id="confirm-password"
-                  name="confirm-password"
-                  class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-                <p
-                  v-if="errors.confirmPassword"
-                  class="mt-1 text-xs text-red-600 dark:text-red-400"
-                >
-                  {{ errors.confirmPassword }}
-                </p>
-              </div>
-            </div>
-          </div>
+
 
 
         </div>
         
         <!-- Submit Button Area -->
         <div class="flex justify-between py-3">
-          <div v-if="canToggleStatus" class="flex items-center space-x-2">
+          <div class="flex items-center space-x-2">
             <UButton
-              @click="toggleUserStatus"
-              :color="user?.is_active ? 'error' : 'success'"
-              :label="user?.is_active ? 'Deactivate User' : 'Activate User'"
+              @click="openChangePasswordModal"
+              color="primary"
+              label="Change Password"
               size="sm"
               variant="outline"
             />
-            <span class="text-sm text-gray-600 dark:text-gray-400">
-              Current status: {{ user?.is_active ? 'Active' : 'Inactive' }}
-            </span>
+            <div v-if="canToggleStatus" class="flex items-center space-x-2">
+              <UButton
+                @click="toggleUserStatus"
+                :color="user?.is_active ? 'error' : 'success'"
+                :label="user?.is_active ? 'Deactivate User' : 'Activate User'"
+                size="sm"
+                variant="outline"
+              />
+              <span class="text-sm text-gray-600 dark:text-gray-400">
+                Current status: {{ user?.is_active ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
           </div>
           <UButton
             type="submit"
@@ -437,4 +388,7 @@ watch(showModal, async () => {
       </form>
     </template>
   </UModal>
+
+  <!-- Change Password Modal -->
+  <ChangePasswordModal />
 </template>

@@ -80,6 +80,10 @@ const emit = defineEmits<Emits>()
 const chartRef = ref<any>(null)
 const selectedTimeRange = ref<string>('7d')
 const realTimeCleanup = ref<(() => void) | null>(null)
+const isMounted = ref<boolean>(false)
+
+// Store cleanup functions
+let resizeHandler: (() => void) | null = null
 
 // Enhanced interactivity with composable
 const {
@@ -133,8 +137,7 @@ const chartOption = computed<ECOption>(() => {
       left: '3%',
       right: '4%',
       bottom: '15%',
-      top: '5%',
-      containLabel: true
+      top: '5%'
     },
     xAxis: {
       type: 'category',
@@ -192,7 +195,7 @@ const chartOption = computed<ECOption>(() => {
         end: 100,
         height: 20,
         bottom: 40,
-        handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23.1h6.6V24.4z M13.3,19.6H6.7v-1.2h6.6V19.6z',
+        handleIcon: 'path://M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23.1h6.6V24.4z M13.3,19.6H6.7v-1.2h6.6V19.6z',
         handleSize: '80%',
         showDetail: false
       }
@@ -300,11 +303,12 @@ const exportChart = async (format: string = 'png'): Promise<any> => {
 
 // Watch for data changes and update chart
 watch(() => props.data, async (newData) => {
+  if (!isMounted.value) return
   if (chartRef.value && newData && typeof chartRef.value.getEchartsInstance === 'function') {
     await nextTick()
     try {
       const chartInstance = chartRef.value.getEchartsInstance()
-      if (chartInstance) {
+      if (chartInstance && !chartInstance.isDisposed()) {
         chartInstance.setOption(chartOption.value, true)
       }
     } catch (error) {
@@ -314,6 +318,7 @@ watch(() => props.data, async (newData) => {
 }, { deep: true })
 
 onMounted(async () => {
+  isMounted.value = true
   // Wait for component to be fully mounted
   await nextTick()
 
@@ -344,7 +349,7 @@ onMounted(async () => {
         }
 
         // Handle window resize
-        const handleResize = () => {
+        resizeHandler = () => {
           try {
             chartInstance.resize()
           } catch (error) {
@@ -352,19 +357,12 @@ onMounted(async () => {
           }
         }
 
-        window.addEventListener('resize', handleResize)
+        window.addEventListener('resize', resizeHandler)
 
         // Setup real-time updates if needed
         if (props.enableInteractivity) {
           realTimeCleanup.value = enableRealTimeUpdates(chartInstance, 30000)
         }
-
-        onUnmounted(() => {
-          window.removeEventListener('resize', handleResize)
-          if (realTimeCleanup.value) {
-            realTimeCleanup.value()
-          }
-        })
 
       } catch (error) {
         console.error('Chart initialization failed:', error)
@@ -378,6 +376,17 @@ onMounted(async () => {
   }
 
   await initializeChart()
+})
+
+// Cleanup on unmount
+onUnmounted(() => {
+  isMounted.value = false
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler)
+  }
+  if (realTimeCleanup.value) {
+    realTimeCleanup.value()
+  }
 })
 </script>
 
@@ -396,7 +405,7 @@ onMounted(async () => {
         :option="chartOption"
         :autoresize="true"
         :loading="isLoading"
-        style="height: 400px;"
+        :style="{ height: height || '400px' }"
         @click="handleChartClick"
         class="w-full"
       />

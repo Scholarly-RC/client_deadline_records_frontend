@@ -74,6 +74,10 @@ const chartRef = ref<any>(null);
 const orientation = ref<string>("vertical");
 const sortBy = ref<string>("none");
 const realTimeCleanup = ref<(() => void) | null>(null);
+const isMounted = ref<boolean>(false);
+
+// Store cleanup functions
+let resizeHandler: (() => void) | null = null;
 
 // Enhanced interactivity with composable
 const {
@@ -166,23 +170,45 @@ const chartOption = computed<ECOption>(() => {
       bottom: 0,
     },
     grid: {
-      left: isHorizontal ? "15%" : "3%",
-      right: "4%",
-      bottom: series.length > 1 ? "15%" : "3%",
-      top: "5%",
-      containLabel: !isHorizontal,
+      left: isHorizontal ? "20%" : "5%",
+      right: "5%",
+      bottom: series.length > 1 ? "20%" : "8%",
+      top: "8%",
+      containLabel: true,
     },
-    xAxis: {
-      type: isHorizontal ? "value" : "category",
-      data: isHorizontal ? undefined : categories,
+    xAxis: isHorizontal ? {
+      type: "value" as const,
       axisLabel: {
-        interval: 0,
-        rotate: isHorizontal ? 0 : categories.length > 6 ? 45 : 0,
+        fontSize: 11,
+      },
+    } : {
+      type: "category" as const,
+      data: categories,
+      axisLabel: {
+        interval: categories.length > 8 ? 'auto' : 0,
+        rotate: categories.length > 4 ? 30 : 0,
+        fontSize: 11,
+        formatter: function(value: string) {
+          // Truncate long labels
+          return value.length > 12 ? value.substring(0, 12) + '...' : value;
+        }
       },
     },
-    yAxis: {
-      type: isHorizontal ? "category" : "value",
-      data: isHorizontal ? categories : undefined,
+    yAxis: isHorizontal ? {
+      type: "category" as const,
+      data: categories,
+      axisLabel: {
+        fontSize: 11,
+        formatter: function(value: string) {
+          // Truncate long labels for horizontal charts
+          return value.length > 15 ? value.substring(0, 15) + '...' : value;
+        }
+      },
+    } : {
+      type: "value" as const,
+      axisLabel: {
+        fontSize: 11,
+      },
     },
     series: series.map((s, index) => ({
       name: s.name,
@@ -307,6 +333,7 @@ const exportChart = async (format: string = "png"): Promise<any> => {
 watch(
   () => props.data,
   async (newData) => {
+    if (!isMounted.value) return
     if (
       chartRef.value &&
       newData &&
@@ -315,7 +342,7 @@ watch(
       await nextTick();
       try {
         const chartInstance = chartRef.value.getEchartsInstance();
-        if (chartInstance) {
+        if (chartInstance && !chartInstance.isDisposed()) {
           chartInstance.setOption(chartOption.value, true);
         }
       } catch (error) {
@@ -328,6 +355,7 @@ watch(
 
 // Watch for orientation changes
 watch(orientation, async () => {
+  if (!isMounted.value) return
   if (
     chartRef.value &&
     typeof chartRef.value.getEchartsInstance === "function"
@@ -335,7 +363,7 @@ watch(orientation, async () => {
     await nextTick();
     try {
       const chartInstance = chartRef.value.getEchartsInstance();
-      if (chartInstance) {
+      if (chartInstance && !chartInstance.isDisposed()) {
         chartInstance.setOption(chartOption.value, true);
       }
     } catch (error) {
@@ -346,6 +374,7 @@ watch(orientation, async () => {
 
 // Watch for sort changes
 watch(sortBy, async () => {
+  if (!isMounted.value) return
   if (
     chartRef.value &&
     typeof chartRef.value.getEchartsInstance === "function"
@@ -353,7 +382,7 @@ watch(sortBy, async () => {
     await nextTick();
     try {
       const chartInstance = chartRef.value.getEchartsInstance();
-      if (chartInstance) {
+      if (chartInstance && !chartInstance.isDisposed()) {
         chartInstance.setOption(chartOption.value, true);
       }
     } catch (error) {
@@ -363,6 +392,7 @@ watch(sortBy, async () => {
 });
 
 onMounted(async () => {
+  isMounted.value = true
   // Wait for component to be fully mounted
   await nextTick();
 
@@ -395,7 +425,7 @@ onMounted(async () => {
         }
 
         // Handle window resize
-        const handleResize = () => {
+        resizeHandler = () => {
           try {
             chartInstance.resize();
           } catch (error) {
@@ -403,19 +433,12 @@ onMounted(async () => {
           }
         };
 
-        window.addEventListener("resize", handleResize);
+        window.addEventListener("resize", resizeHandler);
 
         // Setup real-time updates if needed
         if (props.enableInteractivity) {
           realTimeCleanup.value = enableRealTimeUpdates(chartInstance, 30000);
         }
-
-        onUnmounted(() => {
-          window.removeEventListener("resize", handleResize);
-          if (realTimeCleanup.value) {
-            realTimeCleanup.value();
-          }
-        });
       } catch (error) {
         console.error("Chart initialization failed:", error);
         if (retries > 0) {
@@ -428,6 +451,17 @@ onMounted(async () => {
   };
 
   await initializeChart();
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+  isMounted.value = false
+  if (resizeHandler) {
+    window.removeEventListener("resize", resizeHandler);
+  }
+  if (realTimeCleanup.value) {
+    realTimeCleanup.value();
+  }
 });
 </script>
 
@@ -447,7 +481,7 @@ onMounted(async () => {
         :option="chartOption"
         :autoresize="true"
         :loading="isLoading"
-        :style="{ height: height }"
+        :style="{ height: height || '400px' }"
         @click="handleChartClick"
         class="w-full"
       />

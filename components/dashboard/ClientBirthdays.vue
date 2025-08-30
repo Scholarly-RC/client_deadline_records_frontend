@@ -58,7 +58,7 @@ onMounted(async (): Promise<void> => {
             <div
               v-for="client in data?.today"
               :key="`today-${client.id}`"
-              class="flex items-center justify-between p-4 border border-gray-200 rounded-lg dark:border-gray-700 bg-blue-50 dark:bg-blue-900/30 cursor-pointer transition-all duration-200 ease-in-out hover:bg-blue-100 hover:dark:bg-blue-900/50 hover:shadow-sm hover:border-blue-300 hover:dark:border-blue-700 hover:-translate-y-0.5 group"
+               class="flex items-center justify-between p-4 border border-gray-200 rounded-lg dark:border-gray-700 bg-blue-50 dark:bg-blue-900/30"
             >
               <div class="flex items-center space-x-3">
                 <div
@@ -105,7 +105,7 @@ onMounted(async (): Promise<void> => {
             <div
               v-for="client in data?.upcoming"
               :key="`upcoming-${client.id}`"
-              class="flex items-center justify-between p-4 border border-gray-200 rounded-lg dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"
+               class="flex items-center justify-between p-4 border border-gray-200 rounded-lg dark:border-gray-700"
             >
               <div class="flex items-center space-x-3">
                 <div
@@ -176,7 +176,7 @@ onMounted(async (): Promise<void> => {
             <div
               v-for="client in data?.past"
               :key="`past-${client.id}`"
-              class="flex items-center justify-between p-4 border border-gray-200 rounded-lg dark:border-gray-700 opacity-75 hover:opacity-100 cursor-pointer"
+               class="flex items-center justify-between p-4 border border-gray-200 rounded-lg dark:border-gray-700 opacity-75"
             >
               <div class="flex items-center space-x-3">
                 <div

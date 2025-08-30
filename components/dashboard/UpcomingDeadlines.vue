@@ -34,9 +34,6 @@ onMounted(async (): Promise<void> => {
         <h3 class="text-lg font-medium text-gray-900 dark:text-white">
           Upcoming Deadlines
         </h3>
-        <UButton to="/tasks" variant="subtle" color="neutral" size="md">
-          View All
-        </UButton>
       </div>
     </template>
 
@@ -77,9 +74,7 @@ onMounted(async (): Promise<void> => {
                 <p class="text-sm text-red-700 dark:text-red-300">{{ overdue }} tasks need immediate attention</p>
               </div>
             </div>
-            <UButton to="/tasks?filter=overdue" variant="solid" color="error" size="sm">
-              View
-            </UButton>
+
           </div>
 
           <!-- Due Today Summary -->
@@ -93,9 +88,7 @@ onMounted(async (): Promise<void> => {
                 <p class="text-sm text-yellow-700 dark:text-yellow-300">{{ dueToday }} tasks due today</p>
               </div>
             </div>
-            <UButton to="/tasks?filter=due_today" variant="solid" color="warning" size="sm">
-              View
-            </UButton>
+
           </div>
 
           <!-- Due This Week Summary -->
@@ -109,9 +102,7 @@ onMounted(async (): Promise<void> => {
                 <p class="text-sm text-blue-700 dark:text-blue-300">{{ dueThisWeek }} tasks due this week</p>
               </div>
             </div>
-            <UButton to="/tasks?filter=due_this_week" variant="solid" color="primary" size="sm">
-              View
-            </UButton>
+
           </div>
         </div>
       </template>
