@@ -14,13 +14,9 @@ const authStore = useAuthStore();
 const { showModal, user } = storeToRefs(editUserStore);
 const { user: authUser } = storeToRefs(authStore);
 
-// State
-const isActive = ref<boolean>(false);
 
-// Computed
-const showStatusToggle = computed<boolean>(() => {
-  return user.value?.id !== authUser.value?.id;
-});
+
+
 
 const initialValues = computed(() => ({
   firstName: user.value?.first_name || "",
@@ -88,7 +84,58 @@ const disableSubmit = computed(() => {
   return !formMeta.value.dirty || !formMeta.value.valid;
 });
 
+const canToggleStatus = computed<boolean>(() => {
+  return user.value?.id !== authUser.value?.id;
+});
+
 // Methods
+const toggleUserStatus = async () => {
+  if (!user.value) return;
+
+  const toast = useToast();
+  const newStatus = !user.value.is_active;
+
+  const confirmed = await confirmationStore.confirm(
+    `Are you sure you want to ${
+      newStatus ? "activate" : "deactivate"
+    } this user?`
+  );
+
+  if (confirmed) {
+    try {
+      const { $apiFetch } = useNuxtApp();
+      const response = await $apiFetch(
+        `/api/users/${user.value.id}/toggle-active-status/`,
+        {
+          method: "POST",
+        }
+      );
+      await editUserStore.editUser(user.value.id);
+      await userStore.getAllUsers();
+      toast.add({
+        title: newStatus ? "User Activated" : "User Deactivated",
+        description: `The user account has been ${
+          newStatus ? "activated" : "deactivated"
+        } successfully.`,
+        color: "success",
+        icon: "mdi:checkbox-multiple-marked",
+        duration: 2000,
+      });
+    } catch (error) {
+      toast.add({
+        title: newStatus ? "Activation Failed" : "Deactivation Failed",
+        description: `Could not ${
+          newStatus ? "activate" : "deactivate"
+        } user account. ${getErrorMessage(error as any)}`,
+        color: "error",
+        icon: "mdi:close-box-multiple",
+        duration: 5000,
+      });
+      console.error(error);
+    }
+  }
+};
+
 const onSubmit = handleSubmit(async (values) => {
   if (!user.value) return
   
@@ -134,58 +181,9 @@ watch(initialValues, () => {
   resetForm({ values: initialValues.value });
 });
 
-watch(user, () => {
-  if (user.value) {
-    isActive.value = user.value.is_active;
-  }
-});
 
-watch(isActive, async (value: boolean, oldValue: boolean) => {
-  if (!user.value) return
-  
-  const toast = useToast();
-  if (value !== user.value.is_active) {
-    const confirmed = await confirmationStore.confirm(
-      `Are you sure you want to ${
-        isActive.value ? "activate" : "deactivate"
-      } this user?`
-    );
-    if (confirmed) {
-      try {
-        const { $apiFetch } = useNuxtApp();
-        const response = await $apiFetch(
-          `/api/users/${user.value.id}/toggle-active-status/`,
-          {
-            method: "POST",
-          }
-        );
-        await editUserStore.editUser(user.value.id);
-        toast.add({
-          title: isActive.value ? "User Activated" : "User Deactivated",
-          description: `The user account has been ${
-            isActive.value ? "activated" : "deactivated"
-          } successfully.`,
-          color: "success",
-          icon: "mdi:checkbox-multiple-marked",
-          duration: 2000,
-        });
-      } catch (error) {
-        toast.add({
-          title: isActive.value ? "Activation Failed" : "Deactivation Failed",
-          description: `Could not ${
-            isActive.value ? "activate" : "deactivate"
-          } user account. ${getErrorMessage(error as any)}`,
-          color: "error",
-          icon: "mdi:close-box-multiple",
-          duration: 5000,
-        });
-        console.error(error);
-      }
-    } else {
-      isActive.value = oldValue;
-    }
-  }
-});
+
+
 
 watch(showModal, async () => {
   if (!showModal.value) {
@@ -411,31 +409,23 @@ watch(showModal, async () => {
             </div>
           </div>
 
-          <!-- Status Section -->
-          <div v-if="showStatusToggle">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Account Status
-            </h3>
-            <div class="flex items-center space-x-4">
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Status:
-              </span>
-              <UToggle
-                v-model="isActive"
-                :ui="{
-                  active: 'bg-primary-500 dark:bg-primary-400',
-                  inactive: 'bg-gray-200 dark:bg-gray-700'
-                }"
-              />
-              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {{ isActive ? 'Active' : 'Inactive' }}
-              </span>
-            </div>
-          </div>
+
         </div>
         
         <!-- Submit Button Area -->
-        <div class="flex justify-center px-6 py-3">
+        <div class="flex justify-between py-3">
+          <div v-if="canToggleStatus" class="flex items-center space-x-2">
+            <UButton
+              @click="toggleUserStatus"
+              :color="user?.is_active ? 'error' : 'success'"
+              :label="user?.is_active ? 'Deactivate User' : 'Activate User'"
+              size="sm"
+              variant="outline"
+            />
+            <span class="text-sm text-gray-600 dark:text-gray-400">
+              Current status: {{ user?.is_active ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
           <UButton
             type="submit"
             :disabled="disableSubmit"
