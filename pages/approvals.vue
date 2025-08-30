@@ -31,7 +31,12 @@ if (!authStore.isAdmin) {
 
 // Methods
 const refreshData = async () => {
-  await taskStore.fetchPendingApprovals();
+  try {
+    await taskStore.fetchPendingApprovals();
+  } catch (error) {
+    console.error('Error fetching pending approvals:', error);
+    // Could add toast notification here if needed
+  }
 };
 
 const onApprovalAction = async () => {

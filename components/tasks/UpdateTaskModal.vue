@@ -5,17 +5,23 @@ import { z } from "zod";
 import { ref, computed, type Ref } from "vue";
 
 import { statusChoices } from "~/constants/choices";
+import { useToast } from "#imports";
 
-const filteredStatusChoices = statusChoices.filter((choice) =>
-  ["not_yet_started", "pending", "on_going"].includes(choice.value)
-);
+const filteredStatusChoices = statusChoices
+  .filter((choice) =>
+    ["not_yet_started", "pending", "on_going"].includes(choice.value)
+  )
+  .map((choice) => ({
+    ...choice,
+    value: choice.value.toString(),
+  }));
 
 const taskUpdate = useTaskUpdate();
 const { showModal, task, category } = storeToRefs(taskUpdate);
 const userTaskStore = useUserTasksStore();
 
 const initialValues = computed(() => ({
-  status: task.value?.status || '',
+  status: task.value?.status?.toString() || '',
   remarks: '',
 }));
 
@@ -57,17 +63,38 @@ const onSubmit = async () => {
   if (!formMeta.value.valid) {
     return
   }
-  
+
   try {
     const data = {
       status: values.status,
       remarks: values.remarks,
     };
     await userTaskStore.updateTask(category.value, task.value?.id, data);
+
+    // Show success toast
+    const toast = useToast();
+    toast.add({
+      title: "Task Status Updated",
+      description: "Task status has been updated successfully.",
+      color: "success",
+      icon: "i-lucide-check-circle",
+      duration: 3000,
+    });
+
     resetForm();
     taskUpdate.close();
   } catch (error) {
     console.error('Update failed:', error);
+
+    // Show error toast
+    const toast = useToast();
+    toast.add({
+      title: "Status Update Failed",
+      description: "Failed to update task status. Please try again.",
+      color: "error",
+      icon: "i-lucide-alert-circle",
+      duration: 5000,
+    });
   }
 };
 

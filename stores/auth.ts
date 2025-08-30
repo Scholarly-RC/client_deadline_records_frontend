@@ -131,6 +131,16 @@ export const useAuthStore = defineStore('auth', {
         // Clear local state
         this.clearAuth();
 
+        // Show logout success notification
+        const toast = useToast();
+        toast.add({
+          title: 'Logged Out',
+          description: 'You have been successfully logged out.',
+          color: 'success',
+          icon: 'mdi:logout',
+          duration: 2000,
+        });
+
         // Navigate to login
         await navigateTo('/login');
       } catch (error) {

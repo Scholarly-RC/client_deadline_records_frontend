@@ -166,7 +166,7 @@ const onSubmit = handleSubmit(async (values) => {
     resetForm({ values: initialValues.value });
   } catch (error) {
     toast.add({
-      title: "Update Failed",
+      title: "User Update Failed",
       description: `Could not update user profile. ${getErrorMessage(error as any)}`,
       color: "error",
       icon: "mdi:close-box-multiple",

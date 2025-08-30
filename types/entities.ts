@@ -187,7 +187,7 @@ export interface ApprovalHistoryEntry {
   id: number;
   task: number;
   approver: UserMini;
-  action: 'approve' | 'reject';
+  action: 'approved' | 'rejected';
   action_display?: string; // Display name for action
   remarks: string | null;
   comments?: string; // Alias for remarks

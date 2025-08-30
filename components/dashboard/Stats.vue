@@ -9,16 +9,16 @@ const taskStore = useTaskStore();
 const { stats, enhancedStats, overdueTasks, tasksDueSoon, isAnyLoading } =
   storeToRefs(dashboardStore);
 
-// Computed values for unified statistics
-const totalTasks = computed((): number => enhancedStats.value?.summary?.total_tasks || 0);
+// Computed values for unified statistics from /api/tasks/statistics/
+const totalTasks = computed((): number => enhancedStats.value?.summary?.total || 0);
 const completedTasks = computed(
-  (): number => enhancedStats.value?.summary?.completed_tasks || 0
+  (): number => enhancedStats.value?.summary?.completed || 0
 );
-const pendingTasks = computed((): number => enhancedStats.value?.summary?.pending_tasks || 0);
-const overdueTasksCount = computed((): number => overdueTasks.value?.length || 0);
-const tasksDueSoonCount = computed((): number => tasksDueSoon.value?.length || 0);
+const pendingTasks = computed((): number => enhancedStats.value?.summary?.pending || 0);
+const overdueTasksCount = computed((): number => enhancedStats.value?.summary?.overdue || 0);
+const tasksDueSoonCount = computed((): number => enhancedStats.value?.summary?.due_this_week || 0);
 const onGoingTasks = computed(
-  (): number => enhancedStats.value?.by_status?.ON_GOING || 0
+  (): number => enhancedStats.value?.summary?.in_progress || 0
 );
 
 // Approval-related statistics
@@ -30,8 +30,8 @@ const completedThisMonth = computed(
   (): number => (stats.value as any)?.completed_deadlines || 0
 );
 
-// Task statistics by category
-const tasksByCategory = computed(() => enhancedStats.value?.by_category || {});
+// Task statistics by category from charts_data
+const tasksByCategory = computed(() => enhancedStats.value?.charts_data?.category_distribution || {});
 
 // Load all dashboard data on mount
 onMounted(async (): Promise<void> => {
@@ -331,15 +331,15 @@ onMounted(async (): Promise<void> => {
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div
-            v-for="(count, category) in tasksByCategory"
-            :key="category"
+            v-for="(categoryData, categoryKey) in tasksByCategory"
+            :key="categoryKey"
             class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg"
           >
             <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
-              {{ String(category).replace(/_/g, " ") }}
+              {{ categoryData.display_name }}
             </p>
             <p class="text-xl font-semibold text-gray-900 dark:text-white">
-              {{ count }}
+              {{ categoryData.count }}
             </p>
           </div>
         </div>

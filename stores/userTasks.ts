@@ -267,8 +267,6 @@ export const useUserTasksStore = defineStore("userTasksStore", {
     },
     
     async updateTask(categoryOrTask: any, task: any, values: any): Promise<any> {
-      const toast = useToast();
-      
       try {
         let taskId;
         
@@ -287,24 +285,9 @@ export const useUserTasksStore = defineStore("userTasksStore", {
         
         // Update the task in both structures
         this.updateTaskInState(taskId, response);
-        
-        toast.add({
-          title: "Success",
-          description: "Update successfully added.",
-          color: "success",
-          icon: "mdi:checkbox-multiple-marked",
-          duration: 2000,
-        });
-        
+
         return response;
       } catch (error: any) {
-        toast.add({
-          title: "Update Failed",
-          description: getErrorMessage(error),
-          color: "error",
-          icon: "mdi:close-box-multiple",
-          duration: 5000,
-        });
         console.error(error);
         throw error;
       }
@@ -353,31 +336,14 @@ export const useUserTasksStore = defineStore("userTasksStore", {
      * Mark task as completed
      */
     async markTaskCompleted(taskId: number, completionData: any): Promise<any> {
-      const toast = useToast();
-      
       try {
         const taskService = useTaskService();
         const response: any = await taskService.markTaskCompleted(taskId, completionData);
-        
+
         this.updateTaskInState(taskId, response);
-        
-        toast.add({
-          title: "Success",
-          description: "Task marked as completed.",
-          color: "success",
-          icon: "mdi:checkbox-multiple-marked",
-          duration: 2000,
-        });
-        
+
         return response;
       } catch (error: any) {
-        toast.add({
-          title: "Completion Failed",
-          description: getErrorMessage(error),
-          color: "error",
-          icon: "mdi:close-box-multiple",
-          duration: 5000,
-        });
         console.error(error);
         throw error;
       }

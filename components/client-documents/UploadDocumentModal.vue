@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Composables
-import { watch } from 'vue';
+import { watch } from "vue";
 
 // Stores
 const clientDocumentsStore = useClientDocumentsStore();
@@ -35,21 +35,24 @@ const isValidFile = computed(() => {
 });
 
 const fileTypeIcon = computed(() => {
-  if (!selectedFile.value) return 'i-lucide-file';
+  if (!selectedFile.value) return "i-lucide-file";
   const type = selectedFile.value.type;
-  if (type.includes('pdf')) return 'i-lucide-file-text';
-  if (type.includes('image')) return 'i-lucide-image';
-  if (type.includes('word')) return 'i-lucide-file-text';
-  return 'i-lucide-file';
+  if (type.includes("pdf")) return "i-lucide-file-text";
+  if (type.includes("image")) return "i-lucide-image";
+  if (type.includes("word")) return "i-lucide-file-text";
+  return "i-lucide-file";
 });
 
 // Watch for title changes to track if user modified auto-generated title
-watch(() => form.title, (newTitle) => {
-  if (newTitle !== originalTitle.value && originalTitle.value) {
-    // User has modified the auto-generated title
-    originalTitle.value = "";
+watch(
+  () => form.title,
+  (newTitle) => {
+    if (newTitle !== originalTitle.value && originalTitle.value) {
+      // User has modified the auto-generated title
+      originalTitle.value = "";
+    }
   }
-});
+);
 
 // Methods
 const generateTitleFromFileName = (fileName: string): string => {
@@ -95,7 +98,8 @@ const validateFile = (file: File): boolean => {
   ];
 
   if (!allowedTypes.includes(file.type)) {
-    error.value = "File type not supported. Please upload PDF, DOC, DOCX, JPG, or PNG files.";
+    error.value =
+      "File type not supported. Please upload PDF, DOC, DOCX, JPG, or PNG files.";
     return false;
   }
 
@@ -187,7 +191,8 @@ const handleSubmit = async () => {
     // Close modal
     uploadDocumentStore.closeModal();
   } catch (err: any) {
-    const errorMessage = err.response?.data?.detail || err.message || "Upload failed";
+    const errorMessage =
+      err.response?.data?.detail || err.message || "Upload failed";
     error.value = errorMessage;
 
     // Show error toast
@@ -218,12 +223,15 @@ const handleClose = () => {
 };
 
 // Watch for title changes to track if user modified auto-generated title
-watch(() => form.title, (newTitle) => {
-  if (newTitle !== originalTitle.value && originalTitle.value) {
-    // User has modified the auto-generated title
-    originalTitle.value = "";
+watch(
+  () => form.title,
+  (newTitle) => {
+    if (newTitle !== originalTitle.value && originalTitle.value) {
+      // User has modified the auto-generated title
+      originalTitle.value = "";
+    }
   }
-});
+);
 </script>
 
 <template>
@@ -236,14 +244,23 @@ watch(() => form.title, (newTitle) => {
     }"
     @close="handleClose"
   >
-
     <template #body>
       <!-- Loading overlay -->
-      <div v-if="isUploading" class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-10 rounded-lg">
+      <div
+        v-if="isUploading"
+        class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-10 rounded-lg"
+      >
         <div class="text-center">
-          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
-          <p class="text-sm font-medium text-gray-900 dark:text-white">Uploading document...</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Please wait while we process your file</p>
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2"
+          />
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            Uploading document...
+          </p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Please wait while we process your file
+          </p>
         </div>
       </div>
 
@@ -256,14 +273,25 @@ watch(() => form.title, (newTitle) => {
             required
             :disabled="isUploading"
             icon="i-lucide-file-text"
-            class="text-sm"
+            class="w-full text-sm"
           />
-          <div v-if="originalTitle" class="mt-1 text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
+          <div
+            v-if="originalTitle"
+            class="mt-1 text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1"
+          >
             <UIcon
-              :name="form.title === originalTitle ? 'i-lucide-sparkles' : 'i-lucide-edit'"
+              :name="
+                form.title === originalTitle
+                  ? 'i-lucide-sparkles'
+                  : 'i-lucide-edit'
+              "
               class="h-3 w-3"
             />
-            <span>{{ form.title === originalTitle ? 'Auto-generated from file name' : 'Custom title' }}</span>
+            <span>{{
+              form.title === originalTitle
+                ? "Auto-generated from file name"
+                : "Custom title"
+            }}</span>
           </div>
         </UFormField>
 
@@ -274,7 +302,7 @@ watch(() => form.title, (newTitle) => {
             placeholder="Add a brief description (optional)"
             :disabled="isUploading"
             :rows="3"
-            class="text-sm resize-none"
+            class="w-full text-sm"
           />
         </UFormField>
 
@@ -283,14 +311,16 @@ watch(() => form.title, (newTitle) => {
           <div class="space-y-3">
             <!-- Drag & Drop Zone -->
             <div
-              class="relative border-2 border-dashed rounded-xl p-6 transition-all duration-200
-                     hover:border-blue-400 focus-within:border-blue-500
-                     dark:border-gray-600 dark:hover:border-blue-400 dark:focus-within:border-blue-500"
+              class="relative border-2 border-dashed rounded-xl p-6 transition-all duration-200 hover:border-blue-400 focus-within:border-blue-500 dark:border-gray-600 dark:hover:border-blue-400 dark:focus-within:border-blue-500"
               :class="{
-                'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/10': error,
-                'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/10': selectedFile && !error,
-                'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/10': isDragOver,
-                'border-gray-300 dark:border-gray-600': !selectedFile && !error && !isDragOver
+                'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/10':
+                  error,
+                'border-green-300 dark:border-green-600 bg-green-50 dark:bg-green-900/10':
+                  selectedFile && !error,
+                'border-blue-300 dark:border-blue-600 bg-blue-50 dark:bg-blue-900/10':
+                  isDragOver,
+                'border-gray-300 dark:border-gray-600':
+                  !selectedFile && !error && !isDragOver,
               }"
               @dragover="handleDragOver"
               @dragleave="handleDragLeave"
@@ -313,7 +343,7 @@ watch(() => form.title, (newTitle) => {
                   :class="{
                     'text-red-400': error,
                     'text-green-500': selectedFile && !error,
-                    'text-blue-500': !selectedFile && !error
+                    'text-blue-500': !selectedFile && !error,
                   }"
                 />
 
@@ -328,20 +358,29 @@ watch(() => form.title, (newTitle) => {
 
                 <div v-else class="space-y-3">
                   <div class="flex items-center justify-center space-x-2">
-                    <UIcon :name="fileTypeIcon" class="h-5 w-5 text-green-500" />
-                    <span class="text-sm font-medium text-gray-900 dark:text-white truncate max-w-xs">
+                    <UIcon
+                      :name="fileTypeIcon"
+                      class="h-5 w-5 text-green-500"
+                    />
+                    <span
+                      class="text-sm font-medium text-gray-900 dark:text-white truncate max-w-xs"
+                    >
                       {{ selectedFile.name }}
                     </span>
                   </div>
 
-                  <div class="flex items-center justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                  <div
+                    class="flex items-center justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400"
+                  >
                     <span class="flex items-center space-x-1">
                       <UIcon name="i-lucide-hard-drive" class="h-3 w-3" />
                       <span>{{ fileSize }}</span>
                     </span>
                     <span class="flex items-center space-x-1">
                       <UIcon name="i-lucide-tag" class="h-3 w-3" />
-                      <span>{{ selectedFile.type.split('/')[1]?.toUpperCase() || 'FILE' }}</span>
+                      <span>{{
+                        selectedFile.type.split("/")[1]?.toUpperCase() || "FILE"
+                      }}</span>
                     </span>
                   </div>
                 </div>
@@ -349,13 +388,21 @@ watch(() => form.title, (newTitle) => {
             </div>
 
             <!-- File Requirements -->
-            <div class="flex items-center justify-center space-x-6 text-xs text-gray-500 dark:text-gray-400">
+            <div
+              class="flex items-center justify-center space-x-6 text-xs text-gray-500 dark:text-gray-400"
+            >
               <div class="flex items-center space-x-1">
-                <UIcon name="i-lucide-check-circle" class="h-3 w-3 text-green-500" />
+                <UIcon
+                  name="i-lucide-check-circle"
+                  class="h-3 w-3 text-green-500"
+                />
                 <span>Max 10MB</span>
               </div>
               <div class="flex items-center space-x-1">
-                <UIcon name="i-lucide-check-circle" class="h-3 w-3 text-green-500" />
+                <UIcon
+                  name="i-lucide-check-circle"
+                  class="h-3 w-3 text-green-500"
+                />
                 <span>PDF, DOC, DOCX, JPG, PNG</span>
               </div>
             </div>
@@ -367,7 +414,10 @@ watch(() => form.title, (newTitle) => {
           v-if="error"
           class="flex items-start space-x-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
         >
-          <UIcon name="i-lucide-alert-circle" class="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+          <UIcon
+            name="i-lucide-alert-circle"
+            class="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0"
+          />
           <p class="text-sm text-red-700 dark:text-red-400">{{ error }}</p>
         </div>
 
@@ -376,7 +426,10 @@ watch(() => form.title, (newTitle) => {
           v-if="selectedFile && !error"
           class="flex items-start space-x-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg"
         >
-          <UIcon name="i-lucide-check-circle" class="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+          <UIcon
+            name="i-lucide-check-circle"
+            class="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0"
+          />
           <p class="text-sm text-green-700 dark:text-green-400">
             File ready for upload! Click "Upload Document" to proceed.
           </p>
@@ -385,22 +438,15 @@ watch(() => form.title, (newTitle) => {
     </template>
 
     <template #footer>
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+      <div class="w-full flex items-center justify-between">
+        <div
+          class="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400"
+        >
           <UIcon name="i-lucide-info" class="h-3 w-3" />
           <span>All uploads are securely encrypted</span>
         </div>
 
         <div class="flex space-x-3">
-          <UButton
-            @click="handleClose"
-            variant="ghost"
-            :disabled="isUploading"
-            size="sm"
-          >
-            Cancel
-          </UButton>
-
           <UButton
             @click="handleSubmit"
             :loading="isUploading"
@@ -414,7 +460,7 @@ watch(() => form.title, (newTitle) => {
                 :class="isUploading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'"
               />
             </template>
-            {{ isUploading ? 'Uploading...' : 'Upload Document' }}
+            {{ isUploading ? "Uploading..." : "Upload Document" }}
           </UButton>
         </div>
       </div>

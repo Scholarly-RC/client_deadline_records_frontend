@@ -169,24 +169,7 @@ onMounted(() => {
     <template #header>
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Client Insights</h3>
-        <div class="flex items-center gap-2">
-          <!-- Client Filter -->
-          <USelectMenu
-            v-model="selectedClientFilter"
-            :options="clientFilterOptions"
-            size="sm"
-            @update:model-value="handleClientFilterChange"
-          />
-          <!-- View All Clients Button -->
-          <UButton
-            @click="viewAllClients"
-            variant="ghost"
-            size="sm"
-            icon="mdi:open-in-new"
-          >
-            View All
-          </UButton>
-        </div>
+       
       </div>
     </template>
 

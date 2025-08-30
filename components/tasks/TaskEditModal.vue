@@ -47,7 +47,7 @@ const handleFormSuccess = async (updatedTask: TaskList): Promise<void> => {
     // Show success toast
     const toast = useToast();
     toast.add({
-      title: "Task Updated",
+      title: "Task Details Updated",
       description: `Task "${updatedTask.description}" has been updated successfully.`,
       color: "success",
       icon: "i-heroicons-check-circle",
@@ -59,7 +59,7 @@ const handleFormSuccess = async (updatedTask: TaskList): Promise<void> => {
     // Show error toast
     const toast = useToast();
     toast.add({
-      title: "Update Failed",
+      title: "Task Update Failed",
       description: "Failed to update the task. Please try again.",
       color: "error",
       icon: "i-heroicons-exclamation-circle",

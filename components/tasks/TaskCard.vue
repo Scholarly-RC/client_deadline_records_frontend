@@ -6,6 +6,7 @@ import ApprovalHistoryComponent from "../tasks/ApprovalHistoryComponent.vue";
 import ApprovalWorkflowModal from "../tasks/ApprovalWorkflowModal.vue";
 import TaskCompletionModal from "../tasks/TaskCompletionModal.vue";
 import type { TaskList, TaskCompletionRequest } from "~/types";
+import { useToast } from "#imports";
 
 interface Props {
   task: TaskList;
@@ -168,11 +169,28 @@ const handleTaskCompletion = async (completionData: { remarks: string }): Promis
       await taskStore.markCompleted(localTask.value.id, fullCompletionData);
     }
 
+    // Show success toast
+    const toast = useToast();
+    toast.add({
+      title: "Task Completed",
+      description: "The task has been marked as completed successfully.",
+      color: "success",
+      icon: "i-lucide-check-circle"
+    });
+
     showCompletionModal.value = false;
     // Emit event to notify parent to refresh this specific task
     emit("task-updated", localTask.value.id);
   } catch (error) {
     console.error("Error completing task:", error);
+    // Show error toast
+    const toast = useToast();
+    toast.add({
+      title: "Completion Failed",
+      description: "There was an error completing the task. Please try again.",
+      color: "error",
+      icon: "i-lucide-alert-circle"
+    });
   } finally {
     isCompletingTask.value = false;
   }

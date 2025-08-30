@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { useTaskStore } from "~/stores/tasks";
 import { useAuthStore } from "~/stores/auth";
+import { useToast } from "#imports";
 import type { TaskList } from "~/types/entities";
 
 interface Props {
@@ -55,6 +56,15 @@ const processDecision = async (): Promise<void> => {
       }
     );
 
+    // Show success toast
+    const toast = useToast();
+    toast.add({
+      title: `Task ${decisionAction.value === 'approve' ? 'approved' : 'rejected'}`,
+      description: `The task has been ${decisionAction.value === 'approve' ? 'approved' : 'rejected'} successfully.`,
+      color: decisionAction.value === 'approve' ? 'success' : 'warning',
+      icon: decisionAction.value === 'approve' ? 'i-lucide-check-circle' : 'i-lucide-x-circle'
+    });
+
     if (decisionAction.value === 'approve') {
       emit('approved');
     } else {
@@ -63,6 +73,14 @@ const processDecision = async (): Promise<void> => {
     closeDecisionModal();
   } catch (error) {
     console.error("Failed to process approval:", error);
+    // Show error toast
+    const toast = useToast();
+    toast.add({
+      title: `Failed to ${decisionAction.value} task`,
+      description: `There was an error ${decisionAction.value === 'approve' ? 'approving' : 'rejecting'} the task. Please try again.`,
+      color: "error",
+      icon: "i-lucide-alert-circle"
+    });
   }
 };
 

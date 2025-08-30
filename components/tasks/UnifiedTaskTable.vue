@@ -6,12 +6,15 @@ import {
 } from "~/constants/choices";
 import StatusBadge from "~/components/ui/StatusBadge.vue";
 import PriorityBadge from "~/components/ui/PriorityBadge.vue";
+import Pagination from "~/components/ui/Pagination.vue";
 import TaskCompletionModal from "~/components/tasks/TaskCompletionModal.vue";
 import TaskViewModal from "~/components/tasks/TaskViewModal.vue";
 import TaskEditModal from "~/components/tasks/TaskEditModal.vue";
 import TaskDeleteModal from "~/components/tasks/TaskDeleteModal.vue";
-import type { Task, TaskList, PaginationInfo } from '~/types/entities'
-import type { TaskCategory } from '~/constants/choices'
+import type { Task, TaskList, PaginationInfo } from "~/types/entities";
+import type { TaskStatus, TaskPriority } from "~/types/api";
+import type { TaskCategory } from "~/constants/choices";
+import { useToast } from "#imports";
 
 interface Props {
   category?: string | null;
@@ -23,9 +26,9 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   category: null,
   showCategoryColumn: true,
-  title: 'Tasks',
-  showUserTasksOnly: false
-})
+  title: "Tasks",
+  showUserTasksOnly: false,
+});
 
 // No longer emitting to parent since we handle actions internally
 
@@ -42,7 +45,9 @@ const { tasks, isLoading, pagination } = storeToRefs(taskStore);
 const { users } = storeToRefs(userStore);
 
 // Type assertion for pagination to access all properties
-const typedPagination = computed(() => pagination.value as PaginationInfo | null)
+const typedPagination = computed(
+  () => pagination.value as PaginationInfo | null
+);
 
 // Computed assignee options
 const assigneeOptions = computed(() => {
@@ -57,9 +62,12 @@ const assigneeOptions = computed(() => {
 
 // Local state
 const searchQuery = ref<string>("");
-const statusFilter = ref<string | null>(null);
-const priorityFilter = ref<string | null>(null);
+const statusFilter = ref<TaskStatus | null>(null);
+const priorityFilter = ref<TaskPriority | null>(null);
 const assigneeFilter = ref<number | null>(null);
+
+// Flag to prevent watchers during filter clearing
+const isClearingFilters = ref<boolean>(false);
 
 // Completion modal state
 const showCompletionModal = ref<boolean>(false);
@@ -74,45 +82,8 @@ const selectedTask = ref<TaskList | null>(null);
 
 // Computed
 const filteredTasks = computed(() => {
-  let filtered = tasks.value;
-
-  // Filter by category if specified
-  if (props.category) {
-    filtered = filtered.filter((task) => {
-      return task.category === props.category;
-    });
-  }
-
-  // Apply search filter
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    filtered = filtered.filter(
-      (task) =>
-        task.description.toLowerCase().includes(query) ||
-        task.client_name?.toLowerCase().includes(query)
-    );
-  }
-
-  // Apply status filter
-  if (statusFilter.value) {
-    filtered = filtered.filter((task) => task.status === statusFilter.value);
-  }
-
-  // Apply priority filter
-  if (priorityFilter.value) {
-    filtered = filtered.filter(
-      (task) => task.priority === priorityFilter.value
-    );
-  }
-
-  // Apply assignee filter
-  if (assigneeFilter.value) {
-    filtered = filtered.filter(
-      (task) => task.assigned_to === assigneeFilter.value
-    );
-  }
-
-  return filtered;
+  // For backend filtering, we just return the tasks as they come filtered from the API
+  return tasks.value;
 });
 
 // Table columns configuration
@@ -157,33 +128,18 @@ const columns = [
 
 // Methods
 const refreshData = async () => {
-  // Clear all filters to ensure we see the refreshed data
-  clearFilters();
-
   try {
+    // Set up initial filters based on props
     if (props.showUserTasksOnly && authStore.user?.id) {
-      // Fetch tasks for the current user only using the new paginated endpoint
-      const taskService = useTaskService();
-      // Use getTasksByCategory instead of getUserDeadlines
-      const response = await taskService.getTasksByCategory('all', {
-        category: (props.category as TaskCategory) || undefined,
-        assigned_to: authStore.user.id,
-      });
-
-      // Handle paginated response structure
-      if (response && 'results' in response) {
-        taskStore.tasks = response.results;
-        const { results, ...paginationData } = response;
-        taskStore.pagination = paginationData;
-      } else {
-        // Handle direct array response
-        taskStore.tasks = Array.isArray(response) ? response : [];
-      }
-    } else if (props.category) {
-      await taskStore.fetchTasksByCategory(props.category);
-    } else {
-      await taskStore.fetchTasks();
+      await taskStore.setAssigneeFilter(authStore.user.id);
     }
+
+    if (props.category) {
+      await taskStore.setCategoryFilter(props.category);
+    }
+
+    // Fetch tasks with current filters
+    await taskStore.fetchTasks();
   } catch (error) {
     console.error("Error refreshing data:", error);
   }
@@ -228,11 +184,29 @@ const handleTaskCompletion = async (completionData: any): Promise<void> => {
       selectedTaskForCompletion.value.id,
       completionData
     );
+
+    // Show success toast
+    const toast = useToast();
+    toast.add({
+      title: "Task Marked Complete",
+      description: "The task has been marked as completed successfully.",
+      color: "success",
+      icon: "i-lucide-check-circle",
+    });
+
     showCompletionModal.value = false;
     selectedTaskForCompletion.value = null;
     await refreshData();
   } catch (error) {
     console.error("Error completing task:", error);
+    // Show error toast
+    const toast = useToast();
+    toast.add({
+      title: "Task Completion Failed",
+      description: "There was an error completing the task. Please try again.",
+      color: "error",
+      icon: "i-lucide-alert-circle",
+    });
   } finally {
     isCompletingTask.value = false;
   }
@@ -242,11 +216,50 @@ const handlePageChange = async (page: number): Promise<void> => {
   await taskStore.setPage(page);
 };
 
-const clearFilters = () => {
+const clearFilters = async (keepCategory: boolean = false) => {
+  // Set flag to prevent watchers
+  isClearingFilters.value = true;
+
+  // Clear any pending filter updates
+  if (filterUpdateTimeout) {
+    clearTimeout(filterUpdateTimeout);
+    filterUpdateTimeout = null;
+  }
+
+  // Clear local state
   searchQuery.value = "";
   statusFilter.value = null;
   priorityFilter.value = null;
   assigneeFilter.value = null;
+
+  // Clear all filters in the store (keep category if specified)
+  await taskStore.clearFilters(keepCategory);
+
+  // Reset page to 1
+  await taskStore.setPage(1);
+
+  // Reset flag after a short delay to allow state changes to settle
+  nextTick(() => {
+    isClearingFilters.value = false;
+  });
+};
+
+// Method to update backend filters
+const updateBackendFilters = async () => {
+  try {
+    // Update task store filters
+    await taskStore.setSearch(searchQuery.value || "");
+    await taskStore.setStatusFilter(statusFilter.value || undefined);
+    await taskStore.setPriorityFilter(priorityFilter.value || undefined);
+    await taskStore.setAssigneeFilter(assigneeFilter.value || undefined);
+
+    // If category is specified as prop, ensure it's set
+    if (props.category) {
+      await taskStore.setCategoryFilter(props.category);
+    }
+  } catch (error) {
+    console.error('Error updating backend filters:', error);
+  }
 };
 
 // Computed to track if any filters are active
@@ -280,7 +293,10 @@ const formatDate = (dateString: string | null | undefined): string => {
   }
 };
 
-const getDaysRemaining = (deadline: string | null | undefined, task: TaskList | null = null): number | null => {
+const getDaysRemaining = (
+  deadline: string | null | undefined,
+  task: TaskList | null = null
+): number | null => {
   // If the API provides deadline_days_remaining, use that
   if (task && typeof task.deadline_days_remaining === "number") {
     return task.deadline_days_remaining;
@@ -308,32 +324,71 @@ const getDaysRemaining = (deadline: string | null | undefined, task: TaskList | 
   }
 };
 
-const getDeadlineColor = (deadline: string | null | undefined, task: TaskList | null = null): string => {
-  const daysRemaining = getDaysRemaining(deadline, task);
-  if (daysRemaining === null) return "secondary";
-  if (daysRemaining < 0) return "error"; // Overdue
-  if (daysRemaining <= 3) return "warning"; // Due soon
-  if (daysRemaining <= 7) return "primary"; // Due this week
-  return "success"; // More than a week
+const getDaysRemainingText = (
+  deadline: string | null | undefined,
+  task: TaskList | null = null
+): string => {
+  const days = getDaysRemaining(deadline, task);
+  if (days === null || days < 1) return "";
+  return `${days} days remaining`;
 };
+
+// Debounced filter updates to avoid excessive API calls
+let filterUpdateTimeout: NodeJS.Timeout | null = null;
+
+const debouncedUpdateFilters = () => {
+  // Skip if currently clearing filters
+  if (isClearingFilters.value) {
+    return;
+  }
+
+  if (filterUpdateTimeout) {
+    clearTimeout(filterUpdateTimeout);
+  }
+  filterUpdateTimeout = setTimeout(() => {
+    updateBackendFilters();
+  }, 300);
+};
+
+// Watchers for backend filter updates (debounced)
+watch(searchQuery, debouncedUpdateFilters);
+watch(statusFilter, debouncedUpdateFilters);
+watch(priorityFilter, debouncedUpdateFilters);
+watch(assigneeFilter, debouncedUpdateFilters);
+
+// Watcher for category changes - reset filters but keep category when category changes
+watch(() => props.category, async (newCategory, oldCategory) => {
+  if (newCategory !== oldCategory) {
+    // Clear any pending filter updates
+    if (filterUpdateTimeout) {
+      clearTimeout(filterUpdateTimeout);
+      filterUpdateTimeout = null;
+    }
+    await clearFilters(true); // Keep category
+  }
+});
+
+// Watcher for showUserTasksOnly changes - reset all filters when view changes
+watch(() => props.showUserTasksOnly, async (newValue, oldValue) => {
+  if (newValue !== oldValue) {
+    // Clear any pending filter updates
+    if (filterUpdateTimeout) {
+      clearTimeout(filterUpdateTimeout);
+      filterUpdateTimeout = null;
+    }
+    await clearFilters(false); // Clear everything
+  }
+});
 
 // Lifecycle
 onMounted(async () => {
   await Promise.all([refreshData(), userStore.getUserChoices()]);
 });
 
-// Watch for task changes
-watch(
-  tasks,
-  (newTasks, oldTasks) => {
-    // Tasks have changed, reactive updates will happen automatically
-  },
-  { deep: true, immediate: true }
-);
-
 // Expose methods to parent components
 defineExpose({
   refreshData,
+  clearFilters,
 });
 </script>
 
@@ -366,16 +421,16 @@ defineExpose({
               Filter Tasks
             </h3>
           </div>
-          <UButton
-            @click="clearFilters"
-            variant="ghost"
-            size="sm"
-            icon="i-heroicons-x-mark-20-solid"
-            :disabled="!hasActiveFilters"
-            class="text-gray-500 hover:text-gray-700"
-          >
-            Clear All
-          </UButton>
+           <UButton
+             @click="clearFilters(false)"
+             variant="ghost"
+             size="sm"
+             icon="i-heroicons-x-mark-20-solid"
+             :disabled="!hasActiveFilters"
+             class="text-gray-500 hover:text-gray-700"
+           >
+             Clear All
+           </UButton>
         </div>
       </template>
 
@@ -409,6 +464,7 @@ defineExpose({
               :search-input="{
                 placeholder: 'Search statuses...',
               }"
+              class="w-full"
             >
               <template #leading>
                 <UIcon
@@ -433,6 +489,7 @@ defineExpose({
               :search-input="{
                 placeholder: 'Search priorities...',
               }"
+              class="w-full"
             >
               <template #leading>
                 <UIcon
@@ -454,6 +511,7 @@ defineExpose({
               :search-input="{
                 placeholder: 'Search assignees...',
               }"
+              class="w-full"
             >
               <template #leading>
                 <UIcon name="i-heroicons-user-20-solid" class="text-gray-400" />
@@ -465,7 +523,9 @@ defineExpose({
     </UCard>
 
     <!-- Task Table -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+    >
       <UTable
         :data="filteredTasks"
         :columns="columns"
@@ -491,8 +551,7 @@ defineExpose({
               formatDate(row.original.deadline)
             }}</span>
             <span class="font-ligh text-xs">
-              {{ getDaysRemaining(row.original.deadline, row.original) }} days
-              remaining
+              {{ getDaysRemainingText(row.original.deadline, row.original) }}
             </span>
           </div>
           <span v-else class="text-gray-400">No deadline</span>
@@ -546,20 +605,15 @@ defineExpose({
           </div>
         </template>
       </UTable>
-
-      <!-- Pagination -->
-      <div v-if="(typedPagination?.count || 0) > 0" class="p-4 border-t border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-end">
-          <UPagination
-            v-if="(typedPagination?.total_pages || 0) > 1"
-            :page-count="typedPagination?.total_pages || 1"
-            :total="typedPagination?.count || 0"
-            :model-value="typedPagination?.current_page || 1"
-            @update:model-value="handlePageChange"
-          />
-        </div>
-      </div>
     </div>
+
+    <Pagination
+      :pagination="typedPagination"
+      :is-loading="isLoading"
+      :style="'enhanced'"
+      :item-name="'tasks'"
+      :on-page-change="handlePageChange"
+    />
   </div>
 
   <!-- Task Completion Modal -->

@@ -79,7 +79,7 @@ const fetchTaskData = async () => {
     // Show error toast
     const toast = useToast();
     toast.add({
-      title: "Error",
+      title: "Load Failed",
       description: "Failed to load task details. Please try again.",
       color: "error",
       icon: "i-heroicons-exclamation-circle",

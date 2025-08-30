@@ -386,26 +386,7 @@ onMounted(async () => {
     <template #header>
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
-        <div class="flex items-center gap-2">
-          <!-- Time Range Selector -->
-          <USelectMenu
-            v-if="showTimeRange"
-            v-model="selectedTimeRange"
-            :options="timeRangeOptions"
-            size="sm"
-            @update:model-value="handleTimeRangeChange"
-          />
-          <!-- Export Button -->
-          <UButton
-            v-if="showExport"
-            @click="() => exportChart()"
-            variant="ghost"
-            size="sm"
-            icon="mdi:download"
-          >
-            Export
-          </UButton>
-        </div>
+
       </div>
     </template>
 

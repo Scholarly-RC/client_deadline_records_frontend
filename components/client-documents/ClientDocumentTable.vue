@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Components
 import { watchDebounced } from "@vueuse/core";
+import Pagination from "~/components/ui/Pagination.vue";
 import type { ClientDocument } from "~/types";
 
 const search = ref<string>("");
@@ -75,7 +76,7 @@ const handleDelete = async (document: ClientDocument) => {
     // Show error toast
     const toast = useToast();
     toast.add({
-      title: "Delete Failed",
+      title: "Document Deletion Failed",
       description: `Failed to delete "${document.title}". Please try again.`,
       color: "error",
       icon: "i-lucide-alert-circle",
@@ -175,15 +176,14 @@ const formatDate = (dateString: string) => {
       </div>
     </div>
 
-    <!-- Pagination -->
-    <div v-if="pagination.total_pages && pagination.total_pages > 1" class="flex justify-center">
-      <UPagination
-        v-model="pagination.current_page"
-        :page-count="pagination.total_pages"
-        :total="pagination.count"
-        @update:model-value="clientDocumentsStore.setPage($event)"
-      />
-    </div>
+     <!-- Pagination -->
+     <Pagination
+       :pagination="pagination"
+       :is-loading="isLoading"
+       :style="'simple'"
+       :item-name="'documents'"
+       :on-page-change="clientDocumentsStore.setPage"
+     />
 
     <!-- Empty State -->
     <div

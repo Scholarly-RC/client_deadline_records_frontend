@@ -1,19 +1,22 @@
 // ~/constants/choices.ts
 
+import { TaskStatus, TaskPriority } from '~/types/api';
+
 // New unified task model status choices
 export interface StatusChoice {
   label: string;
-  value: string;
+  value: TaskStatus;
 }
 
 export const statusChoices: StatusChoice[] = [
-  { label: "Completed", value: "completed" },
-  { label: "For Revision", value: "for_revision" },
-  { label: "For Checking", value: "for_checking" },
-  { label: "On Going", value: "on_going" },
-  { label: "Pending", value: "pending" },
-  { label: "Not Yet Started", value: "not_yet_started" },
-  { label: "Cancelled", value: "cancelled" },
+  { label: "Completed", value: TaskStatus.COMPLETED },
+  { label: "For Revision", value: TaskStatus.FOR_REVISION },
+  { label: "For Checking", value: TaskStatus.FOR_CHECKING },
+  { label: "On Going", value: TaskStatus.ON_GOING },
+  { label: "Pending", value: TaskStatus.PENDING },
+  { label: "Pending Approval", value: TaskStatus.PENDING_APPROVAL },
+  { label: "Not Yet Started", value: TaskStatus.NOT_YET_STARTED },
+  { label: "Cancelled", value: TaskStatus.CANCELLED },
 ];
 
 // New unified task categories from backend
@@ -79,27 +82,43 @@ export const CATEGORY_DISPLAY_MAPPING: Record<TaskCategory, string> = {
 // Example for priorities
 export interface PriorityChoice {
   label: string;
-  value: string;
+  value: TaskPriority;
 }
 
 export const priorityChoices: PriorityChoice[] = [
-  { label: "High", value: "high" },
-  { label: "Medium", value: "medium" },
-  { label: "Low", value: "low" },
+  { label: "High", value: TaskPriority.HIGH },
+  { label: "Medium", value: TaskPriority.MEDIUM },
+  { label: "Low", value: TaskPriority.LOW },
 ];
 
-export const fsrTypeChoices: PriorityChoice[] = [
+// FSR Type choices
+export interface FsrTypeChoice {
+  label: string;
+  value: string;
+}
+
+export const fsrTypeChoices: FsrTypeChoice[] = [
   { label: "Quarterly", value: "quarterly" },
   { label: "Annual", value: "annual" },
 ];
 
 // Tax case specific choices
-export const taxCaseCategoryChoices: PriorityChoice[] = [
+export interface TaxCaseCategoryChoice {
+  label: string;
+  value: string;
+}
+
+export const taxCaseCategoryChoices: TaxCaseCategoryChoice[] = [
   { label: "One-Time Engagement", value: "OTE" },
   { label: "Regular Process", value: "RP" },
 ];
 
-export const typeOfTaxCaseChoices: PriorityChoice[] = [
+export interface TypeOfTaxCaseChoice {
+  label: string;
+  value: string;
+}
+
+export const typeOfTaxCaseChoices: TypeOfTaxCaseChoice[] = [
   { label: "Percentage Tax", value: "PT" },
   { label: "Income Tax", value: "IT" },
   { label: "Withholding Tax - Expanded", value: "WE" },

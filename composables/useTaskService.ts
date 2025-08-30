@@ -175,17 +175,23 @@ export const useTaskService = () => {
     taskId: number,
     approvalData: { action: 'approve' | 'reject'; remarks?: string }
   ): Promise<Task> => {
+    // Map frontend action values to backend expected values
+    const backendApprovalData = {
+      ...approvalData,
+      action: approvalData.action === 'approve' ? 'approved' : 'rejected'
+    };
+
     return await $apiFetch<Task>(`/api/tasks/${taskId}/process-approval/`, {
       method: 'POST',
-      body: approvalData,
+      body: backendApprovalData,
     });
   };
 
   /**
-    * Get approval history for a task
-    */
+     * Get approval history for a task
+     */
   const getApprovalHistory = async (taskId: number): Promise<ApprovalHistoryEntry[]> => {
-    return await $apiFetch<ApprovalHistoryEntry[]>(`/api/tasks/${taskId}/approval-history/`, {
+    return await $apiFetch<ApprovalHistoryEntry[]>(`/api/tasks/${taskId}/task-approvals/`, {
       method: 'GET',
     });
   };
@@ -195,6 +201,15 @@ export const useTaskService = () => {
     */
   const getStatusHistory = async (taskId: number): Promise<StatusHistoryEntry[]> => {
     return await $apiFetch<StatusHistoryEntry[]>(`/api/tasks/${taskId}/status-history/`, {
+      method: 'GET',
+    });
+  };
+
+  /**
+    * Get pending approvals for current user
+    */
+  const getPendingApprovals = async (): Promise<TaskList[]> => {
+    return await $apiFetch<TaskList[]>('/api/tasks/pending-approvals/', {
       method: 'GET',
     });
   };
@@ -230,5 +245,6 @@ export const useTaskService = () => {
     processApproval,
     getApprovalHistory,
     getStatusHistory,
+    getPendingApprovals,
   };
 };

@@ -106,8 +106,8 @@ const onSubmit = handleSubmit(async (values: ClientFormData) => {
     });
   } catch (error: any) {
     toast.add({
-      title: "Update Failed",
-      description: getErrorMessage(error),
+      title: "Client Update Failed",
+      description: getErrorMessage(error as any),
       color: "error",
       icon: "mdi:close-box-multiple",
       duration: 5000,

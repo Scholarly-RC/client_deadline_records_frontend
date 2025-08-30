@@ -66,7 +66,7 @@ const handleDelete = async (): Promise<void> => {
     // Show error toast
     const toast = useToast();
     toast.add({
-      title: "Delete Failed",
+      title: "Task Deletion Failed",
       description: "Failed to delete the task. Please try again.",
       color: "error",
       icon: "i-heroicons-exclamation-circle",

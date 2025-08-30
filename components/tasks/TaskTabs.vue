@@ -111,6 +111,57 @@ const active = computed<string>({
     });
   },
 });
+
+// Computed to get the current active table ref
+const activeTableRef = computed(() => {
+  switch (active.value) {
+    case "compliance":
+      return complianceTableRef.value;
+    case "financial_statement":
+      return financialStatementTableRef.value;
+    case "finance_implementation":
+      return financeImplementationTableRef.value;
+    case "hr_implementation":
+      return hrImplementationTableRef.value;
+    case "auditing_accounting":
+      return auditingAccountingTableRef.value;
+    case "miscellaneous":
+      return miscellaneousTableRef.value;
+    case "tax":
+      return taxTableRef.value;
+    default:
+      return null;
+  }
+});
+
+// Watch for tab changes and clear filters on all tables
+watch(active, async (newTab, oldTab) => {
+  // Only clear filters when actually switching tabs (not on initial mount)
+  if (oldTab !== undefined && newTab !== oldTab) {
+    // Clear filters on all tables to prevent filter persistence
+    const tableRefs = [
+      complianceTableRef.value,
+      financialStatementTableRef.value,
+      financeImplementationTableRef.value,
+      hrImplementationTableRef.value,
+      auditingAccountingTableRef.value,
+      miscellaneousTableRef.value,
+      taxTableRef.value,
+    ];
+
+    // Clear filters on all mounted tables
+    await Promise.all(
+      tableRefs
+        .filter((ref): ref is InstanceType<typeof UnifiedTaskTable> => ref !== null && typeof ref.clearFilters === 'function')
+        .map((ref) => ref.clearFilters(false))
+    );
+
+    // Refresh data on the active table
+    if (activeTableRef.value && typeof activeTableRef.value.refreshData === 'function') {
+      await activeTableRef.value.refreshData();
+    }
+  }
+});
 </script>
 
 <template>

@@ -3,6 +3,7 @@ import { computed, ref, watch, onMounted } from "vue";
 import { useTaskStore } from "~/stores/tasks";
 import { useUserStore } from "~/stores/users";
 import { useAuthStore } from "~/stores/auth";
+import { useToast } from "#imports";
 import type { User } from "~/types/entities";
 import type { ApprovalRequest } from "~/types/requests";
 
@@ -64,10 +65,26 @@ const initiateWorkflow = async (): Promise<void> => {
       approvers: selectedApprovers.value.map(approver => approver.id)
     };
     await taskStore.initiateApproval(props.task?.id!, approvalRequest);
+    // Show success toast
+    const toast = useToast();
+    toast.add({
+      title: "Approval workflow initiated",
+      description: "The task has been submitted for approval successfully.",
+      color: "success",
+      icon: "i-lucide-check-circle"
+    });
     emit("approved");
     closeModal();
   } catch (error) {
     console.error("Failed to initiate approval:", error);
+    // Show error toast
+    const toast = useToast();
+    toast.add({
+      title: "Failed to initiate approval",
+      description: "There was an error submitting the task for approval. Please try again.",
+      color: "error",
+      icon: "i-lucide-alert-circle"
+    });
   }
 };
 

@@ -249,7 +249,7 @@ const fetchTaskData = async () => {
     console.error('Error fetching task:', error);
     const toast = useToast();
     toast.add({
-      title: 'Error',
+      title: 'Load Error',
       description: 'Failed to load task data.',
       color: 'error',
       icon: 'i-lucide-alert-circle',
@@ -299,7 +299,7 @@ const onSubmit = async () => {
 
   if (!client.value) {
     toast.add({
-      title: "Error",
+      title: "Validation Error",
       description: "No client selected. Please select a client.",
       color: "error",
       icon: "i-lucide-alert-circle",
@@ -334,7 +334,7 @@ const onSubmit = async () => {
     if (isEditMode.value && editTask.value) {
       await taskStore.updateTask(editTask.value.id, cleanedValues);
       toast.add({
-        title: "Success",
+        title: "Task Updated",
         description: "Task updated successfully.",
         color: "success",
         icon: "i-lucide-check-circle",
@@ -346,7 +346,7 @@ const onSubmit = async () => {
         last_update: new Date().toISOString(),
       });
       toast.add({
-        title: "Success",
+        title: "Task Created",
         description: "Task created successfully.",
         color: "success",
         icon: "i-lucide-check-circle",

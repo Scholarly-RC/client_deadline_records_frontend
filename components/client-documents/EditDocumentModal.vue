@@ -11,7 +11,21 @@ const form = reactive({
   description: "",
 });
 
+// Original values for change tracking
+const originalValues = reactive({
+  title: "",
+  description: "",
+});
+
 const error = ref<string>("");
+
+// Computed property to check if form has changes
+const hasChanges = computed(() => {
+  return (
+    form.title.trim() !== originalValues.title ||
+    form.description.trim() !== originalValues.description
+  );
+});
 
 // Watch for document changes
 watch(
@@ -20,6 +34,9 @@ watch(
     if (newDocument) {
       form.title = newDocument.title;
       form.description = newDocument.description || "";
+      // Store original values for change tracking
+      originalValues.title = newDocument.title;
+      originalValues.description = newDocument.description || "";
     }
   },
   { immediate: true }
@@ -59,7 +76,7 @@ const handleSubmit = async () => {
     // Show error toast
     const toast = useToast();
     toast.add({
-      title: "Update Failed",
+      title: "Document Update Failed",
       description: error.value,
       color: "error",
       icon: "i-lucide-alert-circle",
@@ -78,6 +95,10 @@ const handleClose = () => {
   form.description = "";
   error.value = "";
 
+  // Reset original values
+  originalValues.title = "";
+  originalValues.description = "";
+
   editDocumentStore.closeModal();
 };
 </script>
@@ -92,14 +113,23 @@ const handleClose = () => {
     }"
     @close="handleClose"
   >
-
     <template #body>
       <!-- Loading overlay -->
-      <div v-if="isUpdating" class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-10 rounded-lg">
+      <div
+        v-if="isUpdating"
+        class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-10 rounded-lg"
+      >
         <div class="text-center">
-          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
-          <p class="text-sm font-medium text-gray-900 dark:text-white">Updating document...</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Please wait while we save your changes</p>
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2"
+          />
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            Updating document...
+          </p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Please wait while we save your changes
+          </p>
         </div>
       </div>
 
@@ -111,6 +141,7 @@ const handleClose = () => {
             placeholder="Enter document title"
             required
             :disabled="isUpdating"
+            class="w-full"
           />
         </UFormField>
 
@@ -121,6 +152,7 @@ const handleClose = () => {
             placeholder="Enter document description (optional)"
             :disabled="isUpdating"
             :rows="3"
+            class="w-full"
           />
         </UFormField>
 
@@ -132,11 +164,15 @@ const handleClose = () => {
           <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
             <p><strong>Type:</strong> {{ document.file_extension }}</p>
             <p><strong>Size:</strong> {{ document.file_size }}</p>
-            <p><strong>Uploaded:</strong> {{ new Date(document.uploaded_at).toLocaleString() }}</p>
+            <p>
+              <strong>Uploaded:</strong>
+              {{ new Date(document.uploaded_at).toLocaleString() }}
+            </p>
             <p><strong>By:</strong> {{ document.uploaded_by_name }}</p>
           </div>
           <p class="text-xs text-gray-500 dark:text-gray-400">
-            Note: File cannot be changed after upload. Only title and description can be edited.
+            Note: File cannot be changed after upload. Only title and
+            description can be edited.
           </p>
         </div>
 
@@ -148,19 +184,11 @@ const handleClose = () => {
     </template>
 
     <template #footer>
-      <div class="flex justify-end space-x-2">
-        <UButton
-          @click="handleClose"
-          variant="ghost"
-          :disabled="isUpdating"
-        >
-          Cancel
-        </UButton>
-
+      <div class="w-full flex justify-end space-x-2">
         <UButton
           @click="handleSubmit"
           :loading="isUpdating"
-          :disabled="!form.title.trim()"
+          :disabled="!form.title.trim() || !hasChanges"
         >
           Update Document
         </UButton>

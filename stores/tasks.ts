@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { Task, TaskList, TaskFilters, PaginatedResponse, TaskCompletionRequest, ApprovalRequest, StatusHistoryEntry, ApprovalHistoryEntry } from '~/types';
+import type { Task, TaskList, TaskFilters, PaginatedResponse, TaskCompletionRequest, ApprovalRequest, StatusHistoryEntry, ApprovalHistoryEntry, TaskStatus, TaskPriority } from '~/types';
 import { TASK_CATEGORIES, type TaskCategory } from '~/constants/choices.js';
 
 interface TaskState {
@@ -10,6 +10,9 @@ interface TaskState {
     count?: number;
     next?: string | null;
     previous?: string | null;
+    current_page?: number;
+    total_pages?: number;
+    item_range?: string;
   };
 
   // Loading states
@@ -46,7 +49,14 @@ export const useTaskStore = defineStore('taskStore', {
     // Core task data
     tasks: [],
     currentTask: null,
-    pagination: {},
+    pagination: {
+      count: undefined,
+      next: null,
+      previous: null,
+      current_page: 1,
+      total_pages: 1,
+      item_range: undefined,
+    },
 
     // Loading states
     isLoading: false,
@@ -242,10 +252,19 @@ export const useTaskStore = defineStore('taskStore', {
         const response: PaginatedResponse<TaskList> = await taskService.getTasks(this.filters);
         
         this.tasks = response.results;
+
+        // Calculate pagination properties
+        const pageSize = 10; // Default page size
+        const currentPage = this.filters.page || 1;
+        const totalPages = Math.ceil(response.count / pageSize);
+
         this.pagination = {
           count: response.count,
           next: response.next,
           previous: response.previous,
+          current_page: currentPage,
+          total_pages: totalPages,
+          item_range: `${(currentPage - 1) * pageSize + 1}-${Math.min(currentPage * pageSize, response.count)}`,
         };
       } catch (error) {
         console.error('Error fetching tasks:', error);
@@ -262,13 +281,8 @@ export const useTaskStore = defineStore('taskStore', {
       this.isLoading = true;
       try {
         const taskService = useTaskService();
-        // Fetch tasks requiring approval
-        const response: PaginatedResponse<TaskList> = await taskService.getTasks({
-          requires_approval: true,
-          status: 'pending_approval' as any,
-        });
-        
-        this.pendingApprovals = response.results;
+        // Use dedicated endpoint for pending approvals
+        this.pendingApprovals = await taskService.getPendingApprovals();
       } catch (error) {
         console.error('Error fetching pending approvals:', error);
         throw error;
@@ -377,9 +391,9 @@ export const useTaskStore = defineStore('taskStore', {
     /**
      * Clear all filters
      */
-    async clearFilters(): Promise<void> {
+    async clearFilters(keepCategory: boolean = false): Promise<void> {
       this.filters = {
-        category: undefined,
+        category: keepCategory ? this.filters.category : undefined,
         status: undefined,
         priority: undefined,
         assigned_to: undefined,
@@ -519,6 +533,42 @@ export const useTaskStore = defineStore('taskStore', {
      */
     async setSearch(search: string): Promise<void> {
       this.filters.search = search;
+      this.filters.page = 1;
+      await this.fetchTasks();
+    },
+
+    /**
+     * Set status filter and refetch
+     */
+    async setStatusFilter(status: TaskStatus | undefined): Promise<void> {
+      this.filters.status = status;
+      this.filters.page = 1;
+      await this.fetchTasks();
+    },
+
+    /**
+     * Set priority filter and refetch
+     */
+    async setPriorityFilter(priority: TaskPriority | undefined): Promise<void> {
+      this.filters.priority = priority;
+      this.filters.page = 1;
+      await this.fetchTasks();
+    },
+
+    /**
+     * Set assignee filter and refetch
+     */
+    async setAssigneeFilter(assigneeId: number | undefined): Promise<void> {
+      this.filters.assigned_to = assigneeId;
+      this.filters.page = 1;
+      await this.fetchTasks();
+    },
+
+    /**
+     * Set category filter and refetch
+     */
+    async setCategoryFilter(category: string | undefined): Promise<void> {
+      this.filters.category = category as TaskCategory;
       this.filters.page = 1;
       await this.fetchTasks();
     },

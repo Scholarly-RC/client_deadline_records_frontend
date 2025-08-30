@@ -1,6 +1,5 @@
 import { defineStore } from "pinia";
 import { useToast } from '../node_modules/@nuxt/ui/dist/runtime/composables/useToast'
-import { useNuxtApp } from '#app/nuxt'
 import { getErrorMessage } from '~/utils/errorHandler'
 import { useTaskService } from '~/composables/useTaskService'
 
@@ -294,70 +293,19 @@ export const useDashboardStore = defineStore("dashboardStore", {
   },
   
   actions: {
-    /**
-     * Get legacy dashboard data (backward compatibility)
-     */
-    async getDashboardData() {
-      const authStore = useAuthStore();
-
-      // Don't make API calls if not fully authenticated or still initializing
-      if (!authStore.isAuthenticated || !authStore.isInitialized) {
-        return;
-      }
-
-      const toast = useToast();
-      try {
-        this.isLoading = true;
-        const { $apiFetch } = useNuxtApp();
-        const response: any = await $apiFetch("/api/stats/", {
-          method: "GET",
-        });
-        this.stats = response;
-      } catch (error: any) {
-        // Only show error toast if it's not an authentication error
-        if (error?.status !== 401 && error?.status !== 403) {
-          toast.add({
-            title: "Dashboard Data Unavailable",
-            description: getErrorMessage(error),
-            color: "error",
-            icon: "mdi:close-box-multiple",
-            duration: 5000,
-          });
-        }
-        console.error(error);
-      } finally {
-        this.isLoading = false;
-      }
-    },
+  /**
+   * Legacy method - now redirects to fetchEnhancedDashboardData
+   */
+  async getDashboardData() {
+    return await this.fetchEnhancedDashboardData();
+  },
     
-    /**
-     * Get new task statistics (legacy method for backward compatibility)
-     */
-    async getTaskStatistics() {
-      const toast = useToast();
-      try {
-        this.isLoadingTaskStats = true;
-        const taskService = useTaskService();
-        const response = await taskService.getTaskStatistics();
-        
-        // Store in enhancedStats for compatibility
-        this.enhancedStats = response;
-        
-        return response;
-      } catch (error: any) {
-        toast.add({
-          title: "Task Statistics Unavailable",
-          description: getErrorMessage(error),
-          color: "error",
-          icon: "mdi:close-box-multiple",
-          duration: 5000,
-        });
-        console.error(error);
-        throw error;
-      } finally {
-        this.isLoadingTaskStats = false;
-      }
-    },
+  /**
+   * Get task statistics from /api/tasks/statistics/
+   */
+  async getTaskStatistics() {
+    return await this.fetchEnhancedDashboardData();
+  },
     
     /**
      * Fetch enhanced dashboard data from /api/tasks/statistics/
@@ -461,22 +409,16 @@ export const useDashboardStore = defineStore("dashboardStore", {
       }
     },
     
-    /**
-     * Load all dashboard data (enhanced version)
-     */
-    async loadAllDashboardData() {
-      try {
-        // Load enhanced data as primary source
-        await Promise.allSettled([
-          this.fetchEnhancedDashboardData(),
-          this.getOverdueTasks(),
-          this.getTasksDueSoon(),
-          this.getDashboardData(), // Keep legacy for backward compatibility
-        ]);
-      } catch (error) {
-        console.error("Error loading dashboard data:", error);
-      }
-    },
+  /**
+   * Load all dashboard data from single statistics endpoint
+   */
+  async loadAllDashboardData() {
+    try {
+      await this.fetchEnhancedDashboardData();
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    }
+  },
     
     /**
      * Set chart loading state
@@ -558,53 +500,53 @@ export const useDashboardStore = defineStore("dashboardStore", {
       }
     },
     
-    /**
-     * Refresh dashboard data with loading indicators
-     */
-    async refreshDashboard(force = false) {
-      try {
-        if (force) {
-          this.isLoading = true;
-        }
-        
-        await this.loadAllDashboardData();
-        
-        this.lastUpdated = new Date().toISOString();
-        
-
-        if (force) {
-          // Show success notification for manual refresh
-          const toast = useToast();
-          toast.add({
-            title: 'Dashboard Updated',
-            description: 'Data has been refreshed successfully',
-            color: 'success',
-            duration: 3000
-          });
-        }
-        
-        return true;
-      } catch (error) {
-        console.error('Dashboard refresh failed:', error);
-        
-        if (force) {
-          // Show error notification for manual refresh
-          const toast = useToast();
-          toast.add({
-            title: 'Refresh Failed',
-            description: 'Failed to update dashboard data',
-            color: 'error',
-            duration: 5000
-          });
-        }
-        
-        throw error;
-      } finally {
-        if (force) {
-          this.isLoading = false;
-        }
+  /**
+   * Refresh dashboard data with loading indicators
+   */
+  async refreshDashboard(force = false) {
+    try {
+      if (force) {
+        this.isLoading = true;
       }
-    },
+
+      await this.fetchEnhancedDashboardData();
+
+      this.lastUpdated = new Date().toISOString();
+
+
+      if (force) {
+        // Show success notification for manual refresh
+        const toast = useToast();
+        toast.add({
+          title: 'Dashboard Updated',
+          description: 'Data has been refreshed successfully',
+          color: 'success',
+          duration: 3000
+        });
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Dashboard refresh failed:', error);
+
+      if (force) {
+        // Show error notification for manual refresh
+        const toast = useToast();
+        toast.add({
+          title: 'Refresh Failed',
+          description: 'Failed to update dashboard data',
+          color: 'error',
+          duration: 5000
+        });
+      }
+
+      throw error;
+    } finally {
+      if (force) {
+        this.isLoading = false;
+      }
+    }
+  },
     
     /**
      * Update specific chart data without full refresh
@@ -659,38 +601,32 @@ export const useDashboardStore = defineStore("dashboardStore", {
       const freshness = this.getDataFreshness();
       return freshness === 'stale' || freshness === 'very-stale' || freshness === 'never';
     },
-    clearDashboard() {
-      // Legacy data
-      this.stats = false;
-      // Removed reference to non-existent taskStatistics property
-      this.overdueTasks = [];
-      this.tasksDueSoon = [];
-      
-      // Enhanced data
-      this.enhancedStats = null;
-      this.weeklyTrends = [];
-      this.categoryDistribution = {};
-      this.statusBreakdown = {};
-      this.priorityBreakdown = {};
-      this.performanceMetrics = {};
-      this.teamAnalytics = {};
-      this.clientInsights = {};
-      this.businessIntelligence = {};
-      this.quickActions = {};
-      
-      // UI state
-      this.currentLayout = 'operations';
-      this.selectedTimeRange = '7d';
-      
-      // Real-time state
-      this.stopRealTimeUpdates();
-      this.realtimeEnabled = false;
-      this.lastUpdated = null;
-      
-      // Reset chart loading states
-      Object.keys(this.chartLoadingStates).forEach(key => {
-        this.chartLoadingStates[key] = false;
-      });
-    },
+  clearDashboard() {
+    // Clear all data from statistics endpoint
+    this.enhancedStats = null;
+    this.weeklyTrends = [];
+    this.categoryDistribution = {};
+    this.statusBreakdown = {};
+    this.priorityBreakdown = {};
+    this.performanceMetrics = {};
+    this.teamAnalytics = {};
+    this.clientInsights = {};
+    this.businessIntelligence = {};
+    this.quickActions = {};
+
+    // UI state
+    this.currentLayout = 'operations';
+    this.selectedTimeRange = '7d';
+
+    // Real-time state
+    this.stopRealTimeUpdates();
+    this.realtimeEnabled = false;
+    this.lastUpdated = null;
+
+    // Reset chart loading states
+    Object.keys(this.chartLoadingStates).forEach(key => {
+      this.chartLoadingStates[key] = false;
+    });
+  },
   },
 });
