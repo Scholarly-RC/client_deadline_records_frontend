@@ -48,20 +48,20 @@ const handleNotificationButtonClick = async () => {
 
 <template>
   <UPopover :open="showNotification" @update:open="handlePopoverUpdate">
-    <UChip 
-      :show="unreadNotificationCount > 0" 
-      :text="unreadNotificationCount"
+    <UButton
+      icon="mdi:bell-ring-outline"
+      class="notification-button relative p-3 rounded-full"
+      :ui="{
+        leadingIcon:
+          unreadNotificationCount > 0
+            ? 'animate-shake-ring text-green-500'
+            : '',
+      }"
+      variant="subtle"
       size="xl"
-    >
-      <UButton
-        icon="mdi:bell-ring-outline"
-        class="notification-button relative p-3 rounded-full"
-        variant="subtle"
-        size="xl"
-        color="neutral"
-        @click="handleNotificationButtonClick"
-      />
-    </UChip>
+      color="neutral"
+      @click="handleNotificationButtonClick"
+    />
 
     <template #content>
       <div
@@ -117,8 +117,8 @@ const handleNotificationButtonClick = async () => {
               <UIcon name="mdi:reload" />
             </template>
           </UButton>
-          <p 
-            v-else-if="notifications.length > 0" 
+          <p
+            v-else-if="notifications.length > 0"
             class="text-xs text-gray-500 dark:text-gray-400"
           >
             No more notifications to load
@@ -128,3 +128,33 @@ const handleNotificationButtonClick = async () => {
     </template>
   </UPopover>
 </template>
+
+<style>
+.animate-shake-ring {
+  animation: shake-ring 6s ease-in-out infinite !important;
+  transform-origin: center !important;
+}
+
+@keyframes shake-ring {
+  /* Shake for first 2 seconds (0-33.33%) */
+  0%, 8.33%, 16.67%, 25%, 33.33% {
+    transform: translateX(0) rotate(0deg);
+  }
+  4.17% {
+    transform: translateX(-4px) rotate(-2deg);
+  }
+  12.5% {
+    transform: translateX(4px) rotate(2deg);
+  }
+  20.83% {
+    transform: translateX(-3px) rotate(-1deg);
+  }
+  29.17% {
+    transform: translateX(3px) rotate(1deg);
+  }
+  /* Pause for 4 seconds (33.33%-100%) */
+  33.33%, 100% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+</style>
