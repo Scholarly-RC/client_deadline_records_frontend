@@ -375,15 +375,12 @@ watch(
     <!-- Approval History Modal -->
     <UModal
       v-model:open="showApprovalHistoryModal"
+      :title="`Approval History - ${localTask.description}`"
+      description="View the complete approval workflow history for this task"
       :ui="{ content: 'sm:max-w-4xl' } as any"
     >
       <template #content>
         <UCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">
-              Approval History - {{ localTask.description }}
-            </h3>
-          </template>
 
           <ApprovalHistoryComponent :task="localTask" />
 
@@ -404,15 +401,12 @@ watch(
     <!-- Status History Modal -->
     <UModal
       v-model:open="showStatusHistoryModal"
+      :title="`Status History - ${localTask.description}`"
+      description="View the complete status change history for this task"
       :ui="{ content: 'sm:max-w-4xl' } as any"
     >
       <template #content>
         <UCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">
-              Status History - {{ localTask.description }}
-            </h3>
-          </template>
 
           <div class="space-y-4">
             <div v-if="hasHistory" class="max-h-96 overflow-y-auto">

@@ -229,28 +229,13 @@ watch(() => form.title, (newTitle) => {
 <template>
   <UModal
     v-model:open="showModal"
+    title="Upload Document"
+    description="Upload a new document for the selected client with title and description"
     :ui="{
       content: 'max-w-lg w-full',
     }"
     @close="handleClose"
   >
-    <template #header>
-      <div class="flex items-center space-x-3">
-        <div class="flex-shrink-0">
-          <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-            <UIcon name="i-lucide-upload-cloud" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
-          </div>
-        </div>
-        <div>
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Upload Document
-          </h3>
-          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Upload a new document for the selected client
-          </p>
-        </div>
-      </div>
-    </template>
 
     <template #body>
       <!-- Loading overlay -->

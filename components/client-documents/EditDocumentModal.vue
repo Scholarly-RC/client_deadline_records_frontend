@@ -85,21 +85,13 @@ const handleClose = () => {
 <template>
   <UModal
     v-model:open="showModal"
+    title="Edit Document"
+    description="Update document information and metadata"
     :ui="{
       content: 'max-w-md w-full',
     }"
     @close="handleClose"
   >
-    <template #header>
-      <div>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Edit Document
-        </h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Update document information
-        </p>
-      </div>
-    </template>
 
     <template #body>
       <!-- Loading overlay -->

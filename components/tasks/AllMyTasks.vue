@@ -3,7 +3,7 @@ import TaskTabs from "~/components/tasks/TaskTabs.vue";
 </script>
 
 <template>
-  <UModal title="All My Tasks" description="TODO:" fullscreen>
+  <UModal title="All My Tasks" description="View and manage all tasks assigned to you" fullscreen>
     <UButton label="View All" size="lg" />
     <template #body>
       <TaskTabs :show-user-tasks-only="true" />

@@ -42,6 +42,12 @@ const allItems: NavigationItem[][] = [
       adminOnly: true,
     },
     {
+      label: "Client Documents",
+      icon: "i-lucide-file-text",
+      to: "/client-documents",
+      adminOnly: true,
+    },
+    {
       label: "Tasks",
       icon: "i-lucide-calendar",
       to: "/tasks",
@@ -64,18 +70,12 @@ const allItems: NavigationItem[][] = [
       to: "/users",
       adminOnly: true,
     },
-     {
-       label: "Logs",
-       icon: "i-lucide-list",
-       to: "/logs",
-       adminOnly: true,
-     },
-     {
-       label: "Client Documents",
-       icon: "i-lucide-file-text",
-       to: "/client-documents",
-       adminOnly: true,
-     },
+    {
+      label: "Logs",
+      icon: "i-lucide-list",
+      to: "/logs",
+      adminOnly: true,
+    },
   ],
 ];
 
@@ -143,7 +143,7 @@ onUnmounted(() => {
         />
       </div>
     </template>
-    
+
     <template #footer>
       <!-- Mobile footer -->
       <div class="flex flex-col items-center justify-center space-y-3 w-full">

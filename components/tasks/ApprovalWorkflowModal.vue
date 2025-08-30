@@ -90,12 +90,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" :dismissible="false">
+  <UModal
+    v-model:open="isOpen"
+    title="Initiate Approval Workflow"
+    description="Start the approval process for this task by selecting appropriate approvers"
+    :dismissible="false"
+  >
     <template #content>
       <UCard>
-        <template #header>
-          <h3 class="text-lg font-semibold">Initiate Approval Workflow</h3>
-        </template>
 
         <div class="space-y-4">
           <div>

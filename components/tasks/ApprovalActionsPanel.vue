@@ -118,14 +118,13 @@ const processDecision = async (): Promise<void> => {
     </div>
 
     <!-- Approval Decision Modal -->
-    <UModal v-model:open="showDecisionModal">
+    <UModal
+      v-model:open="showDecisionModal"
+      :title="`${decisionAction === 'approve' ? 'Approve' : 'Reject'} Task`"
+      :description="`Provide feedback for ${decisionAction === 'approve' ? 'approving' : 'rejecting'} this task`"
+    >
       <template #content>
         <UCard>
-          <template #header>
-            <h3 class="text-lg font-semibold">
-              {{ decisionAction === "approve" ? "Approve" : "Reject" }} Task
-            </h3>
-          </template>
 
           <div class="space-y-4">
             <div class="flex flex-col gap-1">

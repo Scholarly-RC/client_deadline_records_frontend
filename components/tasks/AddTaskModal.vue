@@ -100,11 +100,15 @@ const handleUnifiedModalSuccess = () => {
       size="md"
     />
 
-    <UModal v-model="showAddTaskModal" prevent-close>
+    <UModal
+      v-model="showAddTaskModal"
+      title="Add Task - Step 1 of 2"
+      description="Create a new task by filling in the required information"
+      prevent-close
+    >
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold">Add Task - Step 1 of 2</h2>
             <UButton
               color="neutral"
               variant="ghost"
@@ -112,7 +116,6 @@ const handleUnifiedModalSuccess = () => {
               @click="showAddTaskModal = false"
             />
           </div>
-          <p class="text-sm text-gray-500">
             Select a client and a category to create a new task.
           </p>
         </template>

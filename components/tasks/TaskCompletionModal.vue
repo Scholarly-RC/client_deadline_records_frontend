@@ -68,6 +68,7 @@ watch(
   <UModal
     v-model:open="isOpen"
     title="Mark Task as Complete"
+    description="Confirm that this task has been completed successfully"
     :ui="{ footer: 'justify-end' }"
     :prevent-close="isSubmitting"
     :close="false"
