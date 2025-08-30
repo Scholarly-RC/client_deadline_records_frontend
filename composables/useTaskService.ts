@@ -1,8 +1,8 @@
-import type { 
-  Task, 
-  TaskList, 
-  TaskFilters, 
-  TaskCreateRequest, 
+import type {
+  Task,
+  TaskList,
+  TaskFilters,
+  TaskCreateRequest,
   TaskUpdateRequest,
   TaskCompletionRequest,
   ApprovalRequest,
@@ -10,18 +10,14 @@ import type {
   StatusHistoryEntry,
   ApprovalHistoryEntry
 } from '~/types';
-import { TASK_CATEGORIES, LEGACY_CATEGORY_MAPPING } from '~/constants/choices.js';
+import { TASK_CATEGORIES } from '~/constants/choices.js';
 
-/**
- * Unified Task Service for the new backend API
- * Replaces all category-specific services with a single task endpoint
- */
 export const useTaskService = () => {
   const { $apiFetch } = useNuxtApp();
 
   /**
-   * Get all tasks with optional filtering
-   */
+    * Get all tasks with optional filtering
+    */
   const getTasks = async (filters: TaskFilters = {}): Promise<PaginatedResponse<TaskList>> => {
     const params = new URLSearchParams();
 
@@ -68,8 +64,8 @@ export const useTaskService = () => {
     getTasksByCategory(TASK_CATEGORIES.MISCELLANEOUS, filters);
 
   /**
-   * Create a new task
-   */
+    * Create a new task
+    */
   const createTask = async (taskData: TaskCreateRequest): Promise<Task> => {
     return await $apiFetch<Task>('/api/tasks/', {
       method: 'POST',
@@ -78,8 +74,8 @@ export const useTaskService = () => {
   };
 
   /**
-   * Update an existing task
-   */
+    * Update an existing task
+    */
   const updateTask = async (taskId: number, taskData: TaskUpdateRequest): Promise<Task> => {
     return await $apiFetch<Task>(`/api/tasks/${taskId}/`, {
       method: 'PUT',
@@ -88,8 +84,8 @@ export const useTaskService = () => {
   };
 
   /**
-   * Partially update a task
-   */
+    * Partially update a task
+    */
   const patchTask = async (taskId: number, taskData: Partial<TaskUpdateRequest>): Promise<Task> => {
     return await $apiFetch<Task>(`/api/tasks/${taskId}/`, {
       method: 'PATCH',
@@ -98,8 +94,8 @@ export const useTaskService = () => {
   };
 
   /**
-   * Delete a task
-   */
+    * Delete a task
+    */
   const deleteTask = async (taskId: number): Promise<void> => {
     return await $apiFetch<void>(`/api/tasks/${taskId}/`, {
       method: 'DELETE',
@@ -107,8 +103,8 @@ export const useTaskService = () => {
   };
 
   /**
-   * Get a single task by ID
-   */
+    * Get a single task by ID
+    */
   const getTask = async (taskId: number): Promise<Task> => {
     return await $apiFetch<Task>(`/api/tasks/${taskId}/`, {
       method: 'GET',
@@ -116,31 +112,31 @@ export const useTaskService = () => {
   };
 
   /**
-   * Get overdue tasks
-   */
+    * Get overdue tasks
+    */
   const getOverdueTasks = async (): Promise<TaskList[]> => {
     return await $apiFetch<TaskList[]>('/api/tasks/overdue/', { method: 'GET' });
   };
 
   /**
-   * Get tasks due soon (next 7 days)
-   */
+    * Get tasks due soon (next 7 days)
+    */
   const getTasksDueSoon = async (): Promise<TaskList[]> => {
     return await $apiFetch<TaskList[]>('/api/tasks/due_soon/', { method: 'GET' });
   };
 
   /**
-   * Get task statistics
-   */
+    * Get task statistics
+    */
   const getTaskStatistics = async (): Promise<any> => {
     return await $apiFetch<any>('/api/tasks/statistics/', { method: 'GET' });
   };
 
   /**
-   * Mark task as completed
-   */
+    * Mark task as completed
+    */
   const markTaskCompleted = async (
-    taskId: number, 
+    taskId: number,
     completionData: TaskCompletionRequest
   ): Promise<Task> => {
     return await $apiFetch<Task>(`/api/tasks/${taskId}/mark_completed/`, {
@@ -150,8 +146,8 @@ export const useTaskService = () => {
   };
 
   /**
-   * Update task deadline/status
-   */
+    * Update task deadline/status
+    */
   const updateTaskDeadline = async (taskId: number, updateData: any): Promise<Task> => {
     return await $apiFetch<Task>(`/api/tasks/${taskId}/update-deadline/`, {
       method: 'POST',
@@ -160,10 +156,10 @@ export const useTaskService = () => {
   };
 
   /**
-   * Initiate approval workflow for a task
-   */
+    * Initiate approval workflow for a task
+    */
   const initiateApproval = async (
-    taskId: number, 
+    taskId: number,
     approvalData: ApprovalRequest
   ): Promise<Task> => {
     return await $apiFetch<Task>(`/api/tasks/${taskId}/initiate-approval/`, {
@@ -173,10 +169,10 @@ export const useTaskService = () => {
   };
 
   /**
-   * Process approval step
-   */
+    * Process approval step
+    */
   const processApproval = async (
-    taskId: number, 
+    taskId: number,
     approvalData: { action: 'approve' | 'reject'; remarks?: string }
   ): Promise<Task> => {
     return await $apiFetch<Task>(`/api/tasks/${taskId}/process-approval/`, {
@@ -186,8 +182,8 @@ export const useTaskService = () => {
   };
 
   /**
-   * Get approval history for a task
-   */
+    * Get approval history for a task
+    */
   const getApprovalHistory = async (taskId: number): Promise<ApprovalHistoryEntry[]> => {
     return await $apiFetch<ApprovalHistoryEntry[]>(`/api/tasks/${taskId}/approval-history/`, {
       method: 'GET',
@@ -195,8 +191,8 @@ export const useTaskService = () => {
   };
 
   /**
-   * Get status history for a task
-   */
+    * Get status history for a task
+    */
   const getStatusHistory = async (taskId: number): Promise<StatusHistoryEntry[]> => {
     return await $apiFetch<StatusHistoryEntry[]>(`/api/tasks/${taskId}/status-history/`, {
       method: 'GET',

@@ -1,95 +1,89 @@
 import { useAuthStore } from "~/stores/auth";
 
-// Type declaration for $apiFetch
+// Type declarations for API functions
 declare module '#app' {
   interface NuxtApp {
     $apiFetch: typeof $fetch
+    apiFetch: typeof $fetch
   }
 }
 
 declare module 'vue' {
   interface ComponentCustomProperties {
     $apiFetch: typeof $fetch
+    apiFetch: typeof $fetch
   }
 }
 
-// plugins/api.ts
-export default defineNuxtPlugin(async (nuxtApp) => {
+// Simple API plugin
+export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig();
+  const authStore = useAuthStore();
 
-  // Avoid direct store import to prevent circular dependencies
-  const getAuthStore = () => {
-    const authStore = useAuthStore();
-    return authStore;
-  };
-
-  // Initialize authentication on app start
-  try {
-    await getAuthStore().initAuth();
-  } catch (error) {
-    console.error("Auth initialization failed:", error);
-  }
-
-  // Track refresh token operations to prevent multiple simultaneous refreshes
-  let isRefreshing = false;
-  let refreshPromise: Promise<void> | null = null;
-
+  // Create API fetch function
   const apiFetch = $fetch.create({
     baseURL: config.public.apiBase,
     credentials: "include",
-    async onRequest({ options }) {
-      const authStore = getAuthStore();
-      if (authStore.accessToken) {
+
+    onRequest({ request, options }) {
+      console.log('🌐 API DEBUG: onRequest called');
+      console.log('🌐 API DEBUG: Request URL:', request);
+      console.log('🌐 API DEBUG: Base URL:', options.baseURL);
+      console.log('🌐 API DEBUG: Request method:', options.method);
+
+      const authHeader = authStore.getAuthHeader();
+      console.log('🌐 API DEBUG: Auth header present:', !!authHeader);
+
+      if (authHeader) {
         if (!options.headers) {
-          (options as any).headers = {};
+          options.headers = new Headers();
         }
-        (options.headers as any).Authorization = `Bearer ${authStore.accessToken}`;
+        if (options.headers instanceof Headers) {
+          options.headers.set('Authorization', authHeader);
+        } else {
+          (options.headers as any).Authorization = authHeader;
+        }
+        console.log('🌐 API DEBUG: Authorization header set');
+      } else {
+        console.log('🌐 API DEBUG: No authorization header set');
       }
+
+      console.log('🌐 API DEBUG: Final headers:', options.headers);
     },
 
-    async onResponseError({ response, request, options }) {
-      const authStore = getAuthStore();
+    onResponseError({ response, request }) {
+      console.log('🌐 API DEBUG: onResponseError called');
+      console.log('🌐 API DEBUG: Response status:', response.status);
+      console.log('🌐 API DEBUG: Response URL:', response.url);
+      console.log('🌐 API DEBUG: Request URL:', request);
 
-      // Only handle 401 errors when we have a refresh token
-      if (response.status === 401 && authStore.refreshToken) {
-        if (!isRefreshing) {
-          isRefreshing = true;
-          refreshPromise = authStore.refreshAccessToken().finally(() => {
-            isRefreshing = false;
-          });
-        }
+      if (response.status === 401) {
+        console.log('🌐 API DEBUG: 401 error detected');
+        console.log('🌐 API DEBUG: Auth store state:', {
+          hasAccessToken: !!authStore.accessToken,
+          hasRefreshToken: !!authStore.refreshToken,
+          hasUser: !!authStore.user,
+          isAuthenticated: authStore.isAuthenticated,
+          isLoading: authStore.isLoading,
+          isInitialized: authStore.isInitialized
+        });
 
-        try {
-          // Wait for the refresh to complete (whether it's the current one or a previous one)
-          await refreshPromise;
-
-          // Clone the original options to avoid mutation issues
-          const newOptions = {
-            ...options,
-          };
-          
-          if (!newOptions.headers) {
-            (newOptions as any).headers = {};
-          }
-          (newOptions.headers as any).Authorization = `Bearer ${authStore.accessToken}`;
-
-          // Retry the original request
-          return $fetch(request, newOptions as any);
-        } catch (error) {
-          // Clear auth and redirect only on client side
+        if (authStore.accessToken) {
+          console.log('🌐 API DEBUG: Clearing auth due to 401 with valid token');
           authStore.clearAuth();
+
           if (import.meta.client) {
-            await navigateTo("/login");
+            console.log('🌐 API DEBUG: Redirecting to login');
+            navigateTo('/login');
           }
-          // Re-throw the error to ensure the original caller knows the request failed
-          throw error;
+        } else {
+          console.log('🌐 API DEBUG: Ignoring 401 - no auth token present');
         }
       }
-
-      // For non-401 errors or when we can't refresh, just throw
-      throw response._data || new Error("Request failed");
     },
   });
 
-  nuxtApp.provide("apiFetch", apiFetch);
+  // Provide the API fetch function
+  nuxtApp.provide('apiFetch', apiFetch);
+  nuxtApp.provide('$apiFetch', apiFetch);
 });

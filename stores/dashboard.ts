@@ -298,22 +298,32 @@ export const useDashboardStore = defineStore("dashboardStore", {
      * Get legacy dashboard data (backward compatibility)
      */
     async getDashboardData() {
+      const authStore = useAuthStore();
+
+      // Don't make API calls if not fully authenticated or still initializing
+      if (!authStore.isAuthenticated || !authStore.isInitialized) {
+        return;
+      }
+
       const toast = useToast();
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response: boolean = await $apiFetch("/api/stats/", {
+        const response: any = await $apiFetch("/api/stats/", {
           method: "GET",
         });
         this.stats = response;
       } catch (error: any) {
-        toast.add({
-          title: "Dashboard Data Unavailable",
-          description: getErrorMessage(error),
-          color: "error",
-          icon: "mdi:close-box-multiple",
-          duration: 5000,
-        });
+        // Only show error toast if it's not an authentication error
+        if (error?.status !== 401 && error?.status !== 403) {
+          toast.add({
+            title: "Dashboard Data Unavailable",
+            description: getErrorMessage(error),
+            color: "error",
+            icon: "mdi:close-box-multiple",
+            duration: 5000,
+          });
+        }
         console.error(error);
       } finally {
         this.isLoading = false;
@@ -353,41 +363,51 @@ export const useDashboardStore = defineStore("dashboardStore", {
      * Fetch enhanced dashboard data from /api/tasks/statistics/
      */
     async fetchEnhancedDashboardData() {
+      const authStore = useAuthStore();
+
+      // Don't make API calls if not fully authenticated or still initializing
+      if (!authStore.isAuthenticated || !authStore.isInitialized) {
+        return;
+      }
+
       const toast = useToast();
       try {
         this.isLoadingEnhanced = true;
         this.setChartLoading('all', true);
-        
+
         // Use the actual statistics endpoint
         const taskService = useTaskService();
         const response = await taskService.getTaskStatistics();
-        
+
         // Store the complete enhanced statistics
         this.enhancedStats = response;
-        
+
         // Extract chart data
         this.weeklyTrends = response.charts_data?.weekly_trends || [];
         this.categoryDistribution = response.charts_data?.category_distribution || {};
         this.statusBreakdown = response.charts_data?.status_breakdown || {};
         this.priorityBreakdown = response.charts_data?.priority_breakdown || {};
-        
+
         // Extract analytics data
         this.performanceMetrics = response.performance_metrics || {};
         this.teamAnalytics = response.team_analytics || {};
         this.clientInsights = response.client_insights || {};
         this.businessIntelligence = response.business_intelligence || {};
         this.quickActions = response.quick_actions || {};
-        
+
         this.lastUpdated = new Date().toISOString();
-        
+
       } catch (error: any) {
-        toast.add({
-          title: "Enhanced Dashboard Data Unavailable",
-          description: getErrorMessage(error),
-          color: "error",
-          icon: "mdi:close-box-multiple",
-          duration: 5000,
-        });
+        // Only show error toast if it's not an authentication error
+        if (error?.status !== 401 && error?.status !== 403) {
+          toast.add({
+            title: "Enhanced Dashboard Data Unavailable",
+            description: getErrorMessage(error),
+            color: "error",
+            icon: "mdi:close-box-multiple",
+            duration: 5000,
+          });
+        }
         console.error('Failed to fetch enhanced dashboard data:', error);
       } finally {
         this.setChartLoading('all', false);

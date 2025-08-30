@@ -192,41 +192,84 @@ export const useUnreadNotificationStore = defineStore(
       async getUnreadNotificationCount(): Promise<void> {
         const toast = useToast();
         const authStore = useAuthStore();
-        const { userProfile } = storeToRefs(authStore);
+
+        console.log('🔔 NOTIFICATION DEBUG: getUnreadNotificationCount called');
+        console.log('🔔 NOTIFICATION DEBUG: Auth state:', {
+          isAuthenticated: authStore.isAuthenticated,
+          hasUser: !!authStore.user,
+          isInitialized: authStore.isInitialized,
+          userId: authStore.user?.id
+        });
+
+        // Don't make API calls if not fully authenticated or still initializing
+        if (!authStore.isAuthenticated || !authStore.user || !authStore.isInitialized) {
+          console.log('🔔 NOTIFICATION DEBUG: Skipping API call - auth not ready');
+          return;
+        }
+
+        console.log('🔔 NOTIFICATION DEBUG: Making API call for user:', authStore.user.id);
+
         try {
           this.isLoading = true;
           const { $apiFetch } = useNuxtApp();
-          if (userProfile.value) {
-            const response: any = await $apiFetch(
-              `/api/notifications/?recipient=${userProfile.value.id}&is_read=False`,
-              {
-                method: "GET",
-              }
-            );
-            this.unreadNotificationCount = response["count"] || 0;
-          }
+          const response: any = await $apiFetch(
+            `/api/notifications/?recipient=${authStore.user.id}&is_read=False`,
+            {
+              method: "GET",
+            }
+          );
+          this.unreadNotificationCount = response["count"] || 0;
+          console.log('🔔 NOTIFICATION DEBUG: API call successful, count:', this.unreadNotificationCount);
         } catch (error: any) {
-          toast.add({
-            title: "Notifications Count Unavailable",
-            description: getErrorMessage(error),
-            color: "error",
-            icon: "mdi:close-box-multiple",
-            duration: 5000,
-          });
+          console.log('🔔 NOTIFICATION DEBUG: API call failed');
+          console.log('🔔 NOTIFICATION DEBUG: Error status:', error?.status);
+          console.log('🔔 NOTIFICATION DEBUG: Error message:', error?.message);
+
+          // Only show error toast if it's not an authentication error
+          if (error?.status !== 401 && error?.status !== 403) {
+            toast.add({
+              title: "Notifications Count Unavailable",
+              description: getErrorMessage(error),
+              color: "error",
+              icon: "mdi:close-box-multiple",
+              duration: 5000,
+            });
+          }
           console.error('Error fetching unread notifications:', error);
         } finally {
           this.isLoading = false;
         }
       },
       async startPolling(interval: number = 120000): Promise<void> {
+        const authStore = useAuthStore();
+
+        console.log('🔔 NOTIFICATION DEBUG: startPolling called');
+        console.log('🔔 NOTIFICATION DEBUG: Auth state for polling:', {
+          isAuthenticated: authStore.isAuthenticated,
+          isInitialized: authStore.isInitialized,
+          hasUser: !!authStore.user
+        });
+
+        // Don't start polling if not fully authenticated
+        if (!authStore.isAuthenticated || !authStore.isInitialized) {
+          console.log('🔔 NOTIFICATION DEBUG: Not starting polling - auth not ready');
+          return;
+        }
+
+        console.log('🔔 NOTIFICATION DEBUG: Starting notification polling');
+
         // 2 minutes by default
         this.stopPolling();
         this.pollingInterval = setInterval(async () => {
+          console.log('🔔 NOTIFICATION DEBUG: Polling interval triggered');
           await this.getUnreadNotificationCount();
         }, interval);
 
-        // Get initial count immediately
-        await this.getUnreadNotificationCount();
+        // Get initial count after a short delay to ensure stability
+        setTimeout(async () => {
+          console.log('🔔 NOTIFICATION DEBUG: Initial polling call after delay');
+          await this.getUnreadNotificationCount();
+        }, 500);
       },
 
       stopPolling(): void {

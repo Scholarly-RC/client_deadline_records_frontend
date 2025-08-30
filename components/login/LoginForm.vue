@@ -10,8 +10,8 @@ const { isLoading } = storeToRefs(authStore);
 // Form Validation Schema
 const validationSchema = toTypedSchema(
   z.object({
-    username: z.string().nonempty("Username is required."),
-    password: z.string().nonempty("Password is required."),
+    username: z.string().min(1, "Username is required.").max(150, "Username is too long."),
+    password: z.string().min(1, "Password is required."),
   })
 );
 
@@ -24,8 +24,13 @@ const {
   handleSubmit,
   isSubmitting,
   resetForm,
+  setErrors,
 } = useForm({
   validationSchema,
+  initialValues: {
+    username: '',
+    password: '',
+  },
 });
 
 // Form Fields
@@ -34,15 +39,54 @@ const [password] = defineField("password");
 
 // Computed
 const disableSubmit = computed((): boolean => {
-  return !formMeta.value.dirty || !formMeta.value.valid;
+  return !formMeta.value.dirty || !formMeta.value.valid || isLoading.value;
 });
 
 // Methods
 const onSubmit = handleSubmit(async (values): Promise<void> => {
-  await authStore.login({
-    username: values.username,
-    password: values.password,
-  });
+  try {
+    await authStore.login({
+      username: values.username.trim(),
+      password: values.password,
+    });
+
+    // Clear form on successful login
+    resetForm();
+  } catch (error: any) {
+    // Handle server-side validation errors
+    if (error?.data) {
+      const serverErrors = error.data;
+
+      // Handle field-specific errors
+      if (serverErrors.username) {
+        setErrors({ username: Array.isArray(serverErrors.username) ? serverErrors.username[0] : serverErrors.username });
+      }
+      if (serverErrors.password) {
+        setErrors({ password: Array.isArray(serverErrors.password) ? serverErrors.password[0] : serverErrors.password });
+      }
+
+      // Handle non-field errors
+      if (serverErrors.non_field_errors) {
+        const nonFieldError = Array.isArray(serverErrors.non_field_errors)
+          ? serverErrors.non_field_errors[0]
+          : serverErrors.non_field_errors;
+        setErrors({ username: nonFieldError, password: nonFieldError });
+      }
+    }
+  }
+});
+
+// Clear errors when user starts typing
+watch(username, () => {
+  if (errors.value.username) {
+    setErrors({ username: undefined });
+  }
+});
+
+watch(password, () => {
+  if (errors.value.password) {
+    setErrors({ password: undefined });
+  }
 });
 </script>
 
@@ -66,9 +110,17 @@ const onSubmit = handleSubmit(async (values): Promise<void> => {
               :disabled="isLoading"
               id="username"
               name="username"
-              type="username"
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              type="text"
+              autocomplete="username"
+              class="appearance-none block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              :class="{
+                'border-red-300 dark:border-red-600': errors.username,
+                'border-gray-300 dark:border-gray-600': !errors.username
+              }"
             />
+            <p v-if="errors.username" class="mt-1 text-sm text-red-600 dark:text-red-400">
+              {{ errors.username }}
+            </p>
           </div>
         </div>
 
@@ -87,8 +139,16 @@ const onSubmit = handleSubmit(async (values): Promise<void> => {
               id="password"
               name="password"
               type="password"
-              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              autocomplete="current-password"
+              class="appearance-none block w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+              :class="{
+                'border-red-300 dark:border-red-600': errors.password,
+                'border-gray-300 dark:border-gray-600': !errors.password
+              }"
             />
+            <p v-if="errors.password" class="mt-1 text-sm text-red-600 dark:text-red-400">
+              {{ errors.password }}
+            </p>
           </div>
         </div>
 
