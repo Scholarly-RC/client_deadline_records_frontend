@@ -1,17 +1,17 @@
 <script setup lang="ts">
 // Enhanced Dashboard Components
-import PageHeader from "../ui/PageHeader.vue"
-import DashboardLayoutSwitcher from "./DashboardLayoutSwitcher.vue"
+import PageHeader from "~/components/ui/PageHeader.vue"
+import DashboardLayoutSwitcher from "~/components/dashboard/DashboardLayoutSwitcher.vue"
 
-import EChartsThemeProvider from "./EChartsThemeProvider.vue"
-import ExecutiveDashboardLayout from "./layouts/ExecutiveDashboardLayout.vue"
-import OperationsDashboardLayout from "./layouts/OperationsDashboardLayout.vue"
-import AnalyticsDashboardLayout from "./layouts/AnalyticsDashboardLayout.vue"
-import PersonalDashboardLayout from "./layouts/PersonalDashboardLayout.vue"
+import EChartsThemeProvider from "~/components/dashboard/EChartsThemeProvider.vue"
+import ExecutiveDashboardLayout from "~/components/dashboard/layouts/ExecutiveDashboardLayout.vue"
+import OperationsDashboardLayout from "~/components/dashboard/layouts/OperationsDashboardLayout.vue"
+import AnalyticsDashboardLayout from "~/components/dashboard/layouts/AnalyticsDashboardLayout.vue"
+import PersonalDashboardLayout from "~/components/dashboard/layouts/PersonalDashboardLayout.vue"
 
 // Legacy components for fallback
-import ClientBirthdays from "./ClientBirthdays.vue"
-import Stats from "./Stats.vue"
+import ClientBirthdays from "~/components/dashboard/ClientBirthdays.vue"
+import Stats from "~/components/dashboard/Stats.vue"
 
 // Type imports
 import type { Ref } from 'vue'

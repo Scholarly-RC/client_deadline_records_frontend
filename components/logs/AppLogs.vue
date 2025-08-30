@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Components
-import PageHeader from "../ui/PageHeader.vue";
-import LogTable from "./LogTable.vue";
+import PageHeader from "~/components/ui/PageHeader.vue";
+import LogTable from "~/components/logs/LogTable.vue";
 // import AddUserModal from "./AddUserModal.vue";
 // import EditUserModal from "./EditUserModal.vue";
 // import UserTable from "./UserTable.vue";

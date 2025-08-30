@@ -130,7 +130,16 @@ watch(initialValues, () => {
     :ui="{ content: 'min-w-3xl' }"
   >
     <template #body>
-      <form @submit.prevent="onSubmit" id="add-client-form">
+      <!-- Loading overlay -->
+      <div v-if="isSubmitting" class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-10 rounded-lg">
+        <div class="text-center">
+          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
+          <p class="text-sm font-medium text-gray-900 dark:text-white">Updating client...</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Please wait while we update the client information</p>
+        </div>
+      </div>
+
+      <form @submit.prevent="onSubmit" id="add-client-form" class="relative">
         <div class="space-y-4">
           <!-- Basic Information Section -->
           <div>
@@ -351,10 +360,19 @@ watch(initialValues, () => {
         <div class="flex justify-center px-6 py-3">
           <UButton
             type="submit"
-            :disabled="disableSubmit"
-            label="Edit Client"
+            :disabled="disableSubmit || isSubmitting"
+            :loading="isSubmitting"
             size="lg"
-          />
+            class="min-w-[140px]"
+          >
+            <template #leading>
+              <UIcon
+                :name="isSubmitting ? 'i-lucide-loader-2' : 'i-lucide-save'"
+                :class="isSubmitting ? 'h-4 w-4 animate-spin' : 'h-4 w-4'"
+              />
+            </template>
+            {{ isSubmitting ? 'Updating...' : 'Update Client' }}
+          </UButton>
         </div>
       </form>
     </template>

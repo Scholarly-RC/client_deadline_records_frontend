@@ -8,24 +8,25 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const authStore = useAuthStore();
 
-  // Try to initialize auth if not already done
-  // This handles cases where the user directly navigates to a protected route
-  if (!authStore.isAuthenticated && !authStore.isLoading) {
+  // Wait for auth initialization if not already done
+  if (!authStore.isInitialized) {
     try {
       await authStore.initializeAuth();
     } catch (error) {
-      console.error('Auth initialization failed:', error);
+      console.error('Auth initialization failed in middleware:', error);
     }
   }
 
-  // Redirect to login if not authenticated after initialization attempt
+  // Redirect to login if not authenticated after initialization
   if (!authStore.isAuthenticated) {
+    console.log('User not authenticated, redirecting to login');
     return navigateTo("/login");
   }
 
   // Start notification polling if authenticated and on client side
-  // Add a longer delay to ensure authentication is fully stable
-  if (import.meta.client) {
+  if (import.meta.client && authStore.isAuthenticated) {
+    // Use nextTick to ensure DOM is ready
+    await nextTick();
     setTimeout(async () => {
       try {
         const { useUnreadNotificationStore } = await import("~/stores/notification");
@@ -34,6 +35,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
       } catch (error) {
         console.error('Failed to start notification polling:', error);
       }
-    }, 1000); // 1 second delay to ensure auth is stable
+    }, 500); // Shorter delay since we're using nextTick
   }
 });

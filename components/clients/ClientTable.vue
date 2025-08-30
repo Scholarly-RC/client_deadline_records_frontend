@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Components
 import { watchDebounced } from "@vueuse/core";
-import AddClientModal from "./AddClientModal.vue";
+import AddClientModal from "~/components/clients/AddClientModal.vue";
 import type { Client } from "~/types";
 
 const search = ref<string>("");

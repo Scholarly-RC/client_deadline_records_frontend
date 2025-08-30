@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // Components
-import PageHeader from "../ui/PageHeader.vue";
-import UnifiedTaskFormModal from "../tasks/UnifiedTaskFormModal.vue";
-import TaskTabs from "./TaskTabs.vue";
+import PageHeader from "~/components/ui/PageHeader.vue";
+import UnifiedTaskFormModal from "~/components/tasks/UnifiedTaskFormModal.vue";
+import TaskTabs from "~/components/tasks/TaskTabs.vue";
 
 // Stores
 const clientStore = useClientStore();

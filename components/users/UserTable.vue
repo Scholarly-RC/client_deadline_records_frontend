@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Components
 import { watchDebounced } from "@vueuse/core";
-import AddUserModal from "./AddUserModal.vue";
+import AddUserModal from "~/components/users/AddUserModal.vue";
 import type { User } from "~/types";
 
 const search = ref<string>("");

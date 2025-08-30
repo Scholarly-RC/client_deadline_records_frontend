@@ -4,12 +4,12 @@ import {
   statusChoices,
   priorityChoices,
 } from "~/constants/choices";
-import StatusBadge from "../ui/StatusBadge.vue";
-import PriorityBadge from "../ui/PriorityBadge.vue";
-import TaskCompletionModal from "./TaskCompletionModal.vue";
-import TaskViewModal from "./TaskViewModal.vue";
-import TaskEditModal from "./TaskEditModal.vue";
-import TaskDeleteModal from "./TaskDeleteModal.vue";
+import StatusBadge from "~/components/ui/StatusBadge.vue";
+import PriorityBadge from "~/components/ui/PriorityBadge.vue";
+import TaskCompletionModal from "~/components/tasks/TaskCompletionModal.vue";
+import TaskViewModal from "~/components/tasks/TaskViewModal.vue";
+import TaskEditModal from "~/components/tasks/TaskEditModal.vue";
+import TaskDeleteModal from "~/components/tasks/TaskDeleteModal.vue";
 import type { Task, TaskList, PaginationInfo } from '~/types/entities'
 import type { TaskCategory } from '~/constants/choices'
 

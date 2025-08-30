@@ -59,6 +59,21 @@ export interface ClientMini {
   is_active: boolean;
 }
 
+export interface ClientDocument {
+  id: number;
+  client: number;
+  client_name: string;
+  title: string;
+  description: string;
+  document_file: string;
+  uploaded_by: number;
+  uploaded_by_name: string;
+  file_size: string;
+  file_extension: string;
+  uploaded_at: string;
+  updated_at: string;
+}
+
 export interface Task {
   id: number;
   client: number;

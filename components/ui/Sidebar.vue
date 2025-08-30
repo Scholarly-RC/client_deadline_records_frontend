@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // Components
-import DarkModeToggle from "./DarkModeToggle.vue";
-import LogoutButton from "./LogoutButton.vue";
+import DarkModeToggle from "~/components/ui/DarkModeToggle.vue";
+import LogoutButton from "~/components/ui/LogoutButton.vue";
 import type { RouteLocationNormalizedLoaded } from "vue-router";
 
 const appTitle = ref<HTMLElement | null>(null);
@@ -64,12 +64,18 @@ const allItems: NavigationItem[][] = [
       to: "/users",
       adminOnly: true,
     },
-    {
-      label: "Logs",
-      icon: "i-lucide-list",
-      to: "/logs",
-      adminOnly: true,
-    },
+     {
+       label: "Logs",
+       icon: "i-lucide-list",
+       to: "/logs",
+       adminOnly: true,
+     },
+     {
+       label: "Client Documents",
+       icon: "i-lucide-file-text",
+       to: "/client-documents",
+       adminOnly: true,
+     },
   ],
 ];
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import UnifiedTaskFormModal from "./UnifiedTaskFormModal.vue";
+import UnifiedTaskFormModal from "~/components/tasks/UnifiedTaskFormModal.vue";
 import type { TaskList } from "~/types";
 
 interface Props {

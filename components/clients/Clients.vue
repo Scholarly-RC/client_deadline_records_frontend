@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // Components
-import PageHeader from "../ui/PageHeader.vue";
-import ClientTable from "./ClientTable.vue";
-import EditClientModal from "./EditClientModal.vue";
+import PageHeader from "~/components/ui/PageHeader.vue";
+import ClientTable from "~/components/clients/ClientTable.vue";
+import EditClientModal from "~/components/clients/EditClientModal.vue";
 
 // Stores
 const clientStore = useClientStore();

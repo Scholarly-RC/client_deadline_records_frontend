@@ -1,8 +1,8 @@
 <script setup lang="ts">
 // Components
-import LoginDarkModeToggle from "./LoginDarkModeToggle.vue";
-import LoginForm from "./LoginForm.vue";
-import LoginHeader from "./LoginHeader.vue";
+import LoginDarkModeToggle from "~/components/login/LoginDarkModeToggle.vue";
+import LoginForm from "~/components/login/LoginForm.vue";
+import LoginHeader from "~/components/login/LoginHeader.vue";
 </script>
 
 <template>

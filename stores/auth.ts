@@ -38,12 +38,17 @@ export const useAuthStore = defineStore('auth', {
 
         if (storedRefreshToken) {
           this.refreshToken = storedRefreshToken;
+
+          // Try to refresh the access token
           await this.refreshAccessToken();
 
           // Verify we have user data after initialization
           if (!this.user) {
+            console.warn('Auth initialization: No user data after token refresh, clearing auth');
             this.clearAuth();
           }
+        } else {
+          console.log('Auth initialization: No refresh token found');
         }
       } catch (error) {
         console.error('Auth initialization failed:', error);
@@ -203,9 +208,8 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = accessToken;
       this.refreshToken = refreshToken;
 
-      // Store refresh token in secure cookie
+      // Store refresh token in secure cookie (remove httpOnly for client-side access)
       const refreshTokenCookie = useCookie<string>('refresh_token', {
-        httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 60 * 60 * 24 * 7, // 7 days

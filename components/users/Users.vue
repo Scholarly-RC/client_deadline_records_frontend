@@ -1,9 +1,9 @@
 <script setup lang="ts">
 // Components
-import PageHeader from "../ui/PageHeader.vue";
-import AddUserModal from "./AddUserModal.vue";
-import EditUserModal from "./EditUserModal.vue";
-import UserTable from "./UserTable.vue";
+import PageHeader from "~/components/ui/PageHeader.vue";
+import AddUserModal from "~/components/users/AddUserModal.vue";
+import EditUserModal from "~/components/users/EditUserModal.vue";
+import UserTable from "~/components/users/UserTable.vue";
 
 // Stores
 const userStore = useUserStore();

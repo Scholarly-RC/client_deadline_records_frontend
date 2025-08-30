@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TaskTabs from "./TaskTabs.vue";
+import TaskTabs from "~/components/tasks/TaskTabs.vue";
 </script>
 
 <template>
