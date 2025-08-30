@@ -2,7 +2,7 @@
 // Enhanced Dashboard Components
 import PageHeader from "../ui/PageHeader.vue"
 import DashboardLayoutSwitcher from "./DashboardLayoutSwitcher.vue"
-import RealTimeControls from "./RealTimeControls.vue"
+
 import EChartsThemeProvider from "./EChartsThemeProvider.vue"
 import ExecutiveDashboardLayout from "./layouts/ExecutiveDashboardLayout.vue"
 import OperationsDashboardLayout from "./layouts/OperationsDashboardLayout.vue"
@@ -19,7 +19,7 @@ import type { User } from '~/types/entities'
 
 const dashboardStore = useDashboardStore()
 const authStore = useAuthStore()
-const { currentLayout, isAnyLoading, realtimeEnabled } = storeToRefs(dashboardStore)
+const { currentLayout, isAnyLoading } = storeToRefs(dashboardStore)
 const { isAdmin } = storeToRefs(authStore)
 
 const isRefreshing: Ref<boolean> = ref(false)
@@ -72,20 +72,9 @@ const handleRefresh = async (): Promise<void> => {
   await loadDashboardData()
 }
 
-// Toggle real-time updates
-const handleToggleRealtime = (): void => {
-  dashboardStore.toggleRealtime()
-}
 
-// Handle real-time status changes
-const handleRealtimeStatusChange = (data: any): void => {
-  // Additional logic for status changes can be added here
-}
 
-// Handle refresh interval changes
-const handleIntervalChange = (newInterval: number): void => {
-  // Additional logic for interval changes can be added here
-}
+
 
 // Export dashboard functionality
 const handleExport = async (format: string): Promise<void> => {
@@ -178,11 +167,9 @@ onMounted(async (): Promise<void> => {
   await loadDashboardData()
 })
 
-// Cleanup real-time updates on unmount
+// Cleanup on unmount
 onUnmounted((): void => {
-  if (realtimeEnabled.value) {
-    dashboardStore.stopRealTimeUpdates()
-  }
+  // Cleanup logic if needed
 })
 </script>
 
@@ -192,24 +179,13 @@ onUnmounted((): void => {
     <PageHeader page="Dashboard">
       <template #actions>
         <div class="flex items-center gap-4">
-          <!-- Real-time Controls -->
-          <RealTimeControls
-            :auto-start="true"
-            :interval="30000"
-            @refresh="handleRefresh"
-            @status-change="handleRealtimeStatusChange"
-            @interval-change="handleIntervalChange"
-          />
-          
           <!-- Layout Switcher -->
           <DashboardLayoutSwitcher
             v-model="currentLayout"
             :is-refreshing="isRefreshing"
-            :realtime-enabled="realtimeEnabled"
             :show-quick-actions="true"
             :show-export-options="isAdmin"
             @refresh="handleRefresh"
-            @toggle-realtime="handleToggleRealtime"
             @export="handleExport"
           />
         </div>
@@ -278,13 +254,7 @@ onUnmounted((): void => {
       </div>
     </main>
 
-    <!-- Real-time Status Indicator -->
-    <div v-if="realtimeEnabled" class="realtime-indicator">
-      <div class="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 text-xs">
-        <div class="realtime-dot"></div>
-        <span>Live updates enabled</span>
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -369,23 +339,7 @@ onUnmounted((): void => {
   margin-bottom: 0.75rem;
 }
 
-/* Real-time Indicator */
-.realtime-indicator {
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 40;
-  border-radius: 0.5rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-}
 
-.realtime-dot {
-  width: 0.5rem;
-  height: 0.5rem;
-  background-color: #10b981;
-  border-radius: 50%;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
 
 /* Error Boundary Styles */
 .error-boundary {

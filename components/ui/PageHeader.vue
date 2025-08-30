@@ -39,7 +39,8 @@ const sidebarStore = useSidebarStore();
     <h1 class="text-lg font-bold text-gray-800 dark:text-white text-center">
       {{ props.page }}
     </h1>
-    <div class="flex items-center">
+    <div class="flex items-center gap-4">
+      <slot name="actions" />
       <NotificationModal />
     </div>
   </div>

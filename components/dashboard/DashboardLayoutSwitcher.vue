@@ -57,25 +57,17 @@
         title="Refresh Dashboard Data"
       />
       
-      <!-- Real-time Toggle -->
-      <UButton 
-        @click="toggleRealtime"
-        :variant="realtimeEnabled ? 'solid' : 'ghost'"
-        :color="realtimeEnabled ? 'success' : 'neutral'"
-        size="sm"
-        :icon="realtimeEnabled ? 'mdi:wifi' : 'mdi:wifi-off'"
-        :title="realtimeEnabled ? 'Real-time updates enabled' : 'Enable real-time updates'"
-      />
+
       
       <!-- Export Dashboard -->
-      <UDropdown v-if="showExportOptions" :items="exportOptions">
-        <UButton 
-          variant="ghost"
-          size="sm"
-          icon="mdi:download"
-          title="Export Dashboard"
-        />
-      </UDropdown>
+      <UButton
+        v-if="showExportOptions"
+        @click="handleExport('pdf')"
+        variant="ghost"
+        size="sm"
+        icon="mdi:download"
+        title="Export Dashboard as PDF"
+      />
     </div>
   </div>
 </template>
@@ -100,7 +92,7 @@ interface Props {
   showQuickActions?: boolean;
   showExportOptions?: boolean;
   isRefreshing?: boolean;
-  realtimeEnabled?: boolean;
+
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -110,13 +102,13 @@ const props = withDefaults(defineProps<Props>(), {
   showQuickActions: true,
   showExportOptions: true,
   isRefreshing: false,
-  realtimeEnabled: false
+
 })
 
 interface Emits {
   (e: 'update:modelValue', value: string): void;
   (e: 'refresh'): void;
-  (e: 'toggleRealtime'): void;
+
   (e: 'export', format: string): void;
 }
 
@@ -190,23 +182,7 @@ const currentLayoutDescription = computed(() => {
   return currentLayout.value?.description || 'Dashboard view'
 })
 
-const exportOptions = computed(() => [
-  [{
-    label: 'Export as PDF',
-    icon: 'mdi:file-pdf-box',
-    click: () => handleExport('pdf')
-  }],
-  [{
-    label: 'Export as PNG',
-    icon: 'mdi:file-image',
-    click: () => handleExport('png')
-  }],
-  [{
-    label: 'Export Data as CSV',
-    icon: 'mdi:file-delimited',
-    click: () => handleExport('csv')
-  }]
-])
+
 
 const getLayoutButtonClasses = (layoutValue: string): string => {
   const isActive = selectedLayout.value === layoutValue
@@ -238,9 +214,7 @@ const handleRefresh = (): void => {
   emit('refresh')
 }
 
-const toggleRealtime = (): void => {
-  emit('toggleRealtime')
-}
+
 
 const handleExport = (format: string): void => {
   emit('export', format)
