@@ -66,7 +66,7 @@ watch(user, async (value: number) => await logsStore.setUser(value));
 watch(
   usersWithLogs,
   (newUsersWithLogs) => {
-    console.log("usersWithLogs updated:", newUsersWithLogs);
+    // Handle usersWithLogs updates
   },
   { immediate: true }
 );

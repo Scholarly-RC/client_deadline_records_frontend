@@ -73,8 +73,7 @@ export const useRealTimeDashboard = (options: RealTimeDashboardOptions = {}) => 
    */
   const startRealTime = () => {
     if (isRealTimeActive.value) return
-    
-    console.log('Starting real-time dashboard updates')
+
     dashboardStore.toggleRealtime(true)
     dashboardStore.startRealTimeUpdates(config.interval)
     
@@ -98,7 +97,6 @@ export const useRealTimeDashboard = (options: RealTimeDashboardOptions = {}) => 
   const stopRealTime = () => {
     if (!isRealTimeActive.value) return
     
-    console.log('Stopping real-time dashboard updates')
     dashboardStore.toggleRealtime(false)
     dashboardStore.stopRealTimeUpdates()
     
@@ -146,7 +144,6 @@ export const useRealTimeDashboard = (options: RealTimeDashboardOptions = {}) => 
       if (isRealTimeActive.value && reconnectAttempts < maxReconnectAttempts) {
         setTimeout(() => {
           reconnectAttempts++
-          console.log(`Attempting reconnect ${reconnectAttempts}/${maxReconnectAttempts}`)
           forceRefresh()
         }, 5000 * reconnectAttempts) // Exponential backoff
       }
@@ -180,7 +177,6 @@ export const useRealTimeDashboard = (options: RealTimeDashboardOptions = {}) => 
     if (!wasVisible && isVisible.value && isRealTimeActive.value) {
       // Tab became visible, check if we need to refresh
       if (needsRefresh.value) {
-        console.log('Tab became visible, refreshing stale data')
         forceRefresh()
       }
     }
@@ -208,7 +204,7 @@ export const useRealTimeDashboard = (options: RealTimeDashboardOptions = {}) => 
   const setupFreshnessMonitoring = () => {
     setInterval(() => {
       if (needsRefresh.value && !isRealTimeActive.value) {
-        console.log('Data is stale, consider enabling real-time updates')
+        // Data is stale, consider enabling real-time updates
       }
     }, 60000) // Check every minute
   }

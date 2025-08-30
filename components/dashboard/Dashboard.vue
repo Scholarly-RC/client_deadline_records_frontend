@@ -79,13 +79,11 @@ const handleToggleRealtime = (): void => {
 
 // Handle real-time status changes
 const handleRealtimeStatusChange = (data: any): void => {
-  console.log('Real-time status changed:', data)
   // Additional logic for status changes can be added here
 }
 
 // Handle refresh interval changes
 const handleIntervalChange = (newInterval: number): void => {
-  console.log('Refresh interval changed to:', newInterval)
   // Additional logic for interval changes can be added here
 }
 
@@ -136,14 +134,12 @@ const handleNavigation = (route: string): void => {
 
 // Chart click handler for data drilling
 const handleChartClick = (data: any): void => {
-  console.log('Chart clicked:', data)
   // Implement chart drilling logic here
   // Could open modals, navigate to filtered views, etc.
 }
 
 // Alert action handler
 const handleAlertAction = (alert: any): void => {
-  console.log('Alert action:', alert)
   // Implement alert-specific actions
   switch (alert.type) {
     case 'error':
@@ -168,7 +164,6 @@ const handleOpenModal = (modalType: string): void => {
 
 // Action handler for various dashboard actions
 const handleAction = (action: any): void => {
-  console.log('Dashboard action:', action)
   // Implement action-specific logic
 }
 

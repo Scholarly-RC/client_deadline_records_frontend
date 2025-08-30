@@ -10,7 +10,7 @@ export default defineNuxtRouteMiddleware(async () => {
     await authStore.initializeAuth();
   } catch (error) {
     // If initializeAuth fails, continue to login page
-    console.error('Auth initialization failed in guest middleware:', error);
+    console.error('Auth initialization failed:', error);
   }
 
   // Redirect to dashboard if already authenticated

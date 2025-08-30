@@ -534,7 +534,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
         clearInterval(this.refreshInterval);
       }
       
-      console.log('Starting real-time updates with interval:', interval);
+
       
       // Refresh at specified interval
       this.refreshInterval = setInterval(async () => {
@@ -562,8 +562,6 @@ export const useDashboardStore = defineStore("dashboardStore", {
      * Refresh dashboard data with loading indicators
      */
     async refreshDashboard(force = false) {
-      const refreshStartTime = Date.now();
-      
       try {
         if (force) {
           this.isLoading = true;
@@ -573,9 +571,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
         
         this.lastUpdated = new Date().toISOString();
         
-        const refreshTime = Date.now() - refreshStartTime;
-        console.log(`Dashboard refreshed in ${refreshTime}ms`);
-        
+
         if (force) {
           // Show success notification for manual refresh
           const toast = useToast();

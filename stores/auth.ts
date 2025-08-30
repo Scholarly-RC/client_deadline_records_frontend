@@ -28,11 +28,7 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     // Initialize auth state from cookies
     async initializeAuth(): Promise<void> {
-      console.log('🔑 AUTH DEBUG: initializeAuth called');
-      console.log('🔑 AUTH DEBUG: Already initialized:', this.isInitialized);
-
       if (this.isInitialized) {
-        console.log('🔑 AUTH DEBUG: Already initialized, skipping');
         return;
       }
 
@@ -40,40 +36,29 @@ export const useAuthStore = defineStore('auth', {
         const refreshTokenCookie = useCookie<string>('refresh_token');
         const storedRefreshToken = refreshTokenCookie.value;
 
-        console.log('🔑 AUTH DEBUG: Refresh token from cookie:', !!storedRefreshToken);
-
         if (storedRefreshToken) {
-          console.log('🔑 AUTH DEBUG: Found refresh token, attempting to refresh access token');
           this.refreshToken = storedRefreshToken;
           await this.refreshAccessToken();
 
           // Verify we have user data after initialization
           if (!this.user) {
-            console.warn('🔑 AUTH DEBUG: Failed to load user data during initialization, clearing auth');
             this.clearAuth();
-          } else {
-            console.log('🔑 AUTH DEBUG: Initialization successful');
           }
-        } else {
-          console.log('🔑 AUTH DEBUG: No refresh token found in cookie');
         }
       } catch (error) {
-        console.error('🔑 AUTH DEBUG: Auth initialization failed:', error);
+        console.error('Auth initialization failed:', error);
         this.clearAuth();
       } finally {
         this.isInitialized = true;
-        console.log('🔑 AUTH DEBUG: Initialization process completed');
       }
     },
 
     // Login with credentials
     async login(credentials: LoginRequest): Promise<void> {
-      console.log('🔑 AUTH DEBUG: Login started');
       this.isLoading = true;
 
       try {
         const config = useRuntimeConfig();
-        console.log('🔑 AUTH DEBUG: Making login request to:', `${config.public.apiBase}/api/token/`);
 
         const response = await $fetch<{
           access: string;
@@ -83,24 +68,16 @@ export const useAuthStore = defineStore('auth', {
           body: credentials,
         });
 
-        console.log('🔑 AUTH DEBUG: Login API response received');
-        console.log('🔑 AUTH DEBUG: Access token received:', !!response.access);
-        console.log('🔑 AUTH DEBUG: Refresh token received:', !!response.refresh);
-
         // Store tokens
         this.setTokens(response.access, response.refresh);
 
         // Fetch user data
-        console.log('🔑 AUTH DEBUG: Fetching user data');
         await this.fetchUser();
 
         // Verify we have user data before proceeding
         if (!this.user) {
-          console.log('🔑 AUTH DEBUG: User data fetch failed');
           throw new Error('Failed to load user data after login');
         }
-
-        console.log('🔑 AUTH DEBUG: Login successful, user:', this.user.username);
 
         // Success notification
         const toast = useToast();
@@ -113,14 +90,9 @@ export const useAuthStore = defineStore('auth', {
         });
 
         // Navigate to dashboard
-        console.log('🔑 AUTH DEBUG: Navigating to dashboard');
         await navigateTo('/');
 
       } catch (error: any) {
-        console.log('🔑 AUTH DEBUG: Login failed');
-        console.log('🔑 AUTH DEBUG: Error status:', error?.status);
-        console.log('🔑 AUTH DEBUG: Error message:', error?.message);
-
         this.clearAuth();
 
         const toast = useToast();
@@ -145,7 +117,6 @@ export const useAuthStore = defineStore('auth', {
         throw error;
       } finally {
         this.isLoading = false;
-        console.log('🔑 AUTH DEBUG: Login process completed');
       }
     },
 
@@ -199,18 +170,13 @@ export const useAuthStore = defineStore('auth', {
 
     // Fetch current user data
     async fetchUser(): Promise<void> {
-      console.log('🔑 AUTH DEBUG: fetchUser called');
-      console.log('🔑 AUTH DEBUG: Has access token:', !!this.accessToken);
-
       if (!this.accessToken) {
-        console.log('🔑 AUTH DEBUG: No access token, skipping user fetch');
         return;
       }
 
       try {
         const config = useRuntimeConfig();
         const apiUrl = `${config.public.apiBase}/api/users/get-current-user/`;
-        console.log('🔑 AUTH DEBUG: Making user fetch request to:', apiUrl);
 
         const user = await $fetch<User>(apiUrl, {
           method: 'GET',
@@ -219,22 +185,13 @@ export const useAuthStore = defineStore('auth', {
           },
         });
 
-        console.log('🔑 AUTH DEBUG: User fetch successful');
-        console.log('🔑 AUTH DEBUG: User data:', { id: user.id, username: user.username });
-
         this.user = user;
       } catch (error: any) {
-        console.log('🔑 AUTH DEBUG: User fetch failed');
-        console.log('🔑 AUTH DEBUG: Error status:', error?.status);
-        console.log('🔑 AUTH DEBUG: Error message:', error?.message);
         console.error('Failed to fetch user:', error);
 
         // Only clear auth if it's not a 401 (which would cause a loop)
         if (error?.status !== 401) {
-          console.log('🔑 AUTH DEBUG: Clearing auth due to non-401 error');
           this.clearAuth();
-        } else {
-          console.log('🔑 AUTH DEBUG: Not clearing auth due to 401 error (to prevent loop)');
         }
 
         throw error;
@@ -243,10 +200,6 @@ export const useAuthStore = defineStore('auth', {
 
     // Set tokens and store in cookies
     setTokens(accessToken: string, refreshToken: string): void {
-      console.log('🔑 AUTH DEBUG: Setting tokens');
-      console.log('🔑 AUTH DEBUG: Access token length:', accessToken?.length);
-      console.log('🔑 AUTH DEBUG: Refresh token length:', refreshToken?.length);
-
       this.accessToken = accessToken;
       this.refreshToken = refreshToken;
 
@@ -258,14 +211,6 @@ export const useAuthStore = defineStore('auth', {
         maxAge: 60 * 60 * 24 * 7, // 7 days
       });
       refreshTokenCookie.value = refreshToken;
-
-      console.log('🔑 AUTH DEBUG: Tokens set successfully');
-      console.log('🔑 AUTH DEBUG: Current auth state:', {
-        hasAccessToken: !!this.accessToken,
-        hasRefreshToken: !!this.refreshToken,
-        hasUser: !!this.user,
-        isAuthenticated: this.isAuthenticated
-      });
     },
 
     // Clear all auth data
@@ -309,27 +254,9 @@ export const useAuthStore = defineStore('auth', {
 
     // Get authorization header
     getAuthHeader(): string | null {
-      const header = this.accessToken ? `Bearer ${this.accessToken}` : null;
-      console.log('🔑 AUTH DEBUG: getAuthHeader called');
-      console.log('🔑 AUTH DEBUG: Has access token:', !!this.accessToken);
-      console.log('🔑 AUTH DEBUG: Header length:', header?.length || 0);
-      console.log('🔑 AUTH DEBUG: Header starts with:', header?.substring(0, 20) + '...');
-      return header;
+      return this.accessToken ? `Bearer ${this.accessToken}` : null;
     },
 
-    // Debug method to check current auth state
-    debugAuthState(): void {
-      console.log('🔍 AUTH STATE DEBUG:');
-      console.log('  - isAuthenticated:', this.isAuthenticated);
-      console.log('  - isInitialized:', this.isInitialized);
-      console.log('  - isLoading:', this.isLoading);
-      console.log('  - hasAccessToken:', !!this.accessToken);
-      console.log('  - hasRefreshToken:', !!this.refreshToken);
-      console.log('  - hasUser:', !!this.user);
-      console.log('  - userId:', this.user?.id);
-      console.log('  - username:', this.user?.username);
-      console.log('  - accessTokenLength:', this.accessToken?.length || 0);
-      console.log('  - refreshTokenLength:', this.refreshToken?.length || 0);
-    },
+
   },
 });

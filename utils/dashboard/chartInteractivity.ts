@@ -93,8 +93,6 @@ export class ChartDataDriller {
    * Handle chart click events and perform appropriate drill-down
    */
   async handleChartClick(chartType: string, params: ChartParams, context: ChartContext = {}): Promise<any> {
-    console.log(`Chart click: ${chartType}`, params, context);
-
     const handler = this.drillHandlers.get(chartType);
     if (handler) {
       return await handler(params, context);
@@ -130,7 +128,6 @@ export class ChartDataDriller {
         return this.drillToTasksByPriority(name || seriesName || '');
       
       default:
-        console.log('No drill-down handler for chart type:', chartType);
         return null;
     }
   }
@@ -403,7 +400,6 @@ export class ChartZoomPan {
    */
   applyZoom(chartInstance: ChartInstance, zoomLevel: number): void {
     // Implementation depends on chart type and requirements
-    console.log('Applying zoom level:', zoomLevel);
   }
 
   /**
@@ -449,7 +445,6 @@ export class ChartZoomPan {
    */
   handlePan(chartInstance: ChartInstance, deltaX: number, deltaY: number): void {
     // Implementation depends on chart type and requirements
-    console.log('Panning:', deltaX, deltaY);
   }
 
   /**
