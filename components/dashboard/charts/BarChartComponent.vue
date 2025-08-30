@@ -1,27 +1,3 @@
-<template>
-  <UCard>
-    <template #header>
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ title }}
-        </h3>
-      </div>
-    </template>
-
-    <div>
-      <VChart
-        ref="chartRef"
-        :option="chartOption"
-        :autoresize="true"
-        :loading="isLoading"
-        :style="{ height: height }"
-        @click="handleChartClick"
-        class="w-full"
-      />
-    </div>
-  </UCard>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
 import type { ComposeOption } from "echarts/core";
@@ -49,6 +25,7 @@ type ECOption = ComposeOption<
   | LegendComponentOption
 >;
 
+// Define props interface
 interface Props {
   title?: string;
   data: ChartData;
@@ -453,3 +430,27 @@ onMounted(async () => {
   await initializeChart();
 });
 </script>
+
+<template>
+  <UCard>
+    <template #header>
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          {{ title }}
+        </h3>
+      </div>
+    </template>
+
+    <div>
+      <VChart
+        ref="chartRef"
+        :option="chartOption"
+        :autoresize="true"
+        :loading="isLoading"
+        :style="{ height: height }"
+        @click="handleChartClick"
+        class="w-full"
+      />
+    </div>
+  </UCard>
+</template>

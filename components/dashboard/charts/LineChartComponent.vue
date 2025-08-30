@@ -1,45 +1,3 @@
-<template>
-  <UCard>
-    <template #header>
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
-        <div class="flex items-center gap-2">
-          <!-- Time Range Selector -->
-          <USelectMenu 
-            v-if="showTimeRange" 
-            v-model="selectedTimeRange" 
-            :options="timeRangeOptions"
-            size="sm"
-            @update:model-value="handleTimeRangeChange"
-          />
-          <!-- Export Button -->
-          <UButton 
-            v-if="showExport"
-            @click="() => exportChart()" 
-            variant="ghost" 
-            size="sm"
-            icon="mdi:download"
-          >
-            Export
-          </UButton>
-        </div>
-      </div>
-    </template>
-    
-    <div>
-      <VChart 
-        ref="chartRef"
-        :option="chartOption" 
-        :autoresize="true" 
-        :loading="isLoading"
-        style="height: 400px;"
-        @click="handleChartClick"
-        class="w-full"
-      />
-    </div>
-  </UCard>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import type { ComposeOption } from 'echarts/core'
@@ -71,6 +29,7 @@ type ECOption = ComposeOption<
   | ToolboxComponentOption
 >
 
+// Define props interface
 interface LineDataset {
   name: string
   data: number[]
@@ -190,7 +149,7 @@ const chartOption = computed<ECOption>(() => {
       type: 'line',
       data: dataset.data,
       smooth: props.smooth,
-      itemStyle: { 
+      itemStyle: {
         color: props.colors[index % props.colors.length]
       },
       lineStyle: {
@@ -276,10 +235,10 @@ const handleChartClick = async (params: any): Promise<void> => {
     value: params.value as number | number[],
     color: params.color || ''
   }
-  
+
   // Emit the basic click event
   emit('click', chartParams)
-  
+
   // Handle interactive drilling if enabled
   if (props.enableInteractivity) {
     try {
@@ -311,23 +270,23 @@ const exportChart = async (format: string = 'png'): Promise<any> => {
       if (!chartInstance) {
         throw new Error('Chart instance not available')
       }
-      
+
       const filename = `${props.title.replace(/\s+/g, '_').toLowerCase()}_chart`
-      
+
       const result = await exportInteractiveChart(
-        chartInstance, 
-        format, 
-        filename, 
+        chartInstance,
+        format,
+        filename,
         props.data
       )
-      
-      emit('export', { 
-        format, 
-        filename, 
+
+      emit('export', {
+        format,
+        filename,
         data: result,
-        chartType: props.chartType 
+        chartType: props.chartType
       })
-      
+
       return result
     } catch (error) {
       console.error('Export failed:', error)
@@ -357,24 +316,24 @@ watch(() => props.data, async (newData) => {
 onMounted(async () => {
   // Wait for component to be fully mounted
   await nextTick()
-  
+
   // Initialize chart with retry logic
   const initializeChart = async (retries = 3) => {
     if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
       try {
         const chartInstance = chartRef.value.getEchartsInstance()
-        
+
         if (!chartInstance && retries > 0) {
           // Chart not ready yet, retry after a short delay
           setTimeout(() => initializeChart(retries - 1), 100)
           return
         }
-        
+
         if (!chartInstance) {
           console.error('Failed to get ECharts instance after retries')
           return
         }
-        
+
         // Initialize interactivity features
         if (props.enableInteractivity) {
           initializeChartInteractivity(chartInstance, props.chartType, {
@@ -383,7 +342,7 @@ onMounted(async () => {
             drillContext: props.drillContext
           })
         }
-        
+
         // Handle window resize
         const handleResize = () => {
           try {
@@ -392,21 +351,21 @@ onMounted(async () => {
             console.error('Chart resize failed:', error)
           }
         }
-        
+
         window.addEventListener('resize', handleResize)
-        
+
         // Setup real-time updates if needed
         if (props.enableInteractivity) {
           realTimeCleanup.value = enableRealTimeUpdates(chartInstance, 30000)
         }
-        
+
         onUnmounted(() => {
           window.removeEventListener('resize', handleResize)
           if (realTimeCleanup.value) {
             realTimeCleanup.value()
           }
         })
-        
+
       } catch (error) {
         console.error('Chart initialization failed:', error)
         if (retries > 0) {
@@ -417,7 +376,49 @@ onMounted(async () => {
       setTimeout(() => initializeChart(retries - 1), 100)
     }
   }
-  
+
   await initializeChart()
 })
 </script>
+
+<template>
+  <UCard>
+    <template #header>
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
+        <div class="flex items-center gap-2">
+          <!-- Time Range Selector -->
+          <USelectMenu
+            v-if="showTimeRange"
+            v-model="selectedTimeRange"
+            :options="timeRangeOptions"
+            size="sm"
+            @update:model-value="handleTimeRangeChange"
+          />
+          <!-- Export Button -->
+          <UButton
+            v-if="showExport"
+            @click="() => exportChart()"
+            variant="ghost"
+            size="sm"
+            icon="mdi:download"
+          >
+            Export
+          </UButton>
+        </div>
+      </div>
+    </template>
+
+    <div>
+      <VChart
+        ref="chartRef"
+        :option="chartOption"
+        :autoresize="true"
+        :loading="isLoading"
+        style="height: 400px;"
+        @click="handleChartClick"
+        class="w-full"
+      />
+    </div>
+  </UCard>
+</template>

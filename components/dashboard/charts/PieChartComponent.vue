@@ -1,77 +1,3 @@
-<template>
-  <UCard>
-    <template #header>
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          {{ title }}
-        </h3>
-      </div>
-    </template>
-
-    <div class="flex flex-col lg:flex-row gap-4">
-      <!-- Chart -->
-      <div class="flex-1">
-        <VChart
-          ref="chartRef"
-          :option="chartOption"
-          :autoresize="true"
-          :loading="isLoading"
-          :style="{ height: height }"
-          @click="handleChartClick"
-          class="w-full"
-        />
-      </div>
-
-      <!-- Custom Legend Panel -->
-      <div v-if="showLegend" class="w-full lg:w-64 space-y-2">
-        <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-          Details
-        </h4>
-        <div
-          v-for="(item, index) in legendData"
-          :key="item.name || index"
-          class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-          @click="handleLegendClick(item, index)"
-        >
-          <div class="flex items-center gap-2">
-            <div
-              :style="{ backgroundColor: getItemColor(index) }"
-              class="w-3 h-3 rounded-full"
-            ></div>
-            <span class="text-sm text-gray-900 dark:text-white">
-              {{ item.display_name || item.name }}
-            </span>
-          </div>
-          <div class="flex flex-col items-end">
-            <span class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ item.value }}
-            </span>
-            <span
-              v-if="showPercentages"
-              class="text-xs text-gray-500 dark:text-gray-400"
-            >
-              {{ calculatePercentage(item.value) }}%
-            </span>
-          </div>
-        </div>
-
-        <!-- Total -->
-        <div
-          v-if="showTotal"
-          class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-3"
-        >
-          <div
-            class="flex items-center justify-between p-2 font-medium text-gray-900 dark:text-white"
-          >
-            <span class="text-sm">Total</span>
-            <span class="text-sm">{{ totalValue }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </UCard>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
 import type { ComposeOption } from "echarts/core";
@@ -93,6 +19,7 @@ type ECOption = ComposeOption<
   | LegendComponentOption
 >;
 
+// Define props interface
 interface PieDataItem {
   name: string;
   value: number;
@@ -487,3 +414,77 @@ onMounted(async () => {
   await initializeChart();
 });
 </script>
+
+<template>
+  <UCard>
+    <template #header>
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          {{ title }}
+        </h3>
+      </div>
+    </template>
+
+    <div class="flex flex-col lg:flex-row gap-4">
+      <!-- Chart -->
+      <div class="flex-1">
+        <VChart
+          ref="chartRef"
+          :option="chartOption"
+          :autoresize="true"
+          :loading="isLoading"
+          :style="{ height: height }"
+          @click="handleChartClick"
+          class="w-full"
+        />
+      </div>
+
+      <!-- Custom Legend Panel -->
+      <div v-if="showLegend" class="w-full lg:w-64 space-y-2">
+        <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
+          Details
+        </h4>
+        <div
+          v-for="(item, index) in legendData"
+          :key="item.name || index"
+          class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+          @click="handleLegendClick(item, index)"
+        >
+          <div class="flex items-center gap-2">
+            <div
+              :style="{ backgroundColor: getItemColor(index) }"
+              class="w-3 h-3 rounded-full"
+            ></div>
+            <span class="text-sm text-gray-900 dark:text-white">
+              {{ item.display_name || item.name }}
+            </span>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="text-sm font-medium text-gray-900 dark:text-white">
+              {{ item.value }}
+            </span>
+            <span
+              v-if="showPercentages"
+              class="text-xs text-gray-500 dark:text-gray-400"
+            >
+              {{ calculatePercentage(item.value) }}%
+            </span>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div
+          v-if="showTotal"
+          class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-3"
+        >
+          <div
+            class="flex items-center justify-between p-2 font-medium text-gray-900 dark:text-white"
+          >
+            <span class="text-sm">Total</span>
+            <span class="text-sm">{{ totalValue }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </UCard>
+</template>

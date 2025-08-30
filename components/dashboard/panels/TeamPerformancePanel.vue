@@ -1,3 +1,188 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from "vue";
+import BarChartComponent from "../charts/BarChartComponent.vue";
+
+// Define interfaces for type safety
+interface TeamPerformer {
+  id: number;
+  fullname: string;
+  is_admin: boolean;
+  completed_tasks: number;
+  total_tasks: number;
+  overdue_tasks: number;
+  completion_rate: number;
+  overdue_rate: number;
+}
+
+interface PerformanceChartData {
+  categories: string[];
+  series: {
+    name: string;
+    data: number[];
+  }[];
+}
+
+interface PerformanceSummary {
+  totalMembers: number;
+  avgCompletionRate: string;
+  totalCompleted: number;
+  totalOverdue: number;
+}
+
+interface Props {
+  isLoading?: boolean;
+  teamData?: Record<string, any>;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  isLoading: false,
+  teamData: () => ({}),
+});
+
+const emit = defineEmits([
+  "viewDetails",
+  "viewPerformer",
+  "periodChange",
+  "chartClick",
+]);
+
+const dashboardStore = useDashboardStore();
+const { teamAnalytics } = storeToRefs(dashboardStore);
+
+const selectedPeriod = ref("current_month");
+
+const periodOptions = [
+  { label: "This Week", value: "current_week" },
+  { label: "This Month", value: "current_month" },
+  { label: "Last 3 Months", value: "quarter" },
+  { label: "This Year", value: "year" },
+];
+
+const topPerformers = computed((): TeamPerformer[] => {
+  return (
+    teamAnalytics.value?.user_performance
+      ?.sort(
+        (a: TeamPerformer, b: TeamPerformer) =>
+          b.completion_rate - a.completion_rate
+      )
+      ?.slice(0, 5) || []
+  );
+});
+
+const performanceChartData = computed((): PerformanceChartData | null => {
+  if (!teamAnalytics.value?.user_performance?.length) return null;
+
+  const users = teamAnalytics.value.user_performance;
+
+  return {
+    categories: users.map((user: TeamPerformer) => user.fullname),
+    series: [
+      {
+        name: "Completion Rate",
+        data: users.map((user: TeamPerformer) => user.completion_rate),
+      },
+      {
+        name: "Overdue Rate",
+        data: users.map((user: TeamPerformer) => user.overdue_rate),
+      },
+    ],
+  };
+});
+
+const performanceSummary = computed((): PerformanceSummary | null => {
+  if (!teamAnalytics.value?.user_performance?.length) return null;
+
+  const users = teamAnalytics.value.user_performance;
+  const totalMembers = users.length;
+  const avgCompletionRate = (
+    users.reduce(
+      (sum: number, user: TeamPerformer) => sum + user.completion_rate,
+      0
+    ) / totalMembers
+  ).toFixed(1);
+  const totalCompleted = users.reduce(
+    (sum: number, user: TeamPerformer) => sum + user.completed_tasks,
+    0
+  );
+  const totalOverdue = users.reduce(
+    (sum: number, user: TeamPerformer) => sum + user.overdue_tasks,
+    0
+  );
+
+  return {
+    totalMembers,
+    avgCompletionRate,
+    totalCompleted,
+    totalOverdue,
+  };
+});
+
+const getRankBadgeClasses = (index: number): string => {
+  const baseClasses =
+    "w-8 h-8 rounded-full p-3 flex items-center justify-center text-white font-bold";
+
+  switch (index) {
+    case 0:
+      return `${baseClasses} bg-yellow-500`; // Gold
+    case 1:
+      return `${baseClasses} bg-gray-400`; // Silver
+    case 2:
+      return `${baseClasses} bg-yellow-600`; // Bronze
+    default:
+      return `${baseClasses} bg-gray-300 text-gray-700`;
+  }
+};
+
+const getCompletionRateColor = (rate: number): string => {
+  if (rate >= 80) return "text-green-600";
+  if (rate >= 60) return "text-blue-600";
+  if (rate >= 40) return "text-yellow-600";
+  return "text-red-600";
+};
+
+const getPerformanceBadgeColor = (
+  rate: number
+): "success" | "primary" | "warning" | "error" => {
+  if (rate >= 80) return "success";
+  if (rate >= 60) return "primary";
+  if (rate >= 40) return "warning";
+  return "error";
+};
+
+const getPerformanceLabel = (rate: number): string => {
+  if (rate >= 80) return "Excellent";
+  if (rate >= 60) return "Good";
+  if (rate >= 40) return "Fair";
+  return "Needs Improvement";
+};
+
+const handlePeriodChange = (period: string | any): void => {
+  if (typeof period === "string") {
+    selectedPeriod.value = period;
+    emit("periodChange", period);
+  } else if (period && typeof period === "object" && period.value) {
+    selectedPeriod.value = period.value;
+    emit("periodChange", period.value);
+  }
+};
+
+const handleChartClick = (params: any): void => {
+  emit("chartClick", params);
+};
+
+const viewDetails = () => {
+  emit("viewDetails");
+};
+
+const viewPerformerDetails = (performer: TeamPerformer): void => {
+  emit("viewPerformer", performer);
+};
+
+onMounted(() => {
+  // Component initialization
+});
+</script>
+
 <template>
   <UCard>
     <template #header>
@@ -239,188 +424,3 @@
     </div>
   </UCard>
 </template>
-
-<script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
-import BarChartComponent from "../charts/BarChartComponent.vue";
-
-// Define interfaces for type safety
-interface TeamPerformer {
-  id: number;
-  fullname: string;
-  is_admin: boolean;
-  completed_tasks: number;
-  total_tasks: number;
-  overdue_tasks: number;
-  completion_rate: number;
-  overdue_rate: number;
-}
-
-interface PerformanceChartData {
-  categories: string[];
-  series: {
-    name: string;
-    data: number[];
-  }[];
-}
-
-interface PerformanceSummary {
-  totalMembers: number;
-  avgCompletionRate: string;
-  totalCompleted: number;
-  totalOverdue: number;
-}
-
-interface Props {
-  isLoading?: boolean;
-  teamData?: Record<string, any>;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  isLoading: false,
-  teamData: () => ({}),
-});
-
-const emit = defineEmits([
-  "viewDetails",
-  "viewPerformer",
-  "periodChange",
-  "chartClick",
-]);
-
-const dashboardStore = useDashboardStore();
-const { teamAnalytics } = storeToRefs(dashboardStore);
-
-const selectedPeriod = ref("current_month");
-
-const periodOptions = [
-  { label: "This Week", value: "current_week" },
-  { label: "This Month", value: "current_month" },
-  { label: "Last 3 Months", value: "quarter" },
-  { label: "This Year", value: "year" },
-];
-
-const topPerformers = computed((): TeamPerformer[] => {
-  return (
-    teamAnalytics.value?.user_performance
-      ?.sort(
-        (a: TeamPerformer, b: TeamPerformer) =>
-          b.completion_rate - a.completion_rate
-      )
-      ?.slice(0, 5) || []
-  );
-});
-
-const performanceChartData = computed((): PerformanceChartData | null => {
-  if (!teamAnalytics.value?.user_performance?.length) return null;
-
-  const users = teamAnalytics.value.user_performance;
-
-  return {
-    categories: users.map((user: TeamPerformer) => user.fullname),
-    series: [
-      {
-        name: "Completion Rate",
-        data: users.map((user: TeamPerformer) => user.completion_rate),
-      },
-      {
-        name: "Overdue Rate",
-        data: users.map((user: TeamPerformer) => user.overdue_rate),
-      },
-    ],
-  };
-});
-
-const performanceSummary = computed((): PerformanceSummary | null => {
-  if (!teamAnalytics.value?.user_performance?.length) return null;
-
-  const users = teamAnalytics.value.user_performance;
-  const totalMembers = users.length;
-  const avgCompletionRate = (
-    users.reduce(
-      (sum: number, user: TeamPerformer) => sum + user.completion_rate,
-      0
-    ) / totalMembers
-  ).toFixed(1);
-  const totalCompleted = users.reduce(
-    (sum: number, user: TeamPerformer) => sum + user.completed_tasks,
-    0
-  );
-  const totalOverdue = users.reduce(
-    (sum: number, user: TeamPerformer) => sum + user.overdue_tasks,
-    0
-  );
-
-  return {
-    totalMembers,
-    avgCompletionRate,
-    totalCompleted,
-    totalOverdue,
-  };
-});
-
-const getRankBadgeClasses = (index: number): string => {
-  const baseClasses =
-    "w-8 h-8 rounded-full p-3 flex items-center justify-center text-white font-bold";
-
-  switch (index) {
-    case 0:
-      return `${baseClasses} bg-yellow-500`; // Gold
-    case 1:
-      return `${baseClasses} bg-gray-400`; // Silver
-    case 2:
-      return `${baseClasses} bg-yellow-600`; // Bronze
-    default:
-      return `${baseClasses} bg-gray-300 text-gray-700`;
-  }
-};
-
-const getCompletionRateColor = (rate: number): string => {
-  if (rate >= 80) return "text-green-600";
-  if (rate >= 60) return "text-blue-600";
-  if (rate >= 40) return "text-yellow-600";
-  return "text-red-600";
-};
-
-const getPerformanceBadgeColor = (
-  rate: number
-): "success" | "primary" | "warning" | "error" => {
-  if (rate >= 80) return "success";
-  if (rate >= 60) return "primary";
-  if (rate >= 40) return "warning";
-  return "error";
-};
-
-const getPerformanceLabel = (rate: number): string => {
-  if (rate >= 80) return "Excellent";
-  if (rate >= 60) return "Good";
-  if (rate >= 40) return "Fair";
-  return "Needs Improvement";
-};
-
-const handlePeriodChange = (period: string | any): void => {
-  if (typeof period === "string") {
-    selectedPeriod.value = period;
-    emit("periodChange", period);
-  } else if (period && typeof period === "object" && period.value) {
-    selectedPeriod.value = period.value;
-    emit("periodChange", period.value);
-  }
-};
-
-const handleChartClick = (params: any): void => {
-  emit("chartClick", params);
-};
-
-const viewDetails = () => {
-  emit("viewDetails");
-};
-
-const viewPerformerDetails = (performer: TeamPerformer): void => {
-  emit("viewPerformer", performer);
-};
-
-onMounted(() => {
-  // Component initialization
-});
-</script>

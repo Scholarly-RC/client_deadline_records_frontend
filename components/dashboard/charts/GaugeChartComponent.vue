@@ -1,61 +1,3 @@
-<template>
-  <UCard>
-    <template #header>
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
-        <div class="flex items-center gap-2">
-          <!-- Gauge Style Toggle -->
-          <USelectMenu 
-            v-if="showStyleToggle"
-            v-model="gaugeStyle" 
-            :options="styleOptions"
-            size="sm"
-            @update:model-value="handleStyleChange"
-          />
-          <!-- Export Button -->
-          <UButton 
-            v-if="showExport"
-            @click="() => exportChart()" 
-            variant="ghost" 
-            size="sm"
-            icon="mdi:download"
-          >
-            Export
-          </UButton>
-        </div>
-      </div>
-    </template>
-    
-    <div>
-      <VChart 
-        ref="chartRef"
-        :option="chartOption" 
-        :autoresize="true" 
-        :loading="isLoading"
-        :style="{ height: height }"
-        @click="handleChartClick"
-        class="w-full"
-      />
-      
-      <!-- Additional Info -->
-      <div v-if="showDetails" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="text-center">
-          <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ formattedValue }}</div>
-          <div class="text-sm text-gray-500 dark:text-gray-400">Current Value</div>
-        </div>
-        <div class="text-center">
-          <div class="text-lg font-medium text-green-600 dark:text-green-400">{{ max }}</div>
-          <div class="text-sm text-gray-500 dark:text-gray-400">Target</div>
-        </div>
-        <div class="text-center">
-          <div :class="performanceClass" class="text-lg font-medium">{{ performanceLabel }}</div>
-          <div class="text-sm text-gray-500 dark:text-gray-400">Performance</div>
-        </div>
-      </div>
-    </div>
-  </UCard>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import type { ComposeOption } from 'echarts/core'
@@ -155,15 +97,15 @@ const performanceClass = computed<string>(() => {
 const chartOption = computed<ECOption>(() => {
   const range = props.max - props.min
   const normalizedValue = ((props.value - props.min) / range) * 100
-  
+
   // Generate color stops for gauge
   const axisLineColorStops: [number, string][] = props.thresholds.map((threshold) => {
     const normalizedThreshold = ((threshold.value - props.min) / range)
     return [normalizedThreshold, threshold.color]
   })
-  
+
   let startAngle: number, endAngle: number, center: [string, string], radius: string
-  
+
   switch (gaugeStyle.value) {
     case 'circle':
       startAngle = 0
@@ -274,7 +216,7 @@ const handleChartClick = (params: any): void => {
     value: params.value as number | number[],
     color: params.color || ''
   }
-  
+
   emit('click', chartParams)
 }
 
@@ -296,19 +238,19 @@ const exportChart = (): void => {
         console.warn('Chart instance not available for export')
         return
       }
-      
+
       const dataURL = chartInstance.getDataURL({
         type: 'png',
         pixelRatio: 2,
         backgroundColor: '#fff'
       })
-      
+
       // Create download link
       const link = document.createElement('a')
       link.download = `${props.title.replace(/\s+/g, '_').toLowerCase()}_gauge.png`
       link.href = dataURL
       link.click()
-      
+
       emit('export', dataURL)
     } catch (error) {
       console.error('Export failed:', error)
@@ -357,24 +299,24 @@ watch(gaugeStyle, async () => {
 onMounted(async () => {
   // Wait for component to be fully mounted
   await nextTick()
-  
+
   // Initialize chart with retry logic
   const initializeChart = async (retries = 3) => {
     if (chartRef.value && typeof chartRef.value.getEchartsInstance === 'function') {
       try {
         const chartInstance = chartRef.value.getEchartsInstance()
-        
+
         if (!chartInstance && retries > 0) {
           // Chart not ready yet, retry after a short delay
           setTimeout(() => initializeChart(retries - 1), 100)
           return
         }
-        
+
         if (!chartInstance) {
           console.error('Failed to get ECharts instance after retries')
           return
         }
-        
+
         // Handle window resize
         const handleResize = () => {
           try {
@@ -383,13 +325,13 @@ onMounted(async () => {
             console.error('Chart resize failed:', error)
           }
         }
-        
+
         window.addEventListener('resize', handleResize)
-        
+
         onUnmounted(() => {
           window.removeEventListener('resize', handleResize)
         })
-        
+
       } catch (error) {
         console.error('Chart initialization failed:', error)
         if (retries > 0) {
@@ -400,7 +342,65 @@ onMounted(async () => {
       setTimeout(() => initializeChart(retries - 1), 100)
     }
   }
-  
+
   await initializeChart()
 })
 </script>
+
+<template>
+  <UCard>
+    <template #header>
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
+        <div class="flex items-center gap-2">
+          <!-- Gauge Style Toggle -->
+          <USelectMenu
+            v-if="showStyleToggle"
+            v-model="gaugeStyle"
+            :options="styleOptions"
+            size="sm"
+            @update:model-value="handleStyleChange"
+          />
+          <!-- Export Button -->
+          <UButton
+            v-if="showExport"
+            @click="() => exportChart()"
+            variant="ghost"
+            size="sm"
+            icon="mdi:download"
+          >
+            Export
+          </UButton>
+        </div>
+      </div>
+    </template>
+
+    <div>
+      <VChart
+        ref="chartRef"
+        :option="chartOption"
+        :autoresize="true"
+        :loading="isLoading"
+        :style="{ height: height }"
+        @click="handleChartClick"
+        class="w-full"
+      />
+
+      <!-- Additional Info -->
+      <div v-if="showDetails" class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="text-center">
+          <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ formattedValue }}</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">Current Value</div>
+        </div>
+        <div class="text-center">
+          <div class="text-lg font-medium text-green-600 dark:text-green-400">{{ max }}</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">Target</div>
+        </div>
+        <div class="text-center">
+          <div :class="performanceClass" class="text-lg font-medium">{{ performanceLabel }}</div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">Performance</div>
+        </div>
+      </div>
+    </div>
+  </UCard>
+</template>

@@ -1,71 +1,3 @@
-<template>
-  <UCard :class="cardClasses">
-    <div class="flex items-center justify-between">
-      <!-- Content Section -->
-      <div class="flex-1 min-w-0">
-        <!-- Title -->
-        <p class="metric-title text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 truncate">
-          {{ title }}
-        </p>
-        
-        <!-- Value and Trend -->
-        <div class="metric-value-container flex items-center gap-2 mb-1">
-          <template v-if="isLoading">
-            <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-20"></div>
-          </template>
-          <template v-else>
-            <span class="metric-value text-2xl font-bold text-gray-900 dark:text-white">
-              {{ formattedValue }}
-            </span>
-            <TrendIndicator v-if="trend && showTrend" :trend="trend" />
-          </template>
-        </div>
-        
-        <!-- Subtitle -->
-        <p v-if="subtitle && !isLoading" class="metric-subtitle text-xs text-gray-500 dark:text-gray-400 truncate">
-          {{ subtitle }}
-        </p>
-        
-        <!-- Progress Bar -->
-        <div v-if="showProgress && !isLoading" class="metric-progress mt-2">
-          <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <span>Progress</span>
-            <span>{{ progressPercentage }}%</span>
-          </div>
-          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div 
-              :class="progressBarClasses"
-              :style="{ width: `${Math.min(progressPercentage, 100)}%` }"
-              class="h-2 rounded-full transition-all duration-500 ease-out"
-            ></div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Icon Section -->
-      <div :class="iconClasses">
-        <UIcon :name="icon" class="w-8 h-8" />
-      </div>
-    </div>
-    
-    <!-- Action Button -->
-    <div v-if="actionLabel && !isLoading" class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
-      <UButton 
-        :label="actionLabel"
-        variant="ghost"
-        size="sm"
-        class="w-full justify-center"
-        @click="handleAction"
-        :disabled="actionDisabled"
-      >
-        <template v-if="actionIcon" #leading>
-          <UIcon :name="actionIcon" />
-        </template>
-      </UButton>
-    </div>
-  </UCard>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue'
 import TrendIndicator from './TrendIndicator.vue'
@@ -131,7 +63,7 @@ const cardClasses = computed(() => {
     error: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800',
     info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
   }
-  
+
   return `${base} ${variants[props.variant] || variants.default}`
 })
 
@@ -145,13 +77,13 @@ const iconClasses = computed(() => {
     indigo: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-200',
     gray: 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
   }
-  
+
   return `p-3 rounded-xl ${colors[props.iconColor] || colors.blue}`
 })
 
 const progressBarClasses = computed(() => {
   const percentage = progressPercentage.value
-  
+
   if (percentage >= 80) {
     return 'bg-green-500'
   } else if (percentage >= 60) {
@@ -170,24 +102,24 @@ const progressPercentage = computed(() => {
 
 const formattedValue = computed(() => {
   if (typeof props.value === 'string') return props.value
-  
+
   const numValue = Number(props.value)
   if (isNaN(numValue)) return props.value
-  
+
   switch (props.format) {
     case 'currency':
       return new Intl.NumberFormat(props.locale, {
         style: 'currency',
         currency: props.currency
       }).format(numValue)
-    
+
     case 'percentage':
       return new Intl.NumberFormat(props.locale, {
         style: 'percent',
         minimumFractionDigits: 1,
         maximumFractionDigits: 1
       }).format(numValue / 100)
-    
+
     case 'number':
     default:
       return new Intl.NumberFormat(props.locale).format(numValue)
@@ -199,32 +131,104 @@ const handleAction = () => {
 }
 </script>
 
+<template>
+  <UCard :class="cardClasses">
+    <div class="flex items-center justify-between">
+      <!-- Content Section -->
+      <div class="flex-1 min-w-0">
+        <!-- Title -->
+        <p class="metric-title text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 truncate">
+          {{ title }}
+        </p>
+
+        <!-- Value and Trend -->
+        <div class="metric-value-container flex items-center gap-2 mb-1">
+          <template v-if="isLoading">
+            <div class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-20"></div>
+          </template>
+          <template v-else>
+            <span class="metric-value text-2xl font-bold text-gray-900 dark:text-white">
+              {{ formattedValue }}
+            </span>
+            <TrendIndicator v-if="trend && showTrend" :trend="trend" />
+          </template>
+        </div>
+
+        <!-- Subtitle -->
+        <p v-if="subtitle && !isLoading" class="metric-subtitle text-xs text-gray-500 dark:text-gray-400 truncate">
+          {{ subtitle }}
+        </p>
+
+        <!-- Progress Bar -->
+        <div v-if="showProgress && !isLoading" class="metric-progress mt-2">
+          <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
+            <span>Progress</span>
+            <span>{{ progressPercentage }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div
+              :class="progressBarClasses"
+              :style="{ width: `${Math.min(progressPercentage, 100)}%` }"
+              class="h-2 rounded-full transition-all duration-500 ease-out"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Icon Section -->
+      <div :class="iconClasses">
+        <UIcon :name="icon" class="w-8 h-8" />
+      </div>
+    </div>
+
+    <!-- Action Button -->
+    <div v-if="actionLabel && !isLoading" class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
+      <UButton
+        :label="actionLabel"
+        variant="ghost"
+        size="sm"
+        class="w-full justify-center"
+        @click="handleAction"
+        :disabled="actionDisabled"
+      >
+        <template v-if="actionIcon" #leading>
+          <UIcon :name="actionIcon" />
+        </template>
+      </UButton>
+    </div>
+  </UCard>
+</template>
+
 <style scoped>
 @reference "tailwindcss";
 
 .metric-card {
-  @apply rounded-lg shadow-sm border overflow-hidden;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  border: 1px solid rgb(229 231 235);
+  overflow: hidden;
 }
 
 .metric-title {
-  @apply select-none;
+  user-select: none;
 }
 
 .metric-value {
-  @apply select-none;
+  user-select: none;
 }
 
 .metric-subtitle {
-  @apply select-none;
+  user-select: none;
 }
 
 .metric-progress {
-  @apply select-none;
+  user-select: none;
 }
 
 /* Hover effects */
 .metric-card:hover {
-  @apply shadow-lg transform scale-[1.02];
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  transform: scale(1.02);
 }
 
 /* Loading animation */
