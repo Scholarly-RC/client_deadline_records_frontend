@@ -243,113 +243,81 @@ onMounted(() => {
       <div class="mb-6">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <!-- Pending Approvals -->
-          <UCard>
-            <div class="flex items-center justify-between">
-              <div>
-                <template v-if="isLoading">
-                  <div
-                    class="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-12 mb-1"
-                  ></div>
-                </template>
-                <template v-else>
-                  <div
-                    class="text-2xl font-bold text-orange-600 dark:text-orange-400"
-                  >
-                    {{ workflowData?.tasks_requiring_approval || 0 }}
-                  </div>
-                </template>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  Pending Approval
-                </div>
+          <UCard class="hover:shadow-md transition-shadow duration-200">
+            <div class="flex flex-col items-center text-center p-3">
+              <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mb-2">
+                <UIcon name="mdi:clock-outline" class="w-5 h-5 text-orange-600 dark:text-orange-400" />
               </div>
-              <div
-                class="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400"
-              >
-                <UIcon name="mdi:clock-outline" class="w-5 h-5" />
+              <template v-if="isLoading">
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-8 mx-auto mb-1"></div>
+              </template>
+              <template v-else>
+                <div class="text-xl font-bold text-orange-600 dark:text-orange-400">
+                  {{ workflowData?.tasks_requiring_approval || 0 }}
+                </div>
+              </template>
+              <div class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                Pending Approval
               </div>
             </div>
           </UCard>
 
           <!-- In Progress Approvals -->
-          <UCard>
-            <div class="flex items-center justify-between">
-              <div>
-                <template v-if="isLoading">
-                  <div
-                    class="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-12 mb-1"
-                  ></div>
-                </template>
-                <template v-else>
-                  <div
-                    class="text-2xl font-bold text-blue-600 dark:text-blue-400"
-                  >
-                    {{ workflowData?.tasks_in_approval || 0 }}
-                  </div>
-                </template>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  In Review
-                </div>
+          <UCard class="hover:shadow-md transition-shadow duration-200">
+            <div class="flex flex-col items-center text-center p-3">
+              <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center mb-2">
+                <UIcon name="mdi:eye-outline" class="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <div
-                class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-              >
-                <UIcon name="mdi:eye-outline" class="w-5 h-5" />
+              <template v-if="isLoading">
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-8 mx-auto mb-1"></div>
+              </template>
+              <template v-else>
+                <div class="text-xl font-bold text-blue-600 dark:text-blue-400">
+                  {{ workflowData?.tasks_in_approval || 0 }}
+                </div>
+              </template>
+              <div class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                In Review
               </div>
             </div>
           </UCard>
 
           <!-- Approved -->
-          <UCard>
-            <div class="flex items-center justify-between">
-              <div>
-                <template v-if="isLoading">
-                  <div
-                    class="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-12 mb-1"
-                  ></div>
-                </template>
-                <template v-else>
-                  <div
-                    class="text-2xl font-bold text-green-600 dark:text-green-400"
-                  >
-                    {{ workflowData?.tasks_approved || 0 }}
-                  </div>
-                </template>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  Approved
-                </div>
+          <UCard class="hover:shadow-md transition-shadow duration-200">
+            <div class="flex flex-col items-center text-center p-3">
+              <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-2">
+                <UIcon name="mdi:check-circle-outline" class="w-5 h-5 text-green-600 dark:text-green-400" />
               </div>
-              <div
-                class="p-2 rounded-lg bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-              >
-                <UIcon name="mdi:check-circle-outline" class="w-5 h-5" />
+              <template v-if="isLoading">
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-8 mx-auto mb-1"></div>
+              </template>
+              <template v-else>
+                <div class="text-xl font-bold text-green-600 dark:text-green-400">
+                  {{ workflowData?.tasks_approved || 0 }}
+                </div>
+              </template>
+              <div class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                Approved
               </div>
             </div>
           </UCard>
 
           <!-- My Approvals -->
-          <UCard>
-            <div class="flex items-center justify-between">
-              <div>
-                <template v-if="isLoading">
-                  <div
-                    class="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-12 mb-1"
-                  ></div>
-                </template>
-                <template v-else>
-                  <div
-                    class="text-2xl font-bold text-purple-600 dark:text-purple-400"
-                  >
-                    {{ workflowData?.pending_my_approval || 0 }}
-                  </div>
-                </template>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  Awaiting Me
-                </div>
+          <UCard class="hover:shadow-md transition-shadow duration-200">
+            <div class="flex flex-col items-center text-center p-3">
+              <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center mb-2">
+                <UIcon name="mdi:account-check-outline" class="w-5 h-5 text-purple-600 dark:text-purple-400" />
               </div>
-              <div
-                class="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
-              >
-                <UIcon name="mdi:account-check-outline" class="w-5 h-5" />
+              <template v-if="isLoading">
+                <div class="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-8 mx-auto mb-1"></div>
+              </template>
+              <template v-else>
+                <div class="text-xl font-bold text-purple-600 dark:text-purple-400">
+                  {{ workflowData?.pending_my_approval || 0 }}
+                </div>
+              </template>
+              <div class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                Awaiting Me
               </div>
             </div>
           </UCard>

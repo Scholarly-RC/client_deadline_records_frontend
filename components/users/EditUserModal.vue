@@ -54,7 +54,14 @@ const {
   isSubmitting,
   resetForm,
 } = useForm({
-  initialValues: initialValues.value,
+  initialValues: {
+    firstName: "",
+    middleName: "",
+    lastName: "",
+    username: "",
+    email: "",
+    role: "",
+  },
   validationSchema,
 });
 
@@ -169,8 +176,22 @@ const onSubmit = handleSubmit(async (values) => {
 });
 
 // Watchers
-watch(initialValues, () => {
-  resetForm({ values: initialValues.value });
+watch(showModal, (newValue) => {
+  if (newValue && user.value) {
+    resetForm({ values: initialValues.value });
+  }
+});
+
+watch(user, (newUser) => {
+  if (newUser && showModal.value) {
+    resetForm({ values: initialValues.value });
+  }
+});
+
+watch(showModal, async (newValue) => {
+  if (!newValue) {
+    await userStore.getAllUsers();
+  }
 });
 
 

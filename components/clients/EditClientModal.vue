@@ -2,7 +2,7 @@
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
-import type { ClientFormData } from '~/types/entities';
+import type { ClientFormData } from "~/types/entities";
 import type { Client } from "~/types";
 
 // Stores
@@ -14,7 +14,6 @@ const clientStore = useClientStore();
 const initialValues = computed(() => ({
   name: client.value?.client_name || client.value?.name || "",
   status: client.value?.status || "",
-  category: client.value?.category || "",
   contactPerson: client.value?.contact_person || "",
   email: client.value?.email || "",
   phone: client.value?.phone_number || client.value?.phone || "",
@@ -28,14 +27,13 @@ const validationSchema = toTypedSchema(
   z.object({
     name: z.string().nonempty("Client Name is required."),
     status: z.string().nonempty("Status is required."),
-    category: z.string().nonempty("Category is required."),
     contactPerson: z.string().nonempty("Contact Person is required."),
     email: z
       .string()
       .nonempty("Email is required.")
       .email("Invalid email format."),
     phone: z.string().nonempty("Phone is required."),
-    dateOfBirth: z.string().optional(),
+    dateOfBirth: z.string().nonempty("Birthday is required."),
     address: z.string().nonempty("Address is required."),
     notes: z.string().optional(),
   })
@@ -51,20 +49,28 @@ const {
   isSubmitting,
   resetForm,
 } = useForm<ClientFormData>({
-  initialValues: initialValues.value,
+  initialValues: {
+    name: "",
+    status: "",
+    contactPerson: "",
+    email: "",
+    phone: "",
+    dateOfBirth: "",
+    address: "",
+    notes: "",
+  },
   validationSchema,
 });
 
 // Form fields
-const [name, nameAttr] = defineField("name");
-const [status, statusAttr] = defineField("status");
-const [category, categoryAttr] = defineField("category");
-const [contactPerson, contactPersonAttr] = defineField("contactPerson");
-const [email, emailAttr] = defineField("email");
-const [phone, phoneAttr] = defineField("phone");
-const [dateOfBirth, dateOfBirthAttr] = defineField("dateOfBirth");
-const [address, addressAttr] = defineField("address");
-const [notes, notesAttr] = defineField("notes");
+const [name] = defineField("name");
+const [status] = defineField("status");
+const [contactPerson] = defineField("contactPerson");
+const [email] = defineField("email");
+const [phone] = defineField("phone");
+const [dateOfBirth] = defineField("dateOfBirth");
+const [address] = defineField("address");
+const [notes] = defineField("notes");
 
 // Computed properties
 const disableSubmit = computed<boolean>(() => {
@@ -81,7 +87,6 @@ const onSubmit = handleSubmit(async (values: ClientFormData) => {
       body: {
         name: values.name,
         status: values.status,
-        category: values.category,
         contact_person: values.contactPerson,
         email: values.email,
         phone: values.phone,
@@ -117,8 +122,16 @@ const onSubmit = handleSubmit(async (values: ClientFormData) => {
 });
 
 // Watchers
-watch(initialValues, () => {
-  resetForm({ values: initialValues.value });
+watch(showModal, (newValue) => {
+  if (newValue && client.value) {
+    resetForm({ values: initialValues.value });
+  }
+});
+
+watch(client, (newClient) => {
+  if (newClient && showModal.value) {
+    resetForm({ values: initialValues.value });
+  }
 });
 </script>
 
@@ -131,11 +144,21 @@ watch(initialValues, () => {
   >
     <template #body>
       <!-- Loading overlay -->
-      <div v-if="isSubmitting" class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-10 rounded-lg">
+      <div
+        v-if="isSubmitting"
+        class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 flex items-center justify-center z-10 rounded-lg"
+      >
         <div class="text-center">
-          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
-          <p class="text-sm font-medium text-gray-900 dark:text-white">Updating client...</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Please wait while we update the client information</p>
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2"
+          />
+          <p class="text-sm font-medium text-gray-900 dark:text-white">
+            Updating client...
+          </p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">
+            Please wait while we update the client information
+          </p>
         </div>
       </div>
 
@@ -281,49 +304,20 @@ watch(initialValues, () => {
             </div>
           </div>
 
-          <!-- Category Section -->
-          <div>
-            <label
-              for="category"
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
-              Category <span class="text-red-500">*</span>
-            </label>
-            <select
-              v-model="category"
-              id="client-category"
-              name="client-category"
-              required
-              class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              <option value="">Select Category</option>
-              <option value="TOE">Tax (One Engagement)</option>
-              <option value="TRP">Tax (Regular Processing)</option>
-              <option value="CMP">Compliance</option>
-              <option value="ACC">Accounting</option>
-              <option value="AUD">Auditing</option>
-              <option value="OCC">Other Consultancy Client</option>
-            </select>
-            <p
-              v-if="errors.address"
-              class="mt-1 text-xs text-red-600 dark:text-red-400"
-            >
-              {{ errors.address }}
-            </p>
-          </div>
+
 
           <!-- Address Section -->
           <div>
             <label
-              for="notes"
+              for="address"
               class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
               Address <span class="text-red-500">*</span>
             </label>
             <textarea
               v-model="address"
-              id="notes"
-              name="notes"
+              id="address"
+              name="address"
               rows="3"
               class="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             ></textarea>
@@ -371,7 +365,7 @@ watch(initialValues, () => {
                 :class="isSubmitting ? 'h-4 w-4 animate-spin' : 'h-4 w-4'"
               />
             </template>
-            {{ isSubmitting ? 'Updating...' : 'Update Client' }}
+            {{ isSubmitting ? "Updating..." : "Update Client" }}
           </UButton>
         </div>
       </form>

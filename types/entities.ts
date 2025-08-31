@@ -211,7 +211,6 @@ export interface PaginationInfo {
 export interface ClientFormData {
   name: string;
   status: string;
-  category: string;
   contactPerson: string;
   email: string;
   phone: string;
@@ -234,19 +233,22 @@ export interface ChartSeriesData {
   color?: string;
 }
 
-// Client Birthday Data
-export interface ClientWithBirthdayInfo extends Client {
-  days_remaining?: number;
+// Client Birthday Data (matches API response structure)
+export interface ClientBirthdayInfo {
+  id?: number; // Optional ID for Reactivity
+  name: string;
+  date_of_birth: string;
+  days_remaining: number;
 }
 
 export interface ClientBirthdaysData {
-  today: ClientWithBirthdayInfo[];
-  upcoming: ClientWithBirthdayInfo[];
-  past: ClientWithBirthdayInfo[];
+  today: ClientBirthdayInfo[];
+  upcoming: ClientBirthdayInfo[];
+  past: ClientBirthdayInfo[];
 }
 
 // Utility function types
-export type GetDaysRemainingFunction = (days: number) => string;
+export type GetDaysRemainingFunction = (client: ClientBirthdayInfo) => string;
 
 // Dashboard Statistics Types
 export interface TaskStatistics {

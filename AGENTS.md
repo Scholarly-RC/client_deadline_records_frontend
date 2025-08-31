@@ -1,5 +1,8 @@
 # Agent Guidelines for Client Deadline Records Frontend
 
+## AI Restrictions
+- The AI is not allowed to run `npm run build`, `npm run dev`, or `npm run preview`. Only `npm run type-check` is permitted.
+
 ## Build/Lint/Test Commands
 
 ### Build Commands
