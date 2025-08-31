@@ -12,15 +12,21 @@ import ClientInsightsPanel from "~/components/dashboard/panels/ClientInsightsPan
 import ApprovalWorkflowPanel from "~/components/dashboard/panels/ApprovalWorkflowPanel.vue";
 import ClientBirthdays from "~/components/dashboard/ClientBirthdays.vue";
 
+// Export functionality
+
 // Type imports
 import type { Ref } from "vue";
 import type { User } from "~/types/entities";
+import { UDropdownMenu } from "#components";
 
 const dashboardStore = useDashboardStore();
 const authStore = useAuthStore();
 const { enhancedStats, performanceMetrics, isAnyLoading, selectedDateRange } =
   storeToRefs(dashboardStore);
 const { isAdmin } = storeToRefs(authStore);
+
+// Services
+const taskService = useTaskService();
 
 const isRefreshing: Ref<boolean> = ref(false);
 
@@ -48,20 +54,122 @@ const handleRefresh = async (): Promise<void> => {
 };
 
 // Export handler
-const handleExport = async (format: string): Promise<void> => {
+const handleExport = async (format: string = "csv"): Promise<void> => {
   const toast = useToast();
+  const { $apiFetch } = useNuxtApp();
 
   try {
+    // Validate date parameters
+    const startDate = selectedDateRange.value.start;
+    const endDate = selectedDateRange.value.end;
+
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+      toast.add({
+        title: "Invalid Date Range",
+        description: "Start date cannot be after end date.",
+        color: "error",
+      });
+      return;
+    }
+
+    // Show loading state
     toast.add({
       title: "Export Started",
-      description: `Your dashboard ${format.toUpperCase()} is being generated...`,
+      description: `Generating ${format.toUpperCase()} export...`,
       color: "success",
     });
-  } catch (error) {
+
+    // Prepare request body according to backend specification
+    const requestBody: any = {
+      format: format
+    };
+
+    // Add date range for CSV format
+    if (format === 'csv') {
+      if (startDate) {
+        requestBody.start_date = startDate;
+      }
+      if (endDate) {
+        requestBody.end_date = endDate;
+      }
+    }
+
+    // Use the task service exportStatistics method for consistency
+    const blob = await taskService.exportStatistics({
+      format: format as 'csv' | 'excel',
+      start_date: startDate || undefined,
+      end_date: endDate || undefined,
+    });
+
+    // Handle file download
+    const url = window.URL.createObjectURL(blob);
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().split("T")[0];
+    const extension = format === "excel" ? "xlsx" : "csv";
+    const filename = `task-statistics-${timestamp}.${extension}`;
+
+    // Create and trigger download
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
     toast.add({
-      title: "Export Failed",
-      description: "Failed to export dashboard data",
+      title: "Export Complete",
+      description: `${format.toUpperCase()} file downloaded as ${filename}`,
+      color: "success",
+    });
+  } catch (error: any) {
+    console.error("Export failed:", error);
+
+    let errorMessage = "Unable to generate export. Please try again.";
+    let errorTitle = "Export Failed";
+
+    // Handle specific HTTP error codes
+    if (error?.status) {
+      switch (error.status) {
+        case 400:
+          errorTitle = "Invalid Request";
+          errorMessage = "Please check your date parameters and try again.";
+          break;
+        case 401:
+          errorTitle = "Authentication Required";
+          errorMessage = "Please log in again to export data.";
+          break;
+        case 403:
+          errorTitle = "Access Denied";
+          errorMessage = "You don't have permission to export this data.";
+          break;
+        case 404:
+          errorTitle = "Export Not Found";
+          errorMessage = "The export endpoint is not available.";
+          break;
+        case 429:
+          errorTitle = "Too Many Requests";
+          errorMessage = "Please wait a moment before trying again.";
+          break;
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          errorTitle = "Server Error";
+          errorMessage =
+            "The server is temporarily unavailable. Please try again later.";
+          break;
+        default:
+          errorMessage = `Export failed with status ${error.status}. Please try again.`;
+      }
+    }
+
+    toast.add({
+      title: errorTitle,
+      description: errorMessage,
       color: "error",
+      duration: 5000,
     });
   }
 };
@@ -148,20 +256,18 @@ const getPriorityData = () => {
 };
 
 const getOnTimeCompletionRate = () => {
-
-
   // First try the backend field if it exists
   const backendRate = performanceMetrics?.value?.on_time_completion_rate;
-   if (backendRate !== undefined && backendRate !== null && backendRate > 0) {
-     return Math.round(backendRate);
-   }
+  if (backendRate !== undefined && backendRate !== null && backendRate > 0) {
+    return Math.round(backendRate);
+  }
 
   // Fallback: try enhancedStats path
   const fallbackRate =
     enhancedStats?.value?.performance_metrics?.on_time_completion_rate;
-   if (fallbackRate !== undefined && fallbackRate !== null && fallbackRate > 0) {
-     return Math.round(fallbackRate);
-   }
+  if (fallbackRate !== undefined && fallbackRate !== null && fallbackRate > 0) {
+    return Math.round(fallbackRate);
+  }
 
   // Calculate from available summary data
   const summary = enhancedStats.value?.summary;
@@ -170,14 +276,12 @@ const getOnTimeCompletionRate = () => {
     const completed = summary.completed || 0;
     const overdue = summary.overdue || 0;
 
-
-
     // If we have meaningful data, calculate on-time rate
     if (total > 0 && completed > 0) {
       // On-time completion rate = completed tasks / total tasks * 100
       // This assumes completed tasks are on-time (reasonable assumption)
-       const onTimeRate = (completed / total) * 100;
-       return Math.round(Math.max(0, Math.min(100, onTimeRate)));
+      const onTimeRate = (completed / total) * 100;
+      return Math.round(Math.max(0, Math.min(100, onTimeRate)));
     }
 
     // Alternative: if we have status breakdown data, use that
@@ -190,8 +294,8 @@ const getOnTimeCompletionRate = () => {
       ) as number;
 
       if (totalTasks > 0) {
-         const onTimeRate = (completedCount / totalTasks) * 100;
-         return Math.round(Math.max(0, Math.min(100, onTimeRate)));
+        const onTimeRate = (completedCount / totalTasks) * 100;
+        return Math.round(Math.max(0, Math.min(100, onTimeRate)));
       }
     }
   }
@@ -205,13 +309,13 @@ const getOnTimeCompletionRate = () => {
       (user: any) => user.completion_rate && user.completion_rate > 80 // Assume >80% is on-time
     ).length;
 
-     if (totalUsers > 0) {
-       const rate = Math.round((onTimeUsers / totalUsers) * 100);
-       return rate;
-     }
+    if (totalUsers > 0) {
+      const rate = Math.round((onTimeUsers / totalUsers) * 100);
+      return rate;
+    }
   }
 
-   return 0;
+  return 0;
 };
 
 const getDueTodayTrend = () => {
@@ -231,20 +335,18 @@ const getDueTodayTrend = () => {
 };
 
 const getAverageCompletionDays = () => {
-
-
   // First try the backend field if it exists
   const backendDays = performanceMetrics?.value?.average_completion_days;
-   if (backendDays !== undefined && backendDays !== null && backendDays > 0) {
-     return Math.round(backendDays);
-   }
+  if (backendDays !== undefined && backendDays !== null && backendDays > 0) {
+    return Math.round(backendDays);
+  }
 
   // Fallback: try enhancedStats path
   const fallbackDays =
     enhancedStats?.value?.performance_metrics?.average_completion_days;
-   if (fallbackDays !== undefined && fallbackDays !== null && fallbackDays > 0) {
-     return Math.round(fallbackDays);
-   }
+  if (fallbackDays !== undefined && fallbackDays !== null && fallbackDays > 0) {
+    return Math.round(fallbackDays);
+  }
 
   // Try to estimate from summary data
   const summary = enhancedStats.value?.summary;
@@ -252,8 +354,6 @@ const getAverageCompletionDays = () => {
     const completed = summary.completed || 0;
     const total = summary.total || 0;
     const overdue = summary.overdue || 0;
-
-
 
     if (completed > 0) {
       // Better estimate: use completion rate to estimate average days
@@ -276,7 +376,7 @@ const getAverageCompletionDays = () => {
         estimatedDays = Math.round(estimatedDays * (1 + overdueRate * 0.5)); // Add up to 50% more time for overdue
       }
 
-       return Math.max(1, Math.min(30, estimatedDays)); // Clamp between 1-30 days
+      return Math.max(1, Math.min(30, estimatedDays)); // Clamp between 1-30 days
     }
   }
 
@@ -287,11 +387,11 @@ const getAverageCompletionDays = () => {
     // Estimate completion time based on task load
     const avgTasksPerClient = systemHealth.average_tasks_per_client;
     // Assume higher task load means longer completion times
-     const estimatedDays = Math.round(5 + avgTasksPerClient * 2);
-     return Math.max(1, Math.min(30, estimatedDays));
+    const estimatedDays = Math.round(5 + avgTasksPerClient * 2);
+    return Math.max(1, Math.min(30, estimatedDays));
   }
 
-   return 0;
+  return 0;
 };
 
 const getSystemHealthTrendData = () => {
@@ -445,15 +545,31 @@ onUnmounted((): void => {
               >
                 Refresh
               </UButton>
-              <UButton
+              <UDropdownMenu
                 v-if="isAdmin"
-                @click="handleExport('pdf')"
-                variant="outline"
-                size="sm"
-                icon="mdi:download"
+                :items="[
+                  {
+                    label: 'Export as CSV',
+                    icon: 'mdi:file-delimited',
+                    onSelect: () => handleExport('csv'),
+                  },
+                  {
+                    label: 'Export as Excel',
+                    icon: 'mdi:file-excel',
+                    onSelect: () => handleExport('excel'),
+                  },
+                ]"
+                mode="click"
               >
-                Export
-              </UButton>
+                <UButton
+                  variant="outline"
+                  size="sm"
+                  icon="mdi:download"
+                  trailing-icon="mdi:chevron-down"
+                >
+                  Export
+                </UButton>
+              </UDropdownMenu>
             </div>
           </div>
           <div

@@ -399,16 +399,16 @@ defineExpose({
       <div>
         <h2 class="text-2xl font-bold text-gray-900">{{ title }}</h2>
       </div>
-      <div class="flex space-x-3">
-        <UButton
-          icon="i-heroicons-arrow-path-20-solid"
-          @click="refreshData"
-          :loading="isLoading"
-          variant="outline"
-        >
-          Refresh
-        </UButton>
-      </div>
+       <div class="flex space-x-3">
+         <UButton
+           icon="i-heroicons-arrow-path-20-solid"
+           @click="refreshData"
+           :loading="isLoading"
+           variant="outline"
+         >
+           Refresh
+         </UButton>
+       </div>
     </div>
 
     <!-- Filters -->

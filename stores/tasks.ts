@@ -565,12 +565,25 @@ export const useTaskStore = defineStore('taskStore', {
     },
 
     /**
-     * Set category filter and refetch
-     */
+      * Set category filter and refetch
+      */
     async setCategoryFilter(category: string | undefined): Promise<void> {
       this.filters.category = category as TaskCategory;
       this.filters.page = 1;
       await this.fetchTasks();
+    },
+
+    /**
+     * Export task statistics
+     */
+    async exportStatistics(exportData: { format: 'csv' | 'excel'; start_date?: string; end_date?: string }): Promise<Blob> {
+      try {
+        const taskService = useTaskService();
+        return await taskService.exportStatistics(exportData);
+      } catch (error) {
+        console.error('Error exporting statistics:', error);
+        throw error;
+      }
     },
   },
 });

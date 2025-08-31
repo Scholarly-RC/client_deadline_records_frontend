@@ -126,21 +126,48 @@ export const useTaskService = () => {
   };
 
   /**
-     * Get task statistics with optional date range filtering
-     */
-   const getTaskStatistics = async (filters?: { start_date?: string; end_date?: string }): Promise<any> => {
-     const params = new URLSearchParams();
+      * Get task statistics with optional date range filtering
+      */
+    const getTaskStatistics = async (filters?: { start_date?: string; end_date?: string }): Promise<any> => {
+      const params = new URLSearchParams();
 
-     if (filters?.start_date) {
-       params.append('start_date', filters.start_date);
-     }
-     if (filters?.end_date) {
-       params.append('end_date', filters.end_date);
-     }
+      if (filters?.start_date) {
+        params.append('start_date', filters.start_date);
+      }
+      if (filters?.end_date) {
+        params.append('end_date', filters.end_date);
+      }
 
-     const url = `/api/tasks/statistics/${params.toString() ? '?' + params.toString() : ''}`;
-     return await $apiFetch<any>(url, { method: 'GET' });
-   };
+      const url = `/api/tasks/statistics/${params.toString() ? '?' + params.toString() : ''}`;
+      return await $apiFetch<any>(url, { method: 'GET' });
+    };
+
+  /**
+   * Export task statistics in CSV or Excel format
+   */
+  const exportStatistics = async (exportData: { format: 'csv' | 'excel'; start_date?: string; end_date?: string }): Promise<Blob> => {
+    // Prepare request body based on format
+    const requestBody: any = {
+      format: exportData.format
+    };
+
+    // Add date range for CSV format
+    if (exportData.format === 'csv') {
+      if (exportData.start_date) {
+        requestBody.start_date = exportData.start_date;
+      }
+      if (exportData.end_date) {
+        requestBody.end_date = exportData.end_date;
+      }
+    }
+
+    // Use $apiFetch for consistency with other API calls
+    return await $apiFetch<Blob>('/api/tasks/export-statistics/', {
+      method: 'POST',
+      body: requestBody,
+      responseType: 'blob', // Handle file download
+    });
+  };
 
   /**
     * Mark task as completed
@@ -247,6 +274,7 @@ export const useTaskService = () => {
     getOverdueTasks,
     getTasksDueSoon,
     getTaskStatistics,
+    exportStatistics,
     markTaskCompleted,
     updateTaskDeadline,
 
