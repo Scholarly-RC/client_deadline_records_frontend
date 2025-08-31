@@ -148,31 +148,20 @@ const getPriorityData = () => {
 };
 
 const getOnTimeCompletionRate = () => {
-  // Debug: Log the data we're working with
-  console.log(
-    "getOnTimeCompletionRate - performanceMetrics:",
-    performanceMetrics?.value
-  );
-  console.log("getOnTimeCompletionRate - enhancedStats:", enhancedStats?.value);
-  console.log(
-    "getOnTimeCompletionRate - enhancedStats perf metrics:",
-    enhancedStats?.value?.performance_metrics
-  );
+
 
   // First try the backend field if it exists
   const backendRate = performanceMetrics?.value?.on_time_completion_rate;
-  if (backendRate !== undefined && backendRate !== null && backendRate > 0) {
-    console.log("getOnTimeCompletionRate - using backend rate:", backendRate);
-    return Math.round(backendRate);
-  }
+   if (backendRate !== undefined && backendRate !== null && backendRate > 0) {
+     return Math.round(backendRate);
+   }
 
   // Fallback: try enhancedStats path
   const fallbackRate =
     enhancedStats?.value?.performance_metrics?.on_time_completion_rate;
-  if (fallbackRate !== undefined && fallbackRate !== null && fallbackRate > 0) {
-    console.log("getOnTimeCompletionRate - using fallback rate:", fallbackRate);
-    return Math.round(fallbackRate);
-  }
+   if (fallbackRate !== undefined && fallbackRate !== null && fallbackRate > 0) {
+     return Math.round(fallbackRate);
+   }
 
   // Calculate from available summary data
   const summary = enhancedStats.value?.summary;
@@ -181,25 +170,14 @@ const getOnTimeCompletionRate = () => {
     const completed = summary.completed || 0;
     const overdue = summary.overdue || 0;
 
-    console.log(
-      "getOnTimeCompletionRate - total:",
-      total,
-      "completed:",
-      completed,
-      "overdue:",
-      overdue
-    );
+
 
     // If we have meaningful data, calculate on-time rate
     if (total > 0 && completed > 0) {
       // On-time completion rate = completed tasks / total tasks * 100
       // This assumes completed tasks are on-time (reasonable assumption)
-      const onTimeRate = (completed / total) * 100;
-      console.log(
-        "getOnTimeCompletionRate - calculated onTimeRate:",
-        onTimeRate
-      );
-      return Math.round(Math.max(0, Math.min(100, onTimeRate)));
+       const onTimeRate = (completed / total) * 100;
+       return Math.round(Math.max(0, Math.min(100, onTimeRate)));
     }
 
     // Alternative: if we have status breakdown data, use that
@@ -212,12 +190,8 @@ const getOnTimeCompletionRate = () => {
       ) as number;
 
       if (totalTasks > 0) {
-        const onTimeRate = (completedCount / totalTasks) * 100;
-        console.log(
-          "getOnTimeCompletionRate - using status breakdown:",
-          onTimeRate
-        );
-        return Math.round(Math.max(0, Math.min(100, onTimeRate)));
+         const onTimeRate = (completedCount / totalTasks) * 100;
+         return Math.round(Math.max(0, Math.min(100, onTimeRate)));
       }
     }
   }
@@ -231,15 +205,13 @@ const getOnTimeCompletionRate = () => {
       (user: any) => user.completion_rate && user.completion_rate > 80 // Assume >80% is on-time
     ).length;
 
-    if (totalUsers > 0) {
-      const rate = Math.round((onTimeUsers / totalUsers) * 100);
-      console.log("getOnTimeCompletionRate - using team analytics:", rate);
-      return rate;
-    }
+     if (totalUsers > 0) {
+       const rate = Math.round((onTimeUsers / totalUsers) * 100);
+       return rate;
+     }
   }
 
-  console.log("getOnTimeCompletionRate - returning 0");
-  return 0;
+   return 0;
 };
 
 const getDueTodayTrend = () => {
@@ -259,33 +231,20 @@ const getDueTodayTrend = () => {
 };
 
 const getAverageCompletionDays = () => {
-  // Debug: Log the data we're working with
-  console.log(
-    "getAverageCompletionDays - performanceMetrics:",
-    performanceMetrics?.value
-  );
-  console.log(
-    "getAverageCompletionDays - enhancedStats:",
-    enhancedStats?.value
-  );
+
 
   // First try the backend field if it exists
   const backendDays = performanceMetrics?.value?.average_completion_days;
-  if (backendDays !== undefined && backendDays !== null && backendDays > 0) {
-    console.log("getAverageCompletionDays - using backend days:", backendDays);
-    return Math.round(backendDays);
-  }
+   if (backendDays !== undefined && backendDays !== null && backendDays > 0) {
+     return Math.round(backendDays);
+   }
 
   // Fallback: try enhancedStats path
   const fallbackDays =
     enhancedStats?.value?.performance_metrics?.average_completion_days;
-  if (fallbackDays !== undefined && fallbackDays !== null && fallbackDays > 0) {
-    console.log(
-      "getAverageCompletionDays - using fallback days:",
-      fallbackDays
-    );
-    return Math.round(fallbackDays);
-  }
+   if (fallbackDays !== undefined && fallbackDays !== null && fallbackDays > 0) {
+     return Math.round(fallbackDays);
+   }
 
   // Try to estimate from summary data
   const summary = enhancedStats.value?.summary;
@@ -294,14 +253,7 @@ const getAverageCompletionDays = () => {
     const total = summary.total || 0;
     const overdue = summary.overdue || 0;
 
-    console.log(
-      "getAverageCompletionDays - completed:",
-      completed,
-      "total:",
-      total,
-      "overdue:",
-      overdue
-    );
+
 
     if (completed > 0) {
       // Better estimate: use completion rate to estimate average days
@@ -324,13 +276,7 @@ const getAverageCompletionDays = () => {
         estimatedDays = Math.round(estimatedDays * (1 + overdueRate * 0.5)); // Add up to 50% more time for overdue
       }
 
-      console.log(
-        "getAverageCompletionDays - completionRate:",
-        completionRate,
-        "estimatedDays:",
-        estimatedDays
-      );
-      return Math.max(1, Math.min(30, estimatedDays)); // Clamp between 1-30 days
+       return Math.max(1, Math.min(30, estimatedDays)); // Clamp between 1-30 days
     }
   }
 
@@ -341,16 +287,11 @@ const getAverageCompletionDays = () => {
     // Estimate completion time based on task load
     const avgTasksPerClient = systemHealth.average_tasks_per_client;
     // Assume higher task load means longer completion times
-    const estimatedDays = Math.round(5 + avgTasksPerClient * 2);
-    console.log(
-      "getAverageCompletionDays - using system health:",
-      estimatedDays
-    );
-    return Math.max(1, Math.min(30, estimatedDays));
+     const estimatedDays = Math.round(5 + avgTasksPerClient * 2);
+     return Math.max(1, Math.min(30, estimatedDays));
   }
 
-  console.log("getAverageCompletionDays - returning 0");
-  return 0;
+   return 0;
 };
 
 const getSystemHealthTrendData = () => {
@@ -424,7 +365,7 @@ const handleNavigation = (route: string): void => {
 
 // Chart click handler
 const handleChartClick = (data: any): void => {
-  console.log("Chart clicked:", data);
+  // Handle chart click - implementation can be added here
 };
 
 // Alert action handler
@@ -434,7 +375,6 @@ const handleAlertAction = (alert: any): void => {
 
 // Modal opening handler
 const handleOpenModal = (modalType: string): void => {
-  console.log("Open modal:", modalType);
   // Implement modal opening logic
   // This would integrate with your existing modal system
 };

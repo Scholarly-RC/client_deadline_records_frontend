@@ -336,10 +336,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
         if (this.selectedDateRange.end) filters.end_date = this.selectedDateRange.end;
         const response = await taskService.getTaskStatistics(Object.keys(filters).length > 0 ? filters : undefined);
 
-        // Debug: Log the API response
-        console.log('fetchEnhancedDashboardData - API response:', response);
-        console.log('fetchEnhancedDashboardData - response keys:', Object.keys(response));
-        console.log('fetchEnhancedDashboardData - has performance_metrics:', 'performance_metrics' in response);
+
 
         // Store the complete enhanced statistics
         this.enhancedStats = response;
@@ -357,12 +354,7 @@ export const useDashboardStore = defineStore("dashboardStore", {
         this.businessIntelligence = response.business_intelligence || {};
         this.quickActions = response.quick_actions || {};
 
-        // Debug: Log extracted data
-        console.log('fetchEnhancedDashboardData - response.performance_metrics:', response.performance_metrics);
-        console.log('fetchEnhancedDashboardData - this.performanceMetrics:', this.performanceMetrics);
-        console.log('fetchEnhancedDashboardData - on_time_completion_rate:', this.performanceMetrics?.on_time_completion_rate);
-        console.log('fetchEnhancedDashboardData - average_completion_days:', this.performanceMetrics?.average_completion_days);
-        console.log('fetchEnhancedDashboardData - summary:', response.summary);
+
 
         this.lastUpdated = new Date().toISOString();
 
