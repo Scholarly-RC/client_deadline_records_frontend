@@ -1,11 +1,10 @@
-<script setup>
+<script setup lang="ts">
 // Components
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "@vee-validate/zod";
 import { z } from "zod";
 
 // Stores
-const alertStore = useAlertStore();
 const addUserStore = useAddUserStore();
 const { showModal } = storeToRefs(addUserStore);
 const userStore = useUserStore();
@@ -65,6 +64,7 @@ const disableSubmit = computed(() => {
 
 // Methods
 const onSubmit = handleSubmit(async (values) => {
+  const toast = useToast();
   try {
     const { $apiFetch } = useNuxtApp();
     const response = await $apiFetch("/api/users/", {
@@ -82,17 +82,21 @@ const onSubmit = handleSubmit(async (values) => {
     await userStore.getAllUsers();
     addUserStore.close();
     resetForm();
-    alertStore.success(
-      "User Created",
-      "New user account has been created successfully.",
-      3.5
-    );
+    toast.add({
+      title: "User Created",
+      description: "New user account has been created successfully.",
+      color: "success",
+      icon: "mdi:checkbox-multiple-marked",
+      duration: 2000,
+    });
   } catch (error) {
-    alertStore.danger(
-      "User Creation Failed",
-      `Could not create user account. ${getErrorMessage(error)}`,
-      3.5
-    );
+    toast.add({
+      title: "User Creation Failed",
+      description: `Could not create user account. ${getErrorMessage(error as any)}`,
+      color: "error",
+      icon: "mdi:close-box-multiple",
+      duration: 5000,
+    });
     console.error(error);
   }
 });

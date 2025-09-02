@@ -1,18 +1,55 @@
-<script setup>
+<script setup lang="ts">
+import { UCard } from "#components";
+import type { TaskStatistics } from '~/types/entities'
+
 const authStore = useAuthStore();
 const { isAdmin } = storeToRefs(authStore);
 const dashboardStore = useDashboardStore();
-const { stats, isLoading } = storeToRefs(dashboardStore);
+const taskStore = useTaskStore();
+const { stats, enhancedStats, overdueTasks, tasksDueSoon, isAnyLoading } =
+  storeToRefs(dashboardStore);
+
+// Computed values for unified statistics from /api/tasks/statistics/
+const totalTasks = computed((): number => enhancedStats.value?.summary?.total || 0);
+const completedTasks = computed(
+  (): number => enhancedStats.value?.summary?.completed || 0
+);
+const pendingTasks = computed((): number => enhancedStats.value?.summary?.pending || 0);
+const overdueTasksCount = computed((): number => enhancedStats.value?.summary?.overdue || 0);
+const tasksDueSoonCount = computed((): number => enhancedStats.value?.summary?.due_this_week || 0);
+const onGoingTasks = computed(
+  (): number => enhancedStats.value?.summary?.in_progress || 0
+);
+
+// Approval-related statistics
+const pendingApprovalsCount = computed((): number => taskStore.pendingApprovalsCount);
+
+// Legacy stats for backward compatibility
+const totalClients = computed((): number => (stats.value as any)?.total_clients || 0);
+const completedThisMonth = computed(
+  (): number => (stats.value as any)?.completed_deadlines || 0
+);
+
+// Task statistics by category from charts_data
+const tasksByCategory = computed(() => enhancedStats.value?.charts_data?.category_distribution || {});
+
+// Load all dashboard data on mount
+onMounted(async (): Promise<void> => {
+  await dashboardStore.loadAllDashboardData();
+  if (isAdmin.value) {
+    await taskStore.fetchPendingApprovals();
+  }
+});
 </script>
 
 <template>
-  <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+  <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
     <!-- Total Clients -->
-    <div
+    <UCard
       v-if="isAdmin"
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
-      <div class="p-6">
+      <div class="p-1">
         <div class="flex items-center justify-between">
           <div class="w-full">
             <p
@@ -20,87 +57,95 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
             >
               Total Clients
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.total_clients }}
+                {{ totalClients }}
               </p>
             </template>
           </div>
           <div
-            class="p-3 rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-200"
+            class="p-1 rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-200"
           >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-              ></path>
-            </svg>
+            <UIcon name="mdi:account-group-outline" class="w-7 h-7 mx-1 mt-1" />
           </div>
         </div>
       </div>
-    </div>
+    </UCard>
 
-    <!-- Upcoming Deadlines -->
-    <div
+    <!-- Total Tasks -->
+    <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
-      <div class="p-6">
+      <div class="p-1">
         <div class="flex items-center justify-between">
           <div class="w-full">
             <p
               class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
             >
-              Upcoming Deadlines
+              Total Tasks
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.upcoming_deadlines }}
+                {{ totalTasks }}
               </p>
             </template>
           </div>
           <div
-            class="p-3 rounded-lg bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-200"
+            class="p-1 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-200"
           >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
+            <UIcon name="mdi:format-list-bulleted" class="w-7 h-7 mx-1 mt-1" />
           </div>
         </div>
       </div>
-    </div>
+    </UCard>
 
-    <!-- Overdue Tasks -->
-    <div
+    <!-- Tasks Due Soon -->
+    <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
-      <div class="p-6">
+      <div class="p-1">
+        <div class="flex items-center justify-between">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
+              Due Soon (Next 7 Days)
+            </p>
+            <template v-if="isAnyLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ tasksDueSoonCount }}
+              </p>
+            </template>
+          </div>
+          <div
+            class="p-1 rounded-lg bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-200"
+          >
+            <UIcon name="mdi:calendar-month" class="w-7 h-7 mx-1 mt-1" />
+          </div>
+        </div>
+      </div>
+    </UCard>
+
+    <!-- Overdue Tasks -->
+    <UCard
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
+    >
+      <div class="p-1">
         <div class="flex items-center justify-between">
           <div class="w-full">
             <p
@@ -108,165 +153,196 @@ const { stats, isLoading } = storeToRefs(dashboardStore);
             >
               Overdue Tasks
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.overdue_deadlines }}
+                {{ overdueTasksCount }}
               </p>
             </template>
           </div>
           <div
-            class="p-3 rounded-lg bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200"
+            class="p-1 rounded-lg bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-200"
           >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <UIcon
+              name="mdi:calendar-alert-outline"
+              class="w-7 h-7 mx-1 mt-1"
+            />
           </div>
         </div>
       </div>
-    </div>
-    <!-- Pending Deadlines -->
-    <div
+    </UCard>
+
+    <!-- On Going Tasks -->
+    <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
-      <div class="p-6">
+      <div class="p-1">
         <div class="flex items-center justify-between">
           <div class="w-full">
             <p
               class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
             >
-              Pending Deadlines
+              On Going
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.pending_deadlines }}
+                {{ onGoingTasks }}
               </p>
             </template>
           </div>
           <div
-            class="p-3 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200"
+            class="p-1 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-200"
           >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <UIcon
+              name="mdi:calendar-clock-outline"
+              class="w-7 h-7 mx-1 mt-1"
+            />
           </div>
         </div>
       </div>
-    </div>
-    <!-- Cancelled Deadlines -->
-    <div
+    </UCard>
+
+    <!-- Pending Tasks -->
+    <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
-      <div class="p-6">
+      <div class="p-1">
         <div class="flex items-center justify-between">
           <div class="w-full">
             <p
               class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
             >
-              Cancelled Deadlines
+              Pending Tasks
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.cancelled_deadlines }}
+                {{ pendingTasks }}
               </p>
             </template>
           </div>
           <div
-            class="p-3 rounded-lg bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-200"
+            class="p-1 rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-200"
           >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 12m-9 0a9 9 0 1118 0 9 9 0 01-18 0zm6-3l6 6m0-6l-6 6"
-              />
-            </svg>
+            <UIcon
+              name="mdi:calendar-minus-outline"
+              class="w-7 h-7 mx-1 mt-1"
+            />
           </div>
         </div>
       </div>
-    </div>
-    <!-- Completed This Month -->
-    <div
+    </UCard>
+
+    <!-- Completed Tasks -->
+    <UCard
       class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
-      <div class="p-6">
+      <div class="p-1">
         <div class="flex items-center justify-between">
           <div class="w-full">
             <p
               class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
             >
-              Completed This Month
+              Completed Tasks
             </p>
-            <template v-if="isLoading">
+            <template v-if="isAnyLoading">
               <div
                 class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
               ></div>
             </template>
             <template v-else>
               <p class="text-2xl font-semibold text-gray-900 dark:text-white">
-                {{ stats.monthly_completed_deadlines }}
+                {{ completedTasks }}
               </p>
             </template>
           </div>
           <div
-            class="p-3 rounded-lg bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200"
+            class="p-1 rounded-lg bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-200"
           >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+            <UIcon
+              name="mdi:calendar-check-outline"
+              class="w-7 h-7 mx-1 mt-1"
+            />
           </div>
         </div>
       </div>
-    </div>
+    </UCard>
+
+    <!-- Pending Approvals (Admin only) -->
+    <UCard
+      v-if="isAdmin"
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
+    >
+      <div class="p-1">
+        <div class="flex items-center justify-between">
+          <div class="w-full">
+            <p
+              class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2"
+            >
+              Pending Approvals
+            </p>
+            <template v-if="isAnyLoading">
+              <div
+                class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-3/4"
+              ></div>
+            </template>
+            <template v-else>
+              <p class="text-2xl font-semibold text-gray-900 dark:text-white">
+                {{ pendingApprovalsCount }}
+              </p>
+            </template>
+          </div>
+          <div
+            class="p-1 rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900 dark:text-amber-200"
+          >
+            <UIcon
+              name="i-lucide-user-check"
+              class="w-7 h-7 mx-1 mt-1"
+            />
+          </div>
+        </div>
+      </div>
+    </UCard>
+
+    <!-- Task Category Breakdown (if admin) -->
+    <UCard
+      v-if="
+        isAdmin && tasksByCategory && Object.keys(tasksByCategory).length > 0
+      "
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden col-span-full"
+    >
+      <div class="p-4">
+        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          Tasks by Category
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div
+            v-for="(categoryData, categoryKey) in tasksByCategory"
+            :key="categoryKey"
+            class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg"
+          >
+            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">
+              {{ categoryData.display_name }}
+            </p>
+            <p class="text-xl font-semibold text-gray-900 dark:text-white">
+              {{ categoryData.count }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </UCard>
   </div>
 </template>
