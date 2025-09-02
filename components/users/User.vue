@@ -1,40 +1,43 @@
-<script setup>
+<script setup lang="ts">
+import type { User } from '~/types/entities'
+
 // Components
 import RolePill from "../ui/RolePill.vue";
 import StatusPill from "../ui/StatusPill.vue";
 
 // Props
-const props = defineProps({
-  user: Object,
-});
+interface Props {
+  user?: User
+}
+
+const props = defineProps<Props>()
 
 // Stores
 const editUserStore = useEditUserStore();
 
 // Computed
 const initials = computed(() => {
+  if (!props.user) return ""
   const firstInitial = props.user.first_name?.charAt(0) || "";
   const lastInitial = props.user.last_name?.charAt(0) || "";
   return (firstInitial + lastInitial).toUpperCase();
 });
 
 // Methods
-const handleOpenEditModal = async (id) => {
+const handleOpenEditModal = async (id: number): Promise<void> => {
   await editUserStore.editUser(id);
   editUserStore.open();
 };
 </script>
 
 <template>
-  <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+  <tr v-if="user" class="hover:bg-gray-50 dark:hover:bg-gray-700">
     <td class="px-6 py-4 whitespace-nowrap">
       <div class="flex items-center">
         <div
           class="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center"
         >
-          <span class="text-primary-600 dark:text-primary-300 font-medium">{{
-            initials
-          }}</span>
+          <span class="text-primary-600 dark:text-primary-300 font-medium">{{ initials }}</span>
         </div>
         <div class="ml-4">
           <div class="text-sm font-medium text-gray-900 dark:text-white">

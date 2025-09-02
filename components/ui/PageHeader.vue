@@ -1,10 +1,12 @@
-<script setup>
-import NotificationButton from "../notifications/NotificationButton.vue";
+<script setup lang="ts">
+import NotificationModal from "../notifications/NotificationModal.vue";
 
 // Props
-const props = defineProps({
-  page: String,
-});
+interface Props {
+  page?: string;
+}
+
+const props = defineProps<Props>();
 
 // Stores
 const sidebarStore = useSidebarStore();
@@ -37,8 +39,9 @@ const sidebarStore = useSidebarStore();
     <h1 class="text-lg font-bold text-gray-800 dark:text-white text-center">
       {{ props.page }}
     </h1>
-    <div class="flex items-center">
-      <NotificationButton />
+    <div class="flex items-center gap-4">
+      <slot name="actions" />
+      <NotificationModal />
     </div>
   </div>
 </template>

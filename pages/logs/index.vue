@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import AppLogs from "~/components/logs/AppLogs.vue";
 
 // Components

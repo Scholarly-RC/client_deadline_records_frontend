@@ -1,8 +1,10 @@
-<script setup>
+<script setup lang="ts">
 // Component Props
-const props = defineProps({
-  active: Boolean,
-});
+interface Props {
+  active: boolean;
+}
+
+const props = defineProps<Props>();
 </script>
 
 <template>
