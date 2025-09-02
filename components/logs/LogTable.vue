@@ -1,25 +1,56 @@
-<script setup>
-import Log from "./Log.vue";
-import { storeToRefs } from "pinia";
+<script setup lang="ts">
+import Pagination from "~/components/ui/Pagination.vue";
+import type { AppLog } from "~/types";
 
 const user = ref(0);
+
 const logsStore = useLogsStore();
 const userStore = useUserStore();
 
 const { logs, pagination, isLoading } = storeToRefs(logsStore);
 const { usersWithLogs } = storeToRefs(userStore);
 
+interface Column {
+  accessorKey: string;
+  header: string;
+}
+
+const columns: Column[] = [
+  {
+    accessorKey: "created_at",
+    header: "Date",
+  },
+  {
+    accessorKey: "user.fullname",
+    header: "User",
+  },
+  {
+    accessorKey: "details",
+    header: "Details",
+  },
+];
+
 // Methods
-const handleSetPage = async (page) => {
+const handleSetPage = async (page: number): Promise<void> => {
   await logsStore.setPage(page);
 };
 
-watch(user, async (value) => await logsStore.setUser(value));
+// Watchers
+watch(user, async (value: number) => await logsStore.setUser(value));
+
+// Debug - check what's in usersWithLogs
+watch(
+  usersWithLogs,
+  (newUsersWithLogs) => {
+    // Handle usersWithLogs updates
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
-  <div>
-    <!-- Action Bar -->
+  <div class="space-y-4">
+    <!-- Filter Controls -->
     <div
       class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"
     >
@@ -29,120 +60,72 @@ watch(user, async (value) => await logsStore.setUser(value));
           class="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-3 pr-10 shadow-sm appearance-none focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm dark:text-white"
         >
           <option :value="0">All Users</option>
-          <option v-for="user in usersWithLogs" :key="user.id" :value="user.id">
-            {{ user.fullname }}
+          <option v-for="u in usersWithLogs" :key="u.id" :value="u.id">
+            {{ u.fullname || "No name" }}
           </option>
         </select>
       </div>
     </div>
 
-    <!-- Logs Table -->
     <div
-      class="overflow-x-auto rounded-lg shadow-sm border border-gray-200 dark:border-gray-700"
+      class="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden"
     >
-      <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead class="bg-gray-50 dark:bg-gray-800">
-          <tr>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-            >
-              Date
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-            >
-              User
-            </th>
-            <th
-              class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-            >
-              Details
-            </th>
-          </tr>
-        </thead>
-        <tbody
-          class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700"
-        >
-          <!-- Loading State -->
-          <template v-if="isLoading">
-            <tr
-              v-for="i in 5"
-              :key="`skeleton-${i}`"
-              class="hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div
-                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-32"
-                ></div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div
-                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24"
-                ></div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div
-                  class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4"
-                ></div>
-              </td>
-            </tr>
-          </template>
-
-          <!-- Actual Content -->
-          <Log v-else v-for="log in logs" :key="log.id" :log="log" />
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div
-      class="flex flex-col sm:flex-row justify-between items-center mt-6 gap-4"
-    >
-      <div
-        v-if="isLoading"
-        class="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-48"
-      ></div>
-      <div
-        v-else-if="pagination"
-        class="text-sm text-gray-500 dark:text-gray-400"
+      <!-- Logs Table -->
+      <UTable
+        :data="logs"
+        :columns="columns"
+        :loading="isLoading"
+        class="flex-1 h-[calc(100vh-15rem)]"
+        :ui="{
+          tr: 'hover:bg-neutral-50 dark:hover:bg-neutral-700',
+        }"
       >
-        Showing <span class="font-medium">{{ pagination.item_range }}</span> of
-        <span class="font-medium">{{ pagination.count }}</span> results
-      </div>
+        <template #created_at-cell="{ row }">
+          <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {{ row.original.created_at }}
+          </div>
+        </template>
 
-      <div v-if="isLoading" class="flex space-x-2">
-        <div
-          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-20"
-        ></div>
-        <div
-          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-8"
-        ></div>
-        <div
-          class="h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse w-20"
-        ></div>
-      </div>
-      <div v-else-if="pagination" class="flex space-x-2">
-        <button
-          v-if="pagination.previous"
-          @click="handleSetPage(pagination.current_page - 1)"
-          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-        >
-          Previous
-        </button>
-        <button
-          v-if="pagination.total_pages > 1"
-          class="px-3 py-1 rounded-md border border-primary-500 bg-primary-50 dark:bg-primary-900 text-primary-600 dark:text-primary-300 font-medium"
-        >
-          {{ pagination.current_page }}
-        </button>
-        <button
-          v-if="pagination.next"
-          @click="handleSetPage(pagination.current_page + 1)"
-          class="px-3 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
-        >
-          Next
-        </button>
-      </div>
+        <template #user.fullname-cell="{ row }">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 h-8 w-8">
+              <div
+                class="h-8 w-8 rounded-full bg-primary-100 dark:bg-primary-800 flex items-center justify-center"
+              >
+                <span
+                  class="text-sm font-medium text-primary-600 dark:text-primary-300"
+                >
+                  {{
+                    row.original.user?.fullname?.charAt(0).toUpperCase() || "U"
+                  }}
+                </span>
+              </div>
+            </div>
+            <div class="ml-3">
+              <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {{ row.original.user?.fullname || "Unknown User" }}
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template #details-cell="{ row }">
+          <div
+            class="text-sm text-gray-900 dark:text-gray-100 max-w-md truncate"
+          >
+            {{ row.original.details }}
+          </div>
+        </template>
+      </UTable>
     </div>
+
+     <!-- Pagination -->
+     <Pagination
+       :pagination="pagination"
+       :is-loading="isLoading"
+       :style="'enhanced'"
+       :item-name="'log entries'"
+       :on-page-change="handleSetPage"
+     />
   </div>
 </template>

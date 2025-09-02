@@ -1,10 +1,17 @@
-<script setup>
+<script setup lang="ts">
 // Components
-import DarkModeToggle from "./DarkModeToggle.vue";
-import LogoutButton from "./LogoutButton.vue";
+import DarkModeToggle from "~/components/ui/DarkModeToggle.vue";
+import LogoutButton from "~/components/ui/LogoutButton.vue";
+import type { RouteLocationNormalizedLoaded } from "vue-router";
+
+const appTitle = ref<HTMLElement | null>(null);
+const { startTyping, stopTyping } = useTypewriter(
+  "Client Task Tracker",
+  appTitle
+);
 
 // Route
-const route = useRoute();
+const route: RouteLocationNormalizedLoaded = useRoute();
 
 // Stores
 const authStore = useAuthStore();
@@ -12,321 +19,169 @@ const { isAdmin } = storeToRefs(authStore);
 const sidebarStore = useSidebarStore();
 const { showSidebar } = storeToRefs(sidebarStore);
 
-// Link and Icon Classes
-const activeLinkClasses =
-  "bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-100";
-const inactiveLinkClasses =
-  "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700";
-const activeIconClasses = "text-primary-600 dark:text-primary-300";
-const inactiveIconClasses =
-  "text-gray-400 group-hover:text-gray-500 dark:text-gray-400 dark:group-hover:text-gray-300";
+interface NavigationItem {
+  label: string;
+  icon: string;
+  to: string;
+  adminOnly?: boolean;
+  active?: boolean;
+}
 
-// Methods
-const getLinkClasses = (path) => {
-  return route.path === path || route.path.startsWith(`${path}/`)
-    ? activeLinkClasses
-    : inactiveLinkClasses;
+// Navigation items with proper UNavigationMenu structure
+const allItems: NavigationItem[][] = [
+  [
+    {
+      label: "Dashboard",
+      icon: "i-lucide-layout-dashboard",
+      to: "/",
+    },
+    {
+      label: "Clients",
+      icon: "i-lucide-users",
+      to: "/clients",
+      adminOnly: true,
+    },
+    {
+      label: "Client Documents",
+      icon: "i-lucide-file-text",
+      to: "/client-documents",
+      adminOnly: true,
+    },
+    {
+      label: "Tasks",
+      icon: "i-lucide-calendar",
+      to: "/tasks",
+      adminOnly: true,
+    },
+    {
+      label: "My Tasks",
+      icon: "i-lucide-user-check",
+      to: "/my-tasks",
+    },
+    {
+      label: "Pending Approvals",
+      icon: "i-lucide-check-circle",
+      to: "/approvals",
+      adminOnly: true,
+    },
+    {
+      label: "Users",
+      icon: "i-lucide-user-cog",
+      to: "/users",
+      adminOnly: true,
+    },
+    {
+      label: "Logs",
+      icon: "i-lucide-list",
+      to: "/logs",
+      adminOnly: true,
+    },
+  ],
+];
+
+// Filter items based on user role and add active state
+const items = computed<NavigationItem[][]>(() => {
+  const filteredItems = isAdmin.value
+    ? allItems
+    : [
+        allItems[0].filter(
+          (item) =>
+            ["Dashboard", "My Tasks"].includes(item.label) && !item.adminOnly
+        ),
+      ];
+
+  // Add active state to items
+  return filteredItems.map((group) =>
+    group.map((item) => ({
+      ...item,
+      active: route.path === item.to || route.path.startsWith(`${item.to}/`),
+    }))
+  );
+});
+
+// Method to close mobile sidebar when navigating
+const handleMobileNavigation = (): void => {
+  if (showSidebar.value) {
+    sidebarStore.close();
+  }
 };
 
-const getIconClasses = (path) => {
-  return route.path === path || route.path.startsWith(`${path}/`)
-    ? activeIconClasses
-    : inactiveIconClasses;
-};
+onMounted(() => {
+  startTyping();
+});
+
+onUnmounted(() => {
+  stopTyping();
+});
 </script>
 
 <template>
-  <!-- Mobile sidebar -->
-  <div
-    :class="[
-      'h-screen md:hidden fixed z-40 w-80 flex left-0 bg-transparent transition-transform duration-300 ease-in-out',
-      showSidebar ? 'translate-x-0' : '-translate-x-full',
-    ]"
+  <!-- Mobile sidebar using UModal -->
+  <UModal
+    v-model:open="showSidebar"
+    title="Client Task Tracker"
+    description="Navigate to different sections of the application"
+    :ui="{
+      content: 'max-w-xs w-80 h-full',
+    }"
+    :overlay="true"
+    :transition="true"
+    class="md:hidden"
   >
-    <div
-      class="relative flex flex-col flex-1 w-full max-w-xs bg-white dark:bg-gray-800"
-      id="mobile-sidebar"
-    >
-      <div class="absolute top-0 right-0 pt-2 -mr-12">
-        <button
-          v-if="showSidebar"
-          @click="sidebarStore.close()"
-          type="button"
-          class="flex items-center justify-center w-10 h-10 ml-1 rounded-full bg-black/70 hover:bg-black/90 text-white transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white shadow-lg"
-          id="mobile-sidebar-close"
-        >
-          <span class="sr-only">Close sidebar</span>
-          <svg
-            class="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            ></path>
-          </svg>
-        </button>
+    <template #body>
+      <!-- Mobile navigation -->
+      <div class="flex-1 overflow-y-auto">
+        <UNavigationMenu
+          orientation="vertical"
+          :items="items"
+          @select="handleMobileNavigation"
+          class="w-full"
+          :ui="{
+            link: 'py-3 px-4 text-base font-medium rounded-lg transition-colors duration-200',
+            linkLeadingIcon: 'size-6 mr-3 flex-shrink-0',
+          }"
+        />
       </div>
-      <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-        <div class="flex items-center flex-shrink-0 px-4">
-          <h1 class="text-xl font-bold text-gray-800 dark:text-white">
-            Client Deadline Tracker
-          </h1>
-        </div>
-        <nav class="px-2 mt-5 space-y-1">
-          <NuxtLink
-            to="/"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M3.75 3.75h7.5v7.5h-7.5v-7.5zM12.75 3.75h7.5v7.5h-7.5v-7.5zM3.75 12.75h7.5v7.5h-7.5v-7.5zM12.75 12.75h7.5v7.5h-7.5v-7.5z"
-              />
-            </svg>
-            Dashboard
-          </NuxtLink>
-          <NuxtLink
-            to="/clients"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/clients')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/clients')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2zm5 7a2 2 0 100-4 2 2 0 000 4zm3 5H9a3 3 0 016 0z"
-              />
-            </svg>
-            Clients
-          </NuxtLink>
-          <NuxtLink
-            to="/deadlines"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/deadlines')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/deadlines')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M8 6V4m8 2V4m-9 4h10M5 8h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2zm7 5v2l1.5 1.5"
-              />
-            </svg>
-            Deadlines
-          </NuxtLink>
-          <NuxtLink
-            to="/users"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/users')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/users')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a8.25 8.25 0 0115 0v.75H4.5v-.75z"
-              />
-            </svg>
-            Users
-          </NuxtLink>
-          <NuxtLink
-            v-if="isAdmin"
-            to="/logs"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/logs')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/logs')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
-              />
-            </svg>
-            Logs
-          </NuxtLink>
-        </nav>
-      </div>
-      <div class="p-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
+    </template>
+
+    <template #footer>
+      <!-- Mobile footer -->
+      <div class="flex flex-col items-center justify-center space-y-3 w-full">
         <DarkModeToggle />
         <LogoutButton />
       </div>
-    </div>
-  </div>
+    </template>
+  </UModal>
 
-  <!-- Static sidebar for desktop -->
+  <!-- Desktop sidebar -->
   <div class="h-screen hidden md:flex md:flex-shrink-0">
     <div
       class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
+      <!-- Desktop header -->
       <div
-        class="flex items-center h-16 px-4 border-b border-gray-200 dark:border-gray-700"
+        class="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700"
       >
-        <h1 class="text-xl font-bold text-gray-800 dark:text-white">
-          Client Deadline Tracker
-        </h1>
+        <h1
+          ref="appTitle"
+          class="text-xl font-bold text-gray-800 dark:text-white"
+        ></h1>
       </div>
-      <div class="flex flex-col flex-grow px-4 py-4 overflow-y-auto">
-        <nav class="flex-1 space-y-2">
-          <NuxtLink
-            to="/"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M3.75 3.75h7.5v7.5h-7.5v-7.5zM12.75 3.75h7.5v7.5h-7.5v-7.5zM3.75 12.75h7.5v7.5h-7.5v-7.5zM12.75 12.75h7.5v7.5h-7.5v-7.5z"
-              />
-            </svg>
-            Dashboard
-          </NuxtLink>
-          <NuxtLink
-            v-if="isAdmin"
-            to="/clients"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/clients')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/clients')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2zm5 7a2 2 0 100-4 2 2 0 000 4zm3 5H9a3 3 0 016 0z"
-              />
-            </svg>
-            Clients
-          </NuxtLink>
-          <NuxtLink
-            to="/deadlines"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/deadlines')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/deadlines')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M8 6V4m8 2V4m-9 4h10M5 8h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2zm7 5v2l1.5 1.5"
-              />
-            </svg>
-            Deadlines
-          </NuxtLink>
-          <NuxtLink
-            v-if="isAdmin"
-            to="/users"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/users')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/users')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 19.5a8.25 8.25 0 0115 0v.75H4.5v-.75z"
-              />
-            </svg>
-            Users
-          </NuxtLink>
-          <NuxtLink
-            v-if="isAdmin"
-            to="/logs"
-            class="flex items-center px-2 py-2 text-base font-medium rounded-md group"
-            :class="getLinkClasses('/logs')"
-          >
-            <svg
-              class="w-6 h-6 mr-4"
-              :class="getIconClasses('/logs')"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"
-              />
-            </svg>
-            Logs
-          </NuxtLink>
-        </nav>
+
+      <!-- Desktop navigation -->
+      <div class="flex-1 overflow-y-auto p-2">
+        <UNavigationMenu
+          orientation="vertical"
+          :items="items"
+          class="w-full"
+          :ui="{
+            link: 'py-3 px-4 text-base font-medium rounded-lg transition-colors duration-200',
+            linkLeadingIcon: 'size-6 mr-3 flex-shrink-0',
+          }"
+        />
       </div>
+
+      <!-- Desktop footer -->
       <div class="p-4 space-y-3 border-t border-gray-200 dark:border-gray-700">
         <DarkModeToggle />
         <LogoutButton />
