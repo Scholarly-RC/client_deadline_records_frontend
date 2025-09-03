@@ -198,12 +198,12 @@ onMounted(() => {
             />
           </template>
           <template v-else>
-            <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-              <div class="text-center">
-                <UIcon name="mdi:chart-pie" class="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p class="text-gray-500">No workload data available</p>
-              </div>
-            </div>
+             <div class="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg">
+               <div class="text-center">
+                 <UIcon name="mdi:chart-pie" class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+                 <p class="text-gray-500 dark:text-gray-400">No workload data available</p>
+               </div>
+             </div>
           </template>
         </div>
 
@@ -229,12 +229,12 @@ onMounted(() => {
             />
           </template>
           <template v-else>
-            <div class="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-              <div class="text-center">
-                <UIcon name="mdi:chart-bar" class="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p class="text-gray-500">No completion data available</p>
-              </div>
-            </div>
+             <div class="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg">
+               <div class="text-center">
+                 <UIcon name="mdi:chart-bar" class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+                 <p class="text-gray-500 dark:text-gray-400">No completion data available</p>
+               </div>
+             </div>
           </template>
         </div>
       </div>
@@ -242,8 +242,8 @@ onMounted(() => {
       <!-- Top Clients Table -->
       <div>
         <div class="mb-4">
-          <h4 class="text-sm font-medium mb-2">Top Clients by Activity</h4>
-          <p class="text-xs text-gray-500">Clients with highest task volume and engagement</p>
+           <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Top Clients by Activity</h4>
+           <p class="text-xs text-gray-500 dark:text-gray-400">Clients with highest task volume and engagement</p>
         </div>
 
         <template v-if="isLoading">
@@ -265,12 +265,12 @@ onMounted(() => {
             <div
               v-for="client in topClients"
               :key="client.client__id"
-              class="flex items-center gap-4 p-4 rounded-lg bg-gray-50"
+               class="flex items-center gap-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800"
             >
               <!-- Client Avatar/Initial -->
               <div>
-                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span class="text-lg font-semibold text-blue-600">
+                 <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                   <span class="text-lg font-semibold text-blue-600 dark:text-blue-400">
                     {{ getClientInitials(client.client__name) }}
                   </span>
                 </div>
@@ -279,7 +279,7 @@ onMounted(() => {
               <!-- Client Info -->
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-1">
-                  <span class="text-sm font-medium">
+                   <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {{ client.client__name }}
                   </span>
                   <UBadge
@@ -290,8 +290,8 @@ onMounted(() => {
                     {{ client.client__status }}
                   </UBadge>
                 </div>
-                <div class="text-xs text-gray-500">
-                  {{ client.total_tasks }} total tasks
+                 <div class="text-xs text-gray-500 dark:text-gray-400">
+                   {{ client.total_tasks }} total tasks
                   <template v-if="client.overdue_tasks > 0">
                     • {{ client.overdue_tasks }} overdue
                   </template>
@@ -308,7 +308,7 @@ onMounted(() => {
                     {{ client.completion_rate.toFixed(1) }}%
                   </span>
                 </div>
-                <div class="w-20 bg-gray-200 rounded-full h-2">
+                 <div class="w-20 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div
                     :class="getProgressBarColor(client.completion_rate)"
                     :style="{ width: `${Math.min(client.completion_rate, 100)}%` }"
@@ -322,41 +322,41 @@ onMounted(() => {
                 <div class="text-sm font-medium text-green-600">
                   {{ client.completed_tasks }}
                 </div>
-                <div class="text-xs text-gray-500">completed</div>
+                 <div class="text-xs text-gray-500 dark:text-gray-400">completed</div>
               </div>
             </div>
           </div>
         </template>
         <template v-else>
-          <div class="h-40 flex items-center justify-center bg-gray-50 rounded-lg">
-            <div class="text-center">
-              <UIcon name="mdi:account-multiple" class="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p class="text-gray-500">No client data available</p>
-            </div>
-          </div>
+           <div class="h-40 flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded-lg">
+             <div class="text-center">
+               <UIcon name="mdi:account-multiple" class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+               <p class="text-gray-500 dark:text-gray-400">No client data available</p>
+             </div>
+           </div>
         </template>
       </div>
     </div>
 
     <!-- Client Summary -->
     <div v-if="!isLoading && clientSummary" class="mt-6 pt-6 border-t">
-      <h4 class="text-sm font-medium mb-3">Client Portfolio Summary</h4>
+       <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Client Portfolio Summary</h4>
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         <div class="summary-item text-center">
           <div class="text-2xl font-bold">{{ clientSummary.totalClients }}</div>
-          <div class="text-xs text-gray-500">Active Clients</div>
+           <div class="text-xs text-gray-500 dark:text-gray-400">Active Clients</div>
         </div>
         <div class="summary-item text-center">
           <div class="text-2xl font-bold text-blue-600">{{ clientSummary.avgTasksPerClient }}</div>
-          <div class="text-xs text-gray-500">Avg Tasks/Client</div>
+           <div class="text-xs text-gray-500 dark:text-gray-400">Avg Tasks/Client</div>
         </div>
         <div class="summary-item text-center">
           <div class="text-2xl font-bold text-green-600">{{ clientSummary.avgCompletionRate }}%</div>
-          <div class="text-xs text-gray-500">Avg Completion</div>
+           <div class="text-xs text-gray-500 dark:text-gray-400">Avg Completion</div>
         </div>
         <div class="summary-item text-center">
           <div class="text-2xl font-bold text-red-600">{{ clientSummary.totalOverdue }}</div>
-          <div class="text-xs text-gray-500">Total Overdue</div>
+           <div class="text-xs text-gray-500 dark:text-gray-400">Total Overdue</div>
         </div>
       </div>
     </div>

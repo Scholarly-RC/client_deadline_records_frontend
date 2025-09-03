@@ -13,6 +13,7 @@ const userStore = useUserStore();
 const { users, pagination, isLoading } = storeToRefs(userStore);
 const confirmationStore = useConfirmationStore();
 const editUserStore = useEditUserStore();
+const addUserStore = useAddUserStore();
 
 interface Column {
   accessorKey: string;
@@ -119,7 +120,13 @@ watchDebounced(
           :loading="isSearching"
         />
       </div>
-      <AddUserModal />
+      <UButton
+        @click="addUserStore.open()"
+        icon="mdi:account-plus-outline"
+        label="Add User"
+        size="lg"
+        color="primary"
+      />
     </div>
 
     <div

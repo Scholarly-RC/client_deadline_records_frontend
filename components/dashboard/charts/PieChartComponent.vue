@@ -9,6 +9,7 @@ import type {
 } from "echarts/components";
 import type { ECElementEvent } from "echarts";
 import { useChartInteractivity } from "~/composables/useChartInteractivity.js";
+import { useChartTheme } from "~/composables/useChartTheme.js";
 import type { ChartClickParams } from "~/types/entities";
 
 // Define the proper ECharts option type
@@ -110,6 +111,9 @@ const {
   },
 });
 
+// Theme support
+const { chartColors, tooltipConfig, legendConfig, isDark } = useChartTheme();
+
 const chartTypeOptions = [
   { label: "Pie Chart", value: "pie" },
   { label: "Donut Chart", value: "donut" },
@@ -136,10 +140,12 @@ const chartOption = computed<ECOption>(() => {
   const isRose = chartTypeSelection.value === "rose";
 
   return {
+    backgroundColor: chartColors.value.background.primary,
     title: {
       show: false,
     },
     tooltip: {
+      ...tooltipConfig.value,
       trigger: "item",
       formatter: createEnhancedTooltipFormatter("pie", {
         showClickHint: props.enableInteractivity,
@@ -166,19 +172,20 @@ const chartOption = computed<ECOption>(() => {
         data: props.data.map((item, index) => ({
           ...item,
           itemStyle: {
-            color: props.colors[index % props.colors.length],
+            color: chartColors.value.primary[index % chartColors.value.primary.length],
           },
         })),
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
             shadowOffsetX: 0,
-            shadowColor: "rgba(0, 0, 0, 0.5)",
+            shadowColor: isDark.value ? "rgba(0, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.5)",
           },
           label: {
             show: true,
             fontSize: 14,
             fontWeight: "bold",
+            color: chartColors.value.text.primary,
           },
         },
         label: {
@@ -186,11 +193,15 @@ const chartOption = computed<ECOption>(() => {
           position: "outside",
           formatter: "{b}: {c}\n({d}%)",
           fontSize: 12,
+          color: chartColors.value.text.primary,
         },
         labelLine: {
           show: !props.showLegend,
           length: 15,
           length2: 10,
+          lineStyle: {
+            color: chartColors.value.border.secondary,
+          },
         },
       },
     ],
@@ -198,7 +209,7 @@ const chartOption = computed<ECOption>(() => {
 });
 
 const getItemColor = (index: number): string => {
-  return props.colors[index % props.colors.length];
+  return chartColors.value.primary[index % chartColors.value.primary.length];
 };
 
 const calculatePercentage = (value: number): string => {
@@ -466,20 +477,21 @@ onUnmounted(() => {
               :style="{ backgroundColor: getItemColor(index) }"
               class="w-3 h-3 rounded-full"
             ></div>
-            <span class="text-sm text-gray-900 dark:text-white">
-              {{ item.display_name || item.name }}
-            </span>
+             <span class="text-sm" :style="{ color: chartColors.text.primary }">
+               {{ item.display_name || item.name }}
+             </span>
           </div>
           <div class="flex flex-col items-end">
-            <span class="text-sm font-medium text-gray-900 dark:text-white">
-              {{ item.value }}
-            </span>
-            <span
-              v-if="showPercentages"
-              class="text-xs text-gray-500 dark:text-gray-400"
-            >
-              {{ calculatePercentage(item.value) }}%
-            </span>
+             <span class="text-sm font-medium" :style="{ color: chartColors.text.primary }">
+               {{ item.value }}
+             </span>
+             <span
+               v-if="showPercentages"
+               class="text-xs"
+               :style="{ color: chartColors.text.secondary }"
+             >
+               {{ calculatePercentage(item.value) }}%
+             </span>
           </div>
         </div>
 
@@ -488,12 +500,13 @@ onUnmounted(() => {
           v-if="showTotal"
           class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-3"
         >
-          <div
-            class="flex items-center justify-between p-2 font-medium text-gray-900 dark:text-white"
-          >
-            <span class="text-sm">Total</span>
-            <span class="text-sm">{{ totalValue }}</span>
-          </div>
+           <div
+             class="flex items-center justify-between p-2 font-medium"
+             :style="{ color: chartColors.text.primary }"
+           >
+             <span class="text-sm">Total</span>
+             <span class="text-sm">{{ totalValue }}</span>
+           </div>
         </div>
       </div>
     </div>

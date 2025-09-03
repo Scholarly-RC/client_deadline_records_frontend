@@ -10,6 +10,7 @@ import type {
 } from "echarts/components";
 import type { ECElementEvent } from "echarts";
 import { useChartInteractivity } from "~/composables/useChartInteractivity.js";
+import { useChartTheme } from "~/composables/useChartTheme.js";
 import type {
   ChartData,
   DrillContext,
@@ -96,6 +97,9 @@ const {
   },
 });
 
+// Theme support
+const { chartColors, tooltipConfig, legendConfig, axisConfig, gridConfig, isDark } = useChartTheme();
+
 const orientationOptions = [
   { label: "Vertical", value: "vertical" },
   { label: "Horizontal", value: "horizontal" },
@@ -153,10 +157,12 @@ const chartOption = computed<ECOption>(() => {
   const isHorizontal = orientation.value === "horizontal";
 
   return {
+    backgroundColor: chartColors.value.background.primary,
     title: {
       show: false,
     },
     tooltip: {
+      ...tooltipConfig.value,
       trigger: "axis",
       axisPointer: {
         type: "shadow",
@@ -166,28 +172,24 @@ const chartOption = computed<ECOption>(() => {
       }),
     },
     legend: {
+      ...legendConfig.value,
       data: series.map((s) => s.name),
       bottom: 0,
     },
-    grid: {
-      left: isHorizontal ? "20%" : "5%",
-      right: "5%",
-      bottom: series.length > 1 ? "20%" : "8%",
-      top: "8%",
-      containLabel: true,
-    },
+    grid: gridConfig.value,
     xAxis: isHorizontal ? {
+      ...axisConfig.value.axisLine,
+      ...axisConfig.value.axisLabel,
       type: "value" as const,
-      axisLabel: {
-        fontSize: 11,
-      },
     } : {
+      ...axisConfig.value.axisLine,
+      ...axisConfig.value.axisLabel,
       type: "category" as const,
       data: categories,
       axisLabel: {
+        ...axisConfig.value.axisLabel,
         interval: categories.length > 8 ? 'auto' : 0,
         rotate: categories.length > 4 ? 30 : 0,
-        fontSize: 11,
         formatter: function(value: string) {
           // Truncate long labels
           return value.length > 12 ? value.substring(0, 12) + '...' : value;
@@ -195,20 +197,21 @@ const chartOption = computed<ECOption>(() => {
       },
     },
     yAxis: isHorizontal ? {
+      ...axisConfig.value.axisLine,
+      ...axisConfig.value.axisLabel,
       type: "category" as const,
       data: categories,
       axisLabel: {
-        fontSize: 11,
+        ...axisConfig.value.axisLabel,
         formatter: function(value: string) {
           // Truncate long labels for horizontal charts
           return value.length > 15 ? value.substring(0, 15) + '...' : value;
         }
       },
     } : {
+      ...axisConfig.value.axisLine,
+      ...axisConfig.value.axisLabel,
       type: "value" as const,
-      axisLabel: {
-        fontSize: 11,
-      },
     },
     series: series.map((s, index) => ({
       name: s.name,
@@ -216,12 +219,13 @@ const chartOption = computed<ECOption>(() => {
       data: s.data,
       stack: props.stack ? "total" : undefined,
       itemStyle: {
-        color: props.colors[index % props.colors.length],
+        color: chartColors.value.primary[index % chartColors.value.primary.length],
       },
       label: {
         show: props.showDataLabels,
         position: isHorizontal ? "right" : "top",
         fontSize: 11,
+        color: chartColors.value.text.primary,
       },
       emphasis: {
         focus: "series",
@@ -229,7 +233,7 @@ const chartOption = computed<ECOption>(() => {
           shadowBlur: 10,
           shadowOffsetX: 0,
           shadowOffsetY: 0,
-          shadowColor: "rgba(0, 0, 0, 0.3)",
+          shadowColor: isDark.value ? "rgba(0, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.3)",
         },
       },
     })),
