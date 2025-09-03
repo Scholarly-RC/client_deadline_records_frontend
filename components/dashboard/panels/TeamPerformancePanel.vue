@@ -220,30 +220,33 @@ onMounted(() => {
           </div>
         </template>
         <template v-else-if="performanceChartData">
-          <BarChartComponent
-            :data="performanceChartData"
-            :is-loading="isLoading"
-            :height="'280px'"
-            :show-export="false"
-            :show-orientation-toggle="false"
-            :show-sort-options="true"
-            @click="handleChartClick"
-          />
+           <BarChartComponent
+             :data="performanceChartData"
+             :is-loading="isLoading"
+             :height="'280px'"
+             :show-export="false"
+             :show-orientation-toggle="false"
+             :show-sort-options="true"
+             :colors="['#10B981', '#EF4444']"
+             @click="handleChartClick"
+           />
         </template>
         <template v-else>
           <div
-            class="h-64 flex items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg"
+            class="bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 p-8"
           >
             <div class="text-center">
               <UIcon
-                name="mdi:chart-bar"
-                class="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-2"
+                name="mdi:account-group"
+                class="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4"
               />
-              <p class="text-gray-600 dark:text-gray-400 font-medium">
-                No performance data available
-              </p>
-              <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                Check back later for team insights
+              <h5
+                class="text-lg font-medium text-gray-900 dark:text-white mb-2"
+              >
+                No Performance Data
+              </h5>
+              <p class="text-gray-600 dark:text-gray-400">
+                Team performance metrics will appear here once data is available
               </p>
             </div>
           </div>
