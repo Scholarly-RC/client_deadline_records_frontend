@@ -71,16 +71,6 @@ const onSubmit = async () => {
     };
     await userTaskStore.updateTask(category.value, task.value?.id, data);
 
-    // Show success toast
-    const toast = useToast();
-    toast.add({
-      title: "Task Status Updated",
-      description: "Task status has been updated successfully.",
-      color: "success",
-      icon: "i-lucide-check-circle",
-      duration: 3000,
-    });
-
     resetForm();
     taskUpdate.close();
   } catch (error) {
