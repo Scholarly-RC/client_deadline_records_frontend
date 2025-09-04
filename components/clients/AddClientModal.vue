@@ -97,6 +97,7 @@ const onSubmit = handleSubmit(async (values: ClientFormData) => {
 
 <template>
   <UModal
+    v-model="showModal"
     title="Add New Client"
     description="Fill in the required details to register a new client in the system."
     :ui="{ content: 'min-w-3xl' }"
@@ -309,7 +310,7 @@ const onSubmit = handleSubmit(async (values: ClientFormData) => {
             :disabled="disableSubmit || isSubmitting"
             :loading="isSubmitting"
             size="lg"
-            class="min-w-[140px]"
+            class="w-fit"
           >
             <template #leading>
               <UIcon

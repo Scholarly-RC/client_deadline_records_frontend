@@ -49,9 +49,17 @@ const refreshAllTables = async (): Promise<void> => {
   );
 };
 
-// Expose the refresh method to parent components
+// Method to refresh only the active table
+const refreshActiveTable = async (): Promise<void> => {
+  if (activeTableRef.value && typeof activeTableRef.value.refreshData === 'function') {
+    await activeTableRef.value.refreshData();
+  }
+};
+
+// Expose the refresh methods to parent components
 defineExpose({
   refreshAllTables,
+  refreshActiveTable,
 });
 
 const items: TabItem[] = [

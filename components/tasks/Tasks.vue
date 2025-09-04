@@ -26,11 +26,13 @@ const handleModalClose = () => {
   showAddTaskModal.value = false;
 };
 
-const handleModalSuccess = async () => {
+const handleModalSuccess = async (resultTask?: any) => {
   showAddTaskModal.value = false;
   // The toast is already shown by the UnifiedTaskFormModal
   // Refresh the task tables to show the new task
-  if (taskTabsRef.value?.refreshAllTables) {
+  if (taskTabsRef.value?.refreshActiveTable) {
+    await taskTabsRef.value.refreshActiveTable();
+  } else if (taskTabsRef.value?.refreshAllTables) {
     await taskTabsRef.value.refreshAllTables();
   }
 };

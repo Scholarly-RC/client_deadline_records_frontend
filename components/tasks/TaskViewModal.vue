@@ -809,7 +809,7 @@ const additionalFields = [
                     slot: `approval-${index}`,
                   }))
                 "
-                class="w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
+                class="px-4 w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden"
               >
                 <template
                   v-for="(approval, index) in taskApprovals"
@@ -1019,26 +1019,18 @@ const additionalFields = [
                     <!-- Status Change Details -->
                     <div class="flex items-center space-x-2 text-sm">
                       <div class="flex items-center space-x-1">
-                        <span
-                          class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded text-xs font-medium"
-                        >
-                          {{
-                            history.old_status_display ||
-                            getStatusLabel(history.old_status)
-                          }}
-                        </span>
+                        <StatusBadge
+                          v-if="history.old_status"
+                          :status="history.old_status"
+                        />
                         <UIcon
                           name="i-heroicons-arrow-right"
                           class="w-4 h-4 text-gray-400"
                         />
-                        <span
-                          class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-xs font-medium"
-                        >
-                          {{
-                            history.new_status_display ||
-                            getStatusLabel(history.new_status)
-                          }}
-                        </span>
+                        <StatusBadge
+                          v-if="history.new_status_display"
+                          :status="history.new_status_display"
+                        />
                       </div>
                     </div>
 

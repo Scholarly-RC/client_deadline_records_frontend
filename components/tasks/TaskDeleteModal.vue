@@ -18,7 +18,6 @@ const emit = defineEmits<{
 
 // Stores
 const taskStore = useTaskStore();
-const notificationStore = useNotificationStore();
 
 // Computed for modal state
 const isOpen = computed<boolean>({
@@ -39,9 +38,6 @@ const getCategoryLabel = (categoryValue: string): string => {
 const handleDelete = async (): Promise<void> => {
   try {
     isDeleting.value = true;
-
-    // Send notification to assigned user before deletion
-    await sendDeleteNotification();
 
     // Delete the task
     await taskStore.deleteTask(props.task.id);
@@ -81,41 +77,7 @@ const handleCancel = (): void => {
   isOpen.value = false;
 };
 
-// Send notification to assigned user
-const sendDeleteNotification = async (): Promise<void> => {
-  try {
-    const authStore = useAuthStore();
 
-    // Only send notification if task is assigned to someone other than the current user
-    if (
-      props.task.assigned_to &&
-      props.task.assigned_to !== authStore.user?.id
-    ) {
-      const notificationData = {
-        type: "task_deleted",
-        title: "Task Deleted",
-        message: `Task "${props.task.description}" has been deleted by ${authStore.user?.fullname}`,
-        task_id: props.task.id,
-        recipient_id: props.task.assigned_to,
-        data: {
-          task_id: props.task.id,
-          task_description: props.task.description,
-          client_name: props.task.client_name,
-          deleted_by: {
-            id: authStore.user?.id,
-            fullname: authStore.user?.fullname,
-          },
-          action: "deleted",
-        },
-      };
-
-      await notificationStore.createNotification(notificationData);
-    }
-  } catch (error) {
-    console.error("Error sending delete notification:", error);
-    // Don't throw error here as we still want to proceed with deletion
-  }
-};
 
 // Format deadline for display
 const formatDate = (dateString: string): string => {
