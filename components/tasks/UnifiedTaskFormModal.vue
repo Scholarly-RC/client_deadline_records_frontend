@@ -20,6 +20,7 @@ import {
   getDefaultValuesForCategory,
   getFieldsForCategory,
   isFieldRequiredForCategory,
+  getRequiredFieldsForCategory,
 } from "~/schema/task.schema";
 
 // Props
@@ -57,10 +58,22 @@ const { activeClients } = storeToRefs(clientStore);
 // Reactive state
 const editTask = ref<Task | null>(null);
 const isLoadingTask = ref(false);
-const selectedCategory = ref(
-  props.selectedCategory || null
-);
-const validationSchema = ref<any>(null);
+const selectedCategory = ref(props.selectedCategory || null);
+const validationSchema = computed(() => {
+  if (selectedCategory.value) {
+    return toTypedSchema(
+      getSchemaForCategory(selectedCategory.value as TaskCategory)
+    );
+  }
+  return null;
+});
+
+// Watch for validation schema changes
+watch(validationSchema, async (newSchema) => {
+  if (newSchema) {
+    await validate();
+  }
+});
 
 // Computed properties
 const modalOpen = computed({
@@ -157,7 +170,43 @@ const modalDescription = computed(() => {
 });
 
 const disableSubmit = computed(() => {
-  return !formMeta.value.valid || isSubmitting.value || !category.value;
+  return (
+    !formMeta.value.valid ||
+    isSubmitting.value ||
+    !areRequiredFieldsFilled.value
+  );
+});
+
+// Check if all required fields for the current category are filled
+const areRequiredFieldsFilled = computed(() => {
+  if (!category.value) return false;
+
+  // Base required fields that are always required
+  const baseRequiredFields = [
+    "client",
+    "category",
+    "description",
+    "assigned_to",
+    "priority",
+    "deadline",
+  ];
+  for (const field of baseRequiredFields) {
+    const fieldValue = values[field];
+    if (fieldValue === null || fieldValue === undefined || fieldValue === "") {
+      return false;
+    }
+  }
+
+  // Category-specific required fields
+  const categoryRequiredFields = getRequiredFieldsForCategory(category.value);
+  for (const field of categoryRequiredFields) {
+    const fieldValue = values[field];
+    if (fieldValue === null || fieldValue === undefined || fieldValue === "") {
+      return false;
+    }
+  }
+
+  return true;
 });
 
 // Form setup
@@ -170,6 +219,7 @@ const {
   isSubmitting,
   resetForm,
   setValues,
+  validate,
 } = useForm({
   initialValues: initialValues.value,
   validationSchema: validationSchema.value,
@@ -199,14 +249,6 @@ const [area] = defineField("area");
 const [period_covered] = defineField("period_covered");
 const [engagement_date] = defineField("engagement_date");
 
-const updateFormValidation = (categoryValue: string) => {
-  if (categoryValue) {
-    validationSchema.value = toTypedSchema(
-      getSchemaForCategory(categoryValue as TaskCategory)
-    );
-  }
-};
-
 const getCategoryLabel = (categoryValue: string) => {
   const choice = categoryChoices.find((c) => c.value === categoryValue);
   return choice?.label || categoryValue;
@@ -223,6 +265,13 @@ const isFieldRequired = (fieldName: string) => {
   return isFieldRequiredForCategory(fieldName, category.value);
 };
 
+// Check if a required field is empty
+const isRequiredFieldEmpty = (fieldName: string) => {
+  if (!isFieldRequired(fieldName)) return false;
+  const fieldValue = values[fieldName];
+  return fieldValue === null || fieldValue === undefined || fieldValue === "";
+};
+
 const ensureClientData = async () => {
   if (activeClients.value.length === 0) {
     await clientStore.getAllClients();
@@ -231,28 +280,29 @@ const ensureClientData = async () => {
 
 const fetchTaskData = async () => {
   if (!props.editTaskId) return;
-  
+
   isLoadingTask.value = true;
   try {
     const task = await taskStore.fetchTask(props.editTaskId);
     editTask.value = task;
     selectedCategory.value = task.category;
-    updateFormValidation(task.category);
-    
+
     // Set form values after fetching task data
     const formValues = {
       ...task,
       client: task.client,
     };
     setValues(formValues);
+    await nextTick();
+    await validate();
   } catch (error) {
-    console.error('Error fetching task:', error);
+    console.error("Error fetching task:", error);
     const toast = useToast();
     toast.add({
-      title: 'Load Error',
-      description: 'Failed to load task data.',
-      color: 'error',
-      icon: 'i-lucide-alert-circle',
+      title: "Load Error",
+      description: "Failed to load task data.",
+      color: "error",
+      icon: "i-lucide-alert-circle",
       duration: 5000,
     });
   } finally {
@@ -272,21 +322,45 @@ const setClientValue = (clientId: number) => {
 };
 
 // Event handlers
-const handleCategoryChange = (newCategory: string) => {
+const handleCategoryChange = async (newCategory: string) => {
   selectedCategory.value = newCategory;
   category.value = newCategory;
-
-  updateFormValidation(newCategory);
 
   const defaultValues = getDefaultValuesForCategory(
     newCategory as TaskCategory
   );
+
+  // Preserve existing values for fields that are still relevant
+  const preservedValues = { ...values };
+
+  // Clear values for fields that are no longer relevant to the new category
+  const newCategoryFields = getFieldsForCategory(newCategory as TaskCategory);
+  const baseFields = [
+    "client",
+    "category",
+    "description",
+    "assigned_to",
+    "priority",
+    "deadline",
+    "remarks",
+  ];
+
+  // Clear category-specific fields that don't exist in the new category
+  Object.keys(preservedValues).forEach((key) => {
+    if (!baseFields.includes(key) && !newCategoryFields.includes(key)) {
+      preservedValues[key] = null;
+    }
+  });
+
   setValues({
-    ...values,
+    ...preservedValues,
     ...defaultValues,
     category: newCategory,
     client: client.value,
   });
+
+  await nextTick();
+  await validate();
 };
 
 const onSubmit = async () => {
@@ -331,31 +405,30 @@ const onSubmit = async () => {
       });
     }
 
+    let resultTask: Task | undefined;
+
     if (isEditMode.value && editTask.value) {
-      await taskStore.updateTask(editTask.value.id, cleanedValues);
-      toast.add({
-        title: "Task Updated",
-        description: "Task updated successfully.",
-        color: "success",
-        icon: "i-lucide-check-circle",
-        duration: 3000,
-      });
+      resultTask = await taskStore.updateTask(editTask.value.id, cleanedValues);
     } else {
-      await taskStore.createTask({
+      resultTask = await taskStore.createTask({
         ...cleanedValues,
         last_update: new Date().toISOString(),
       });
-      toast.add({
-        title: "Task Created",
-        description: "Task created successfully.",
-        color: "success",
-        icon: "i-lucide-check-circle",
-        duration: 3000,
-      });
     }
 
+    // Show success toast
+    toast.add({
+      title: isEditMode.value ? "Task Updated" : "Task Created",
+      description: isEditMode.value
+        ? "The task has been successfully updated."
+        : "The task has been successfully created.",
+      color: "success",
+      icon: "i-lucide-check-circle",
+      duration: 5000,
+    });
+
     resetForm();
-    emit("success");
+    emit("success", resultTask);
     emit("clearAddDeadlineForm");
     handleClose();
   } catch (error) {
@@ -378,7 +451,7 @@ const handleClose = () => {
 // Watchers
 watch(selectedCategory, (newCategory) => {
   if (newCategory) {
-    updateFormValidation(newCategory);
+    // Validation is handled reactively through validationSchema computed property
   }
 });
 
@@ -400,6 +473,18 @@ watch(
       await ensureClientData();
       if (props.editTaskId) {
         await fetchTaskData();
+      } else if (props.selectedCategory) {
+        selectedCategory.value = props.selectedCategory;
+        category.value = props.selectedCategory;
+        const defaultValues = getDefaultValuesForCategory(
+          props.selectedCategory as TaskCategory
+        );
+        setValues({
+          ...defaultValues,
+          client: props.selectedClient,
+        });
+        await nextTick();
+        await validate();
       }
     }
   }
@@ -414,7 +499,6 @@ onMounted(async () => {
   } else if (props.selectedCategory) {
     selectedCategory.value = props.selectedCategory;
     category.value = props.selectedCategory;
-    updateFormValidation(props.selectedCategory);
 
     const defaultValues = getDefaultValuesForCategory(
       props.selectedCategory as TaskCategory
@@ -423,11 +507,13 @@ onMounted(async () => {
       ...defaultValues,
       client: props.selectedClient,
     });
+    await nextTick();
+    await validate();
   }
 
   // Initialize validation schema
   if (selectedCategory.value) {
-    updateFormValidation(selectedCategory.value);
+    // Validation is handled reactively through validationSchema computed property
   }
 });
 </script>
@@ -444,8 +530,13 @@ onMounted(async () => {
       <!-- Loading state while fetching task data -->
       <div v-if="isLoadingTask" class="flex items-center justify-center py-8">
         <div class="text-center">
-          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
-          <p class="text-sm text-gray-600 dark:text-gray-400">Loading task data...</p>
+          <UIcon
+            name="i-lucide-loader-2"
+            class="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2"
+          />
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Loading task data...
+          </p>
         </div>
       </div>
 
@@ -526,6 +617,10 @@ onMounted(async () => {
                 :rows="3"
                 class="w-full"
                 :disabled="isSubmitting"
+                :class="{
+                  'ring-red-500 border-red-500':
+                    isRequiredFieldEmpty('description'),
+                }"
               />
             </UFormField>
 
@@ -542,6 +637,10 @@ onMounted(async () => {
                 value-key="value"
                 class="w-full"
                 :disabled="isSubmitting"
+                :class="{
+                  'ring-red-500 border-red-500':
+                    isRequiredFieldEmpty('priority'),
+                }"
               />
             </UFormField>
 
@@ -560,6 +659,10 @@ onMounted(async () => {
                   placeholder="Select User"
                   class="w-full"
                   :disabled="isSubmitting"
+                  :class="{
+                    'ring-red-500 border-red-500':
+                      isRequiredFieldEmpty('assigned_to'),
+                  }"
                 />
               </UFormField>
 
@@ -589,6 +692,10 @@ onMounted(async () => {
                   type="date"
                   class="w-full"
                   :disabled="isSubmitting"
+                  :class="{
+                    'ring-red-500 border-red-500':
+                      isRequiredFieldEmpty('deadline'),
+                  }"
                 />
               </UFormField>
             </div>
@@ -617,6 +724,10 @@ onMounted(async () => {
                     :rows="4"
                     class="w-full"
                     :disabled="isSubmitting"
+                    :class="{
+                      'ring-red-500 border-red-500':
+                        isRequiredFieldEmpty('steps'),
+                    }"
                   />
                 </UFormField>
 

@@ -299,7 +299,43 @@ export const useTaskStore = defineStore('taskStore', {
       try {
         const taskService = useTaskService();
         const newTask = await taskService.createTask(taskData);
-        await this.fetchTasks(); // Refresh the list
+
+        // Add the new task to the local tasks array if it matches current filters
+        const taskListItem: TaskList = {
+          id: newTask.id,
+          client_name: newTask.client_detail?.name || newTask.client_detail?.client_name || '',
+          client_detail: newTask.client_detail,
+          category: newTask.category,
+          category_display: newTask.category, // Will be formatted by component
+          description: newTask.description,
+          status: newTask.status,
+          assigned_to: newTask.assigned_to,
+          assigned_to_name: newTask.assigned_to_detail?.fullname || '',
+          priority: newTask.priority,
+          deadline: newTask.deadline,
+          engagement_date: newTask.engagement_date || '',
+          completion_date: newTask.completion_date || '',
+          last_update: newTask.last_update || '',
+          deadline_days_remaining: 0, // Will be calculated by the component
+          remarks: newTask.remarks,
+          period_covered: newTask.period_covered,
+          tax_payable: newTask.tax_payable,
+          category_specific_fields: newTask.category_specific_fields,
+          pending_approver: newTask.pending_approver,
+          current_approval_step: newTask.current_approval_step,
+          requires_approval: newTask.requires_approval,
+          all_approvers: [], // Will be populated by API if needed
+        };
+
+        // Only add to local array if it matches the current category filter
+        if (!this.filters.category || this.filters.category === newTask.category) {
+          // Check if task already exists (shouldn't happen for new tasks)
+          const existingIndex = this.tasks.findIndex(task => task.id === newTask.id);
+          if (existingIndex === -1) {
+            this.tasks.unshift(taskListItem); // Add to beginning of array
+          }
+        }
+
         return newTask;
       } catch (error) {
         console.error('Error creating task:', error);
@@ -317,7 +353,8 @@ export const useTaskStore = defineStore('taskStore', {
       try {
         const taskService = useTaskService();
         const updatedTask = await taskService.updateTask(taskId, taskData);
-        await this.fetchTasks(); // Refresh the list
+        // Don't refresh here - let individual components handle their own refresh
+        // to preserve their specific filters
         return updatedTask;
       } catch (error) {
         console.error('Error updating task:', error);
@@ -335,7 +372,8 @@ export const useTaskStore = defineStore('taskStore', {
       try {
         const taskService = useTaskService();
         await taskService.deleteTask(taskId);
-        await this.fetchTasks(); // Refresh the list
+        // Don't refresh here - let individual components handle their own refresh
+        // to preserve their specific filters
       } catch (error) {
         console.error('Error deleting task:', error);
         throw error;
@@ -437,7 +475,8 @@ export const useTaskStore = defineStore('taskStore', {
       try {
         const taskService = useTaskService();
         const updatedTask = await taskService.markTaskCompleted(taskId, completionData);
-        await this.fetchTasks(); // Refresh the list
+        // Don't refresh here - let individual components handle their own refresh
+        // to preserve their specific filters
         return updatedTask;
       } catch (error) {
         console.error('Error marking task as completed:', error);
@@ -453,7 +492,8 @@ export const useTaskStore = defineStore('taskStore', {
       try {
         const taskService = useTaskService();
         const updatedTask = await taskService.initiateApproval(taskId, approvalData);
-        await this.fetchTasks(); // Refresh the list
+        // Don't refresh here - let individual components handle their own refresh
+        // to preserve their specific filters
         return updatedTask;
       } catch (error) {
         console.error('Error initiating approval:', error);
@@ -471,7 +511,8 @@ export const useTaskStore = defineStore('taskStore', {
       try {
         const taskService = useTaskService();
         const updatedTask = await taskService.processApproval(taskId, approvalData);
-        await this.fetchTasks(); // Refresh the list
+        // Don't refresh here - let individual components handle their own refresh
+        // to preserve their specific filters
         return updatedTask;
       } catch (error) {
         console.error('Error processing approval:', error);

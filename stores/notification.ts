@@ -128,7 +128,7 @@ export const useNotificationStore = defineStore("notificationStore", {
       try {
         this.isLoading = true;
         const { $apiFetch } = useNuxtApp();
-        const response: any = await $apiFetch(
+        await $apiFetch(
           `/api/notifications/${id}/mark-as-read/`,
           {
             method: "POST",
@@ -151,30 +151,6 @@ export const useNotificationStore = defineStore("notificationStore", {
         console.error(error);
       } finally {
         this.isLoading = false;
-      }
-    },
-    
-    async createNotification(notificationData: any): Promise<any> {
-      try {
-        const { $apiFetch } = useNuxtApp();
-        const response: any = await $apiFetch(
-          `/api/notifications/`,
-          {
-            method: "POST",
-            body: notificationData,
-          }
-        );
-        
-        // Optionally refresh notifications if the current user is the recipient
-        const authStore = useAuthStore();
-        if (notificationData.recipient_id === authStore.user?.id) {
-          await this.refreshNotifications();
-        }
-        
-        return response;
-      } catch (error: any) {
-        console.error('Error creating notification:', error);
-        throw error;
       }
     },
   },

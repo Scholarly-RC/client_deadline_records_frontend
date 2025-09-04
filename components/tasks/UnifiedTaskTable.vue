@@ -129,14 +129,17 @@ const columns = [
 // Methods
 const refreshData = async () => {
   try {
-    // Set up initial filters based on props
-    if (props.showUserTasksOnly && authStore.user?.id) {
-      await taskStore.setAssigneeFilter(authStore.user.id);
+    // Set filters directly without triggering fetches
+    if (props.category) {
+      taskStore.filters.category = props.category as any;
     }
 
-    if (props.category) {
-      await taskStore.setCategoryFilter(props.category);
+    if (props.showUserTasksOnly && authStore.user?.id) {
+      taskStore.filters.assigned_to = authStore.user.id;
     }
+
+    // Reset to first page for fresh data
+    taskStore.filters.page = 1;
 
     // Fetch tasks with current filters
     await taskStore.fetchTasks();
@@ -165,7 +168,7 @@ const handleDeleteSuccess = async () => {
   await refreshData();
 };
 
-const handleEditSuccess = async () => {
+const handleEditSuccess = async (updatedTask?: Task) => {
   await refreshData();
 };
 
